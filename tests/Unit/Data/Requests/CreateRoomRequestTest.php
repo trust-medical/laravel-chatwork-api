@@ -28,6 +28,17 @@ it('rejects a name longer than 255 characters', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
+it('rejects zero or negative account ids in membersAdminIds', function () {
+    $caught = null;
+    try {
+        new CreateRoomRequest(name: 'Team', membersAdminIds: [1, 0, 3]);
+    } catch (ChatworkValidationException $e) {
+        $caught = $e;
+    }
+
+    expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
+});
+
 it('rejects empty membersAdminIds', function () {
     $caught = null;
     try {

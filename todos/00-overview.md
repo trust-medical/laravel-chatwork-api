@@ -47,7 +47,7 @@ Phase 14: Release Preparation
 | 3 | Notifications | — | `[x]` |
 | 4 | OAuth2 | 1 (`/token`) | `[x]` |
 | 5 | Messages 残 | 6 | `[x]` |
-| 6 | Rooms | 5 (action_type で2分割) | `[ ]` |
+| 6 | Rooms | 5 (action_type で2分割) | `[x]` |
 | 7 | Room Members | 2 | `[ ]` |
 | 8 | Room Tasks | 4 | `[ ]` |
 | 9 | Room Files | 3 | `[ ]` |

@@ -114,10 +114,10 @@ final readonly class CreateRoomRequest
     private static function assertIntegerList(array $ids, string $field): void
     {
         foreach ($ids as $id) {
-            if (! is_int($id)) {
+            if (! is_int($id) || $id <= 0) {
                 throw new ChatworkValidationException(
-                    sprintf('%s must contain integers only.', $field),
-                    [$field => ['must contain integers only']],
+                    sprintf('%s must contain positive integers only.', $field),
+                    [$field => ['must contain positive integers only']],
                 );
             }
         }

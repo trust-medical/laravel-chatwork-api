@@ -74,22 +74,22 @@ final class RoomsResource
 
     public function leaveRoom(int $roomId): mixed
     {
-        return $this->leaveOrDelete($roomId, 'leave');
+        return $this->leaveOrDelete($roomId, 'leave', 'leaveRoom');
     }
 
     public function deleteRoom(int $roomId): mixed
     {
-        return $this->leaveOrDelete($roomId, 'delete');
+        return $this->leaveOrDelete($roomId, 'delete', 'deleteRoom');
     }
 
-    private function leaveOrDelete(int $roomId, string $actionType): mixed
+    private function leaveOrDelete(int $roomId, string $actionType, string $operationId): mixed
     {
         return $this->client->send(
             'DELETE',
             sprintf('/rooms/%d', $roomId),
             ['action_type' => $actionType],
             NoContentData::class,
-            'leaveOrDeleteRoom',
+            $operationId,
         );
     }
 
@@ -100,21 +100,21 @@ final class RoomsResource
 
     public function members(): RoomMembersResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        throw new \LogicException('RoomMembersResource is implemented in Phase 7.');
     }
 
     public function tasks(): RoomTasksResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        throw new \LogicException('RoomTasksResource is implemented in Phase 8.');
     }
 
     public function files(): RoomFilesResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        throw new \LogicException('RoomFilesResource is implemented in Phase 9.');
     }
 
     public function links(): RoomLinksResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        throw new \LogicException('RoomLinksResource is implemented in Phase 10.');
     }
 }

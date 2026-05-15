@@ -83,8 +83,12 @@ final class ChatworkClient
             'GET' => $pending->get($path, $payload),
             // Chatwork's OpenAPI spec defines DELETE bodies (e.g. action_type on
             // /rooms/{room_id}) as application/x-www-form-urlencoded, so send a
-            // form body whenever a payload is present.
-            'DELETE' => $pending->asForm()->delete($path, $payload),
+            // form body whenever a payload is present. Body-less DELETEs (like
+            // deleteRoomMessage) skip asForm() to keep the wire format identical
+            // to pre-Phase-6 behaviour.
+            'DELETE' => $payload === []
+                ? $pending->delete($path)
+                : $pending->asForm()->delete($path, $payload),
             default => throw new InvalidArgumentException(sprintf('Unsupported HTTP method: %s', $verb)),
         };
 
