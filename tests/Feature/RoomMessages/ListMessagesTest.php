@@ -105,6 +105,20 @@ it('returns an empty array on 204 No Content', function () {
     expect($result)->toBe([]);
 });
 
+it('returns an empty Collection on 204 in asCollection mode', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
+            fixtureJson('messages/list-messages-204.json'),
+            204,
+        ),
+    ]);
+
+    $result = Chatwork::asCollection()->rooms()->messages()->list(123);
+
+    expect($result)->toBeInstanceOf(Collection::class);
+    expect($result)->toHaveCount(0);
+});
+
 it('throws ChatworkRequestException on 401', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(

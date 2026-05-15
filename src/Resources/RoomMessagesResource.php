@@ -38,6 +38,10 @@ final class RoomMessagesResource
         $query = $force === true ? ['force' => 1] : [];
         $path = sprintf('/rooms/%d/messages', $roomId);
 
+        // ResponseMode::Dto is the package default but the wire shape here is an
+        // array of messages, so internally route through Collection mode and
+        // unwrap. Other modes (Collection / Array / Response / PsrResponse /
+        // Result) flow straight through ChatworkClient::send unchanged.
         if ($this->client->mode() === ResponseMode::Dto) {
             $collection = $this->client->withMode(ResponseMode::Collection)->send(
                 'GET',
@@ -90,6 +94,10 @@ final class RoomMessagesResource
 
     public function markAsRead(int $roomId, ?string $messageId = null): mixed
     {
+        // Chatwork treats an absent message_id as "mark everything up to now as
+        // read", so null and empty string both mean "omit the field" here. This
+        // intentionally differs from markAsUnread, where message_id is required
+        // and an empty string is rejected before sending.
         $payload = $messageId !== null && $messageId !== ''
             ? ['message_id' => $messageId]
             : [];
