@@ -43,7 +43,7 @@ Phase 14: Release Preparation
 | --- | --- | --- | --- |
 | 0 | Setup & Fixture | — | `[x]` |
 | 1 | Foundation | — | `[x]` |
-| 2 | createRoomMessage | 1 | `[ ]` |
+| 2 | createRoomMessage | 1 | `[x]` |
 | 3 | Notifications | — | `[ ]` |
 | 4 | OAuth2 | 1 (`/token`) | `[ ]` |
 | 5 | Messages 残 | 6 | `[ ]` |
