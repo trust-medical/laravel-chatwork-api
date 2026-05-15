@@ -32,7 +32,10 @@
     "autoload-dev": {
         "psr-4": {
             "TrustMedical\\LaravelChatworkApi\\Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "tests/Helpers.php"
+        ]
     },
     "scripts": {
         "lint": "pint",
