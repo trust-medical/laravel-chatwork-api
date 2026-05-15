@@ -41,7 +41,7 @@ Phase 14: Release Preparation
 
 | Phase | 名称 | 対象 endpoint 数 | 状態 |
 | --- | --- | --- | --- |
-| 0 | Setup & Fixture | — | `[ ]` |
+| 0 | Setup & Fixture | — | `[x]` |
 | 1 | Foundation | — | `[ ]` |
 | 2 | createRoomMessage | 1 | `[ ]` |
 | 3 | Notifications | — | `[ ]` |
