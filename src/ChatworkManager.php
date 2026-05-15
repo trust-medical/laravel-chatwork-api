@@ -8,6 +8,9 @@ use Illuminate\Contracts\Container\Container;
 use TrustMedical\LaravelChatworkApi\Auth\ApiTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Auth\BearerTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Auth\Credentials;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\OAuthClient;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\OAuthTokenProvider;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenRepository;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
@@ -172,17 +175,11 @@ final class ChatworkManager
             );
         }
 
-        $token = $entry['token'] ?? null;
-        if (! is_string($token) || $token === '') {
-            throw new ChatworkAuthenticationException(
-                sprintf("Chatwork connection '%s' has no token configured.", $name),
-            );
-        }
-
         $auth = $entry['auth'] ?? null;
         $credentials = match ($auth) {
-            'api_token' => new ApiTokenCredentials($token),
-            'bearer' => new BearerTokenCredentials($token),
+            'api_token' => $this->buildStaticCredentials($name, $entry, ApiTokenCredentials::class),
+            'bearer' => $this->buildStaticCredentials($name, $entry, BearerTokenCredentials::class),
+            'oauth' => $this->buildOAuthCredentials($name, $entry),
             default => throw new ChatworkAuthenticationException(
                 sprintf(
                     "Chatwork connection '%s' has unsupported auth driver: %s",
@@ -209,5 +206,45 @@ final class ChatworkManager
         $name = $this->container->make('config')->get('chatwork.default');
 
         return is_string($name) && $name !== '' ? $name : 'default';
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     * @param  class-string<ApiTokenCredentials|BearerTokenCredentials>  $credentialsClass
+     */
+    private function buildStaticCredentials(string $name, array $entry, string $credentialsClass): Credentials
+    {
+        $token = $entry['token'] ?? null;
+        if (! is_string($token) || $token === '') {
+            throw new ChatworkAuthenticationException(
+                sprintf("Chatwork connection '%s' has no token configured.", $name),
+            );
+        }
+
+        return new $credentialsClass($token);
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     */
+    private function buildOAuthCredentials(string $name, array $entry): Credentials
+    {
+        $config = $this->container->make('config');
+
+        $tokenSetKey = $entry['connection_name'] ?? $name;
+        if (! is_string($tokenSetKey) || $tokenSetKey === '') {
+            $tokenSetKey = $name;
+        }
+
+        $leeway = $config->get('chatwork.oauth.refresh_leeway_seconds');
+
+        $provider = new OAuthTokenProvider(
+            connectionName: $tokenSetKey,
+            repository: $this->container->make(TokenRepository::class),
+            oauth: $this->container->make(OAuthClient::class),
+            leewaySeconds: is_numeric($leeway) ? (int) $leeway : 60,
+        );
+
+        return $provider->credentials();
     }
 }

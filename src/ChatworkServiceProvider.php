@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\CacheStateStore;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\CacheTokenRepository;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\Controllers\OAuthCallbackController;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\OAuthClient;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\StateStore;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenRepository;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
 use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkChannel;
@@ -25,7 +32,39 @@ final class ChatworkServiceProvider extends PackageServiceProvider
     {
         $this->app->singleton(ChatworkPendingRequestFactory::class);
         $this->app->singleton(ResponseMapper::class);
-        $this->app->singleton(OAuthClient::class);
+
+        $this->app->bind(StateStore::class, function (Application $app): StateStore {
+            $configured = $app['config']->get('chatwork.oauth.state_store');
+            if (is_string($configured) && $configured !== '') {
+                $instance = $app->make($configured);
+                if ($instance instanceof StateStore) {
+                    return $instance;
+                }
+            }
+
+            return new CacheStateStore($app['cache']->store());
+        });
+
+        $this->app->bind(TokenRepository::class, function (Application $app): TokenRepository {
+            $configured = $app['config']->get('chatwork.oauth.token_repository');
+            if (is_string($configured) && $configured !== '') {
+                $instance = $app->make($configured);
+                if ($instance instanceof TokenRepository) {
+                    return $instance;
+                }
+            }
+
+            return new CacheTokenRepository($app['cache']->store());
+        });
+
+        $this->app->bind(OAuthClient::class, function (Application $app): OAuthClient {
+            $config = $app['config']->get('chatwork.oauth');
+
+            return new OAuthClient(
+                $app->make(StateStore::class),
+                is_array($config) ? $config : [],
+            );
+        });
 
         $this->app->singleton('chatwork', function ($app) {
             return new ChatworkManager($app);
@@ -39,5 +78,24 @@ final class ChatworkServiceProvider extends PackageServiceProvider
         Notification::resolved(function ($manager) {
             $manager->extend('chatwork', fn ($app) => $app->make(ChatworkChannel::class));
         });
+
+        if ($this->app['config']->get('chatwork.oauth.routes_enabled') === true) {
+            $this->registerOAuthRoutes();
+        }
+    }
+
+    public function registerOAuthRoutes(): void
+    {
+        $prefix = $this->app['config']->get('chatwork.oauth.route_prefix');
+        $resolvedPrefix = is_string($prefix) && $prefix !== '' ? $prefix : 'chatwork/oauth';
+
+        Route::prefix($resolvedPrefix)
+            ->middleware('web')
+            ->group(function (): void {
+                Route::get('callback', OAuthCallbackController::class)
+                    ->name('chatwork.oauth.callback');
+            });
+
+        Route::getRoutes()->refreshNameLookups();
     }
 }
