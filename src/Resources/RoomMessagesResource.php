@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
+use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
+use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedMessage;
 
 final class RoomMessagesResource
 {
@@ -12,13 +14,15 @@ final class RoomMessagesResource
 
     public function create(int $roomId, string $body, ?bool $selfUnread = null): mixed
     {
-        throw new \LogicException(sprintf(
-            'not implemented in Phase 0 (client=%s, roomId=%d, body_length=%d, selfUnread=%s)',
-            $this->client::class,
-            $roomId,
-            strlen($body),
-            $selfUnread === null ? 'null' : ($selfUnread ? 'true' : 'false'),
-        ));
+        $request = new CreateMessageRequest($body, $selfUnread);
+
+        return $this->client->send(
+            'POST',
+            sprintf('/rooms/%d/messages', $roomId),
+            $request->toArray(),
+            CreatedMessage::class,
+            'createRoomMessage',
+        );
     }
 
     public function list(int $roomId, ?bool $force = null): mixed
