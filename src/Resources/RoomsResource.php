@@ -8,6 +8,7 @@ use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomRequest;
 use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateRoomRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedRoom;
+use TrustMedical\LaravelChatworkApi\Data\Responses\NoContentData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedRoom;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
@@ -73,12 +74,23 @@ final class RoomsResource
 
     public function leaveRoom(int $roomId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d)', $roomId));
+        return $this->leaveOrDelete($roomId, 'leave');
     }
 
     public function deleteRoom(int $roomId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d)', $roomId));
+        return $this->leaveOrDelete($roomId, 'delete');
+    }
+
+    private function leaveOrDelete(int $roomId, string $actionType): mixed
+    {
+        return $this->client->send(
+            'DELETE',
+            sprintf('/rooms/%d', $roomId),
+            ['action_type' => $actionType],
+            NoContentData::class,
+            'leaveOrDeleteRoom',
+        );
     }
 
     public function messages(): RoomMessagesResource
