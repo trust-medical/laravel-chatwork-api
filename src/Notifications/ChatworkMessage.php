@@ -5,72 +5,100 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Notifications;
 
 use Illuminate\Notifications\Notification;
+use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
 
 class ChatworkMessage extends Notification
 {
+    /** @var array<int, string> */
+    private array $segments = [];
+
+    private ?bool $selfUnread = null;
+
+    private int|string|null $targetRoomId = null;
+
     public function __construct(?string $body = null)
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (body_length=%d)', strlen($body ?? '')));
+        if ($body !== null && $body !== '') {
+            $this->segments[] = $body;
+        }
     }
 
     public static function make(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return new self();
     }
 
     public function body(string $text): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (length=%d)', strlen($text)));
+        $this->segments[] = $text;
+
+        return $this;
     }
 
     public function to(int $accountId): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (accountId=%d)', $accountId));
+        $this->segments[] = sprintf('[To:%d]', $accountId);
+
+        return $this;
     }
 
     public function info(string $title, string $body): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (title=%s)', $title) . ' body=' . strlen($body));
+        $this->segments[] = sprintf('[info][title]%s[/title]%s[/info]', $title, $body);
+
+        return $this;
     }
 
     public function title(string $text): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (length=%d)', strlen($text)));
+        $this->segments[] = sprintf('[title]%s[/title]', $text);
+
+        return $this;
     }
 
     public function code(string $text): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (length=%d)', strlen($text)));
+        $this->segments[] = sprintf('[code]%s[/code]', $text);
+
+        return $this;
     }
 
     public function hr(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        $this->segments[] = '[hr]';
+
+        return $this;
     }
 
     public function plain(string $text): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (length=%d)', strlen($text)));
+        $this->segments[] = self::neutralize($text);
+
+        return $this;
     }
 
     public function escape(string $text): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (length=%d)', strlen($text)));
+        return $this->plain($text);
     }
 
     public function selfUnread(bool $value = true): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (value=%s)', $value ? 'true' : 'false'));
+        $this->selfUnread = $value;
+
+        return $this;
     }
 
     public function toRoom(int|string $roomId): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%s)', (string) $roomId));
+        $this->targetRoomId = $roomId;
+
+        return $this;
     }
 
     public function targetRoomId(): int|string|null
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->targetRoomId;
     }
 
     /**
@@ -78,19 +106,33 @@ class ChatworkMessage extends Notification
      */
     public function via(object $notifiable): array
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (notifiable=%s)', $notifiable::class));
+        unset($notifiable);
+
+        return [ChatworkChannel::class];
     }
 
     public function toChatwork(object $notifiable): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (notifiable=%s)', $notifiable::class));
+        unset($notifiable);
+
+        return $this;
     }
 
     /**
-     * @return array<string, int|string>
+     * @return array{body: string, self_unread?: int}
      */
     public function toPayload(): array
     {
-        throw new \LogicException('not implemented in Phase 0');
+        $body = implode("\n", $this->segments);
+
+        return (new CreateMessageRequest($body, $this->selfUnread))->toArray();
+    }
+
+    private static function neutralize(string $text): string
+    {
+        return strtr($text, [
+            '[' => '［',
+            ']' => '］',
+        ]);
     }
 }
