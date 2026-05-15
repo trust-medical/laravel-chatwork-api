@@ -61,12 +61,20 @@ final class ChatworkChannel
     {
         $fromMessage = $message->targetRoomId();
         $fromNotifiable = $this->routeFromNotifiable($notifiable, $notification);
+        $hasNotifiableRoute = $fromNotifiable !== null && $fromNotifiable !== [] && $fromNotifiable !== '';
 
         if ($fromMessage !== null) {
+            if ($hasNotifiableRoute) {
+                throw new ChatworkRoutingException(
+                    'ChatworkMessage::toRoom() conflicts with routeNotificationForChatwork() / Notification::route(\'chatwork\', ...).',
+                    ['route' => ['cannot set both toRoom and routeNotificationFor']],
+                );
+            }
+
             return [ChatworkRoute::room($fromMessage)];
         }
 
-        if ($fromNotifiable === null || $fromNotifiable === [] || $fromNotifiable === '') {
+        if (! $hasNotifiableRoute) {
             throw new ChatworkRoutingException(
                 'No Chatwork route was provided (set toRoom(), routeNotificationForChatwork(), or Notification::route(\'chatwork\', ...)).',
                 ['route' => ['no room_id available']],
