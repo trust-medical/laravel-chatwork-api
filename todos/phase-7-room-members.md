@@ -19,6 +19,14 @@ Room メンバーの一覧取得と一括更新を完成させる。CSV integer 
 
 - 2 operations のテスト緑。CSV 変換が Request DTO 層で完結し、Resource は `toArray()` をそのまま `asForm()` に渡すだけ。
 
+## テスト記述慣行（Phase 0-3 で確立、必須）
+
+詳細は `todos/README.md` の「テスト記述慣行」セクション参照。要点のみ:
+
+- **例外検証** は `try/catch + expect($caught)` で書く。`it()->throws(...)` は Notification/Event 経由で機能しないことがあるため避ける。
+- **`Http::fake()`** は `beforeEach` ではなく **各 test 内で** 呼ぶ。stub マージの順序依存で上書きが効かないことがある。`beforeEach` には config 準備だけ書く。
+- **fixture 読み込み** は file-scope `fixtureJson('...')`（`tests/Helpers.php`）。`$this->fixtureJson(...)` は PHPStan が解決できない。
+
 ## TODO
 
 ### 7-1. CSV integer list 共通化

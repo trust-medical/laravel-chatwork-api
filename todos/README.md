@@ -57,6 +57,68 @@ todos/
 9. **エラーケース**: 400 / 401 / 403 / 404 / 429 / 5xx の各テスト。`ChatworkRequestException` の `errors()` / `rateLimit()` 等の getter を検証。
 10. **Refactor**: 重複削除、命名、型注釈の整理。Pint + PHPStan を緑にする。
 
+## テスト記述慣行（Phase 0-3 で確立、全 Phase 必須）
+
+Phase 0〜3 の実装で繰り返し発生した問題への対処。新規 Phase の Feature/Unit テストを書くときは必ず守ること。
+
+### 1. 例外検証は `try/catch + expect` で書く（`it()->throws()` を避ける）
+
+Pest の `it(...)->throws(ExceptionClass)` chain は、Laravel Notification や Event を経由して投げられた例外を検出できないことがある（throw 自体は起きているが Pest の assertion が機能しない）。Phase 3 Step 4 で確認済。常に次のテンプレを使う:
+
+```php
+$caught = null;
+try {
+    $sut->doThing();
+} catch (ExpectedException $e) {
+    $caught = $e;
+}
+
+expect($caught)->toBeInstanceOf(ExpectedException::class)
+    ->and($caught?->status())->toBe(400);
+```
+
+Resource method を直接呼ぶケースだけは `->throws()` で動くが、混在を避けるため統一する。
+
+### 2. `Http::fake()` は `beforeEach` に置かず各 test 内で呼ぶ
+
+Laravel HTTP Client の stub マージは順序依存があり、`beforeEach` で当てた fake を test 内で上書きしても安定して反映されない。Phase 3 Step 4 で 4xx/5xx の test が失敗した原因。
+
+```php
+beforeEach(function () {
+    config()->set('chatwork.connections.default', [/* ... */]);
+});
+
+it('正常系', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/*/messages' => Http::response($body, 201),
+    ]);
+
+    // ...
+});
+
+it('異常系', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/*/messages' => Http::response($body, 400),
+    ]);
+
+    // ...
+});
+```
+
+共通の URL pattern を複数 test で使うときは、test ファイル内の file-scope helper（`function fakeChatworkOk(): void { Http::fake([...]); }`）にまとめる。`beforeEach` には config の準備だけ書く。
+
+### 3. fixture 読み込みは file-scope `fixtureJson()` を使う（`$this->fixtureJson()` を避ける）
+
+Pest closure 内の `$this` は PHPStan に `Tests\TestCase` と推論されない。`$this->fixtureJson(...)` を書くと PHPStan が解決できず CI が割れる。`tests/Helpers.php` の file-scope 関数を直接呼ぶ（Phase 0 で `composer.json autoload-dev.files` に登録済み）。
+
+```php
+$data = fixtureJson('messages/create-message-201.json');
+```
+
+raw 文字列が欲しいときは `fixture(string $relativePath): string` を使う。
+
+---
+
 ## コミット粒度
 
 1 つのエンドポイント実装で原則 3 コミットに分割（`.claude/rules/commit-style.md` 参照）。

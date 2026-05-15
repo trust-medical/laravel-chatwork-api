@@ -23,6 +23,14 @@ OAuth2 認可コードフロー（authorization URL 生成 → callback で `cod
   - callback URL の `error` パラメータが 400 を返す
 - security-reviewer agent CRITICAL/HIGH を解消（Phase 4 完了時必須）
 
+## テスト記述慣行（Phase 0-3 で確立、必須）
+
+詳細は `todos/README.md` の「テスト記述慣行」セクション参照。要点のみ:
+
+- **例外検証** は `try/catch + expect($caught)` で書く。`it()->throws(...)` は Notification/Event 経由で機能しないことがあるため避ける。
+- **`Http::fake()`** は `beforeEach` ではなく **各 test 内で** 呼ぶ。stub マージの順序依存で上書きが効かないことがある。`beforeEach` には config 準備だけ書く。
+- **fixture 読み込み** は file-scope `fixtureJson('...')`（`tests/Helpers.php`）。`$this->fixtureJson(...)` は PHPStan が解決できない。
+
 ## TODO
 
 ### 4-1. TokenSet readonly value object
