@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+use TrustMedical\LaravelChatworkApi\Auth\ApiTokenCredentials;
+use TrustMedical\LaravelChatworkApi\Auth\BearerTokenCredentials;
+
+it('ApiTokenCredentials adds x-chatworktoken header', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
+    ]);
+
+    $credentials = new ApiTokenCredentials('my-token');
+    $pending = $credentials->applyTo(Http::baseUrl('https://api.chatwork.com/v2'));
+
+    $pending->get('/rooms');
+
+    Http::assertSent(fn (Request $r) => $r->hasHeader('x-chatworktoken', 'my-token'));
+});
+
+it('ApiTokenCredentials does not add Authorization header', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
+    ]);
+
+    (new ApiTokenCredentials('my-token'))
+        ->applyTo(Http::baseUrl('https://api.chatwork.com/v2'))
+        ->get('/rooms');
+
+    Http::assertSent(fn (Request $r) => ! $r->hasHeader('Authorization'));
+});
+
+it('BearerTokenCredentials adds Authorization Bearer header', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
+    ]);
+
+    (new BearerTokenCredentials('oauth-token'))
+        ->applyTo(Http::baseUrl('https://api.chatwork.com/v2'))
+        ->get('/rooms');
+
+    Http::assertSent(fn (Request $r) => $r->hasHeader('Authorization', 'Bearer oauth-token'));
+});
+
+it('BearerTokenCredentials does not add x-chatworktoken header', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
+    ]);
+
+    (new BearerTokenCredentials('oauth-token'))
+        ->applyTo(Http::baseUrl('https://api.chatwork.com/v2'))
+        ->get('/rooms');
+
+    Http::assertSent(fn (Request $r) => ! $r->hasHeader('x-chatworktoken'));
+});

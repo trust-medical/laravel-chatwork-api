@@ -12,6 +12,6 @@ final readonly class ApiTokenCredentials implements Credentials
 
     public function applyTo(PendingRequest $request): PendingRequest
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (request=%s)', $request::class));
+        return $request->withHeaders(['x-chatworktoken' => $this->token]);
     }
 }
