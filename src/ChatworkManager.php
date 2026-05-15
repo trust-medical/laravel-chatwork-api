@@ -7,6 +7,7 @@ namespace TrustMedical\LaravelChatworkApi;
 use Illuminate\Contracts\Container\Container;
 use TrustMedical\LaravelChatworkApi\Auth\ApiTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Auth\BearerTokenCredentials;
+use TrustMedical\LaravelChatworkApi\Auth\Credentials;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
 use TrustMedical\LaravelChatworkApi\Resources\ContactsResource;
@@ -20,6 +21,8 @@ final class ChatworkManager
     private ?Connection $connection = null;
 
     private ResponseMode $mode = ResponseMode::Dto;
+
+    private ?Credentials $credentialsOverride = null;
 
     public function __construct(private readonly Container $container) {}
 
@@ -43,42 +46,48 @@ final class ChatworkManager
 
     public function withApiToken(string $token): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (token_length=%d)', strlen($token)));
+        $new = clone $this;
+        $new->credentialsOverride = new ApiTokenCredentials($token);
+
+        return $new;
     }
 
     public function withBearerToken(string $token): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (token_length=%d)', strlen($token)));
+        $new = clone $this;
+        $new->credentialsOverride = new BearerTokenCredentials($token);
+
+        return $new;
     }
 
     public function asArray(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->withMode(ResponseMode::Array);
     }
 
     public function asDto(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->withMode(ResponseMode::Dto);
     }
 
     public function asCollection(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->withMode(ResponseMode::Collection);
     }
 
     public function asResponse(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->withMode(ResponseMode::Response);
     }
 
     public function asPsrResponse(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->withMode(ResponseMode::PsrResponse);
     }
 
     public function asResult(): self
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->withMode(ResponseMode::Result);
     }
 
     public function getConnection(): Connection
@@ -88,7 +97,18 @@ final class ChatworkManager
 
     public function getEffectiveConnection(): Connection
     {
-        return $this->getConnection();
+        $base = $this->getConnection();
+
+        if ($this->credentialsOverride === null) {
+            return $base;
+        }
+
+        return Connection::make(
+            name: $base->name,
+            credentials: $this->credentialsOverride,
+            baseUri: $base->baseUri,
+            timeout: $base->timeout,
+        );
     }
 
     public function getMode(): ResponseMode
@@ -124,6 +144,14 @@ final class ChatworkManager
     public function incomingRequests(): IncomingRequestsResource
     {
         throw new \LogicException('not implemented in Phase 0');
+    }
+
+    private function withMode(ResponseMode $mode): self
+    {
+        $new = clone $this;
+        $new->mode = $mode;
+
+        return $new;
     }
 
     private function resolveConnection(string $name): Connection
