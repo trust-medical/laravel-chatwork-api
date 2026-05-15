@@ -8,6 +8,7 @@ use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
 use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateMessageRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedMessage;
+use TrustMedical\LaravelChatworkApi\Data\Responses\DeletedMessage;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MessageData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedMessage;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
@@ -75,7 +76,13 @@ final class RoomMessagesResource
 
     public function deleteMessage(int $roomId, string $messageId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d, messageId=%s)', $roomId, $messageId));
+        return $this->client->send(
+            'DELETE',
+            sprintf('/rooms/%d/messages/%s', $roomId, $messageId),
+            [],
+            DeletedMessage::class,
+            'deleteRoomMessage',
+        );
     }
 
     public function markAsRead(int $roomId, ?string $messageId = null): mixed
