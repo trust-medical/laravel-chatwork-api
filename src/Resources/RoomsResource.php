@@ -6,8 +6,10 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomRequest;
+use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateRoomRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedRoom;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomData;
+use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedRoom;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 
 final class RoomsResource
@@ -58,12 +60,15 @@ final class RoomsResource
         );
     }
 
-    /**
-     * @param  array<string, mixed>  $request
-     */
-    public function update(int $roomId, array $request): mixed
+    public function update(int $roomId, UpdateRoomRequest $request): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d, keys=%s)', $roomId, implode(',', array_keys($request))));
+        return $this->client->send(
+            'PUT',
+            sprintf('/rooms/%d', $roomId),
+            $request->toArray(),
+            UpdatedRoom::class,
+            'updateRoom',
+        );
     }
 
     public function leaveRoom(int $roomId): mixed
