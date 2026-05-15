@@ -21,12 +21,11 @@ final readonly class Connection
         ?string $baseUri = null,
         ?int $timeout = null,
     ): self {
-        throw new \LogicException(sprintf(
-            'not implemented in Phase 0 (name=%s, credentials=%s, baseUri=%s, timeout=%s)',
-            $name,
-            $credentials::class,
-            $baseUri ?? 'default',
-            $timeout === null ? 'default' : (string) $timeout,
-        ));
+        return new self(
+            name: $name,
+            credentials: $credentials,
+            baseUri: $baseUri ?? 'https://api.chatwork.com/v2',
+            timeout: $timeout ?? 10,
+        );
     }
 }
