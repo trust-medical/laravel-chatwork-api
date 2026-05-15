@@ -6,6 +6,8 @@ namespace TrustMedical\LaravelChatworkApi\Tests;
 
 use Illuminate\Support\Facades\Http;
 use Orchestra\Testbench\TestCase as Orchestra;
+use TrustMedical\LaravelChatworkApi\ChatworkServiceProvider;
+use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
 
 abstract class TestCase extends Orchestra
 {
@@ -22,7 +24,7 @@ abstract class TestCase extends Orchestra
     protected function getPackageProviders($app): array
     {
         return [
-            \TrustMedical\LaravelChatworkApi\ChatworkServiceProvider::class,
+            ChatworkServiceProvider::class,
         ];
     }
 
@@ -32,7 +34,7 @@ abstract class TestCase extends Orchestra
     protected function getPackageAliases($app): array
     {
         return [
-            'Chatwork' => \TrustMedical\LaravelChatworkApi\Facades\Chatwork::class,
+            'Chatwork' => Chatwork::class,
         ];
     }
 

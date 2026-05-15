@@ -8,6 +8,5 @@ parameters:
         - tests
     excludePaths:
         - tests/Fixtures/*
+        - tests/Pest.php
     tmpDir: .phpstan.cache
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
