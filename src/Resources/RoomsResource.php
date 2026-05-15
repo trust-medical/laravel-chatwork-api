@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
+use TrustMedical\LaravelChatworkApi\Data\Responses\RoomData;
+use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 
 final class RoomsResource
 {
@@ -12,7 +14,24 @@ final class RoomsResource
 
     public function list(): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (client=%s)', $this->client::class));
+        $path = '/rooms';
+
+        // Dto mode unwraps the Collection so callers get array<RoomData>; other
+        // modes (Collection / Array / Response / PsrResponse / Result) flow
+        // through ChatworkClient::send unchanged.
+        if ($this->client->mode() === ResponseMode::Dto) {
+            $collection = $this->client->withMode(ResponseMode::Collection)->send(
+                'GET',
+                $path,
+                [],
+                RoomData::class,
+                'listRooms',
+            );
+
+            return $collection->all();
+        }
+
+        return $this->client->send('GET', $path, [], RoomData::class, 'listRooms');
     }
 
     /**
