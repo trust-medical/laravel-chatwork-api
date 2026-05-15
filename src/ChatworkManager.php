@@ -10,6 +10,8 @@ use TrustMedical\LaravelChatworkApi\Auth\BearerTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Auth\Credentials;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
+use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
+use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
 use TrustMedical\LaravelChatworkApi\Resources\ContactsResource;
 use TrustMedical\LaravelChatworkApi\Resources\IncomingRequestsResource;
 use TrustMedical\LaravelChatworkApi\Resources\MeResource;
@@ -118,12 +120,17 @@ final class ChatworkManager
 
     public function client(): ChatworkClient
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return new ChatworkClient(
+            $this->getEffectiveConnection(),
+            $this->container->make(ChatworkPendingRequestFactory::class),
+            $this->container->make(ResponseMapper::class),
+            $this->mode,
+        );
     }
 
     public function rooms(): RoomsResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->client()->rooms();
     }
 
     public function me(): MeResource

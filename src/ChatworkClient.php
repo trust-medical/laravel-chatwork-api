@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi;
 
+use InvalidArgumentException;
+use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
 use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
 use TrustMedical\LaravelChatworkApi\Resources\ContactsResource;
@@ -18,16 +20,17 @@ final class ChatworkClient
         private readonly Connection $connection,
         private readonly ChatworkPendingRequestFactory $factory,
         private readonly ResponseMapper $mapper,
+        private readonly ResponseMode $mode = ResponseMode::Dto,
     ) {}
 
     public function connection(): Connection
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (name=%s)', $this->connection->name));
+        return $this->connection;
     }
 
     public function rooms(): RoomsResource
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (factory=%s, mapper=%s)', $this->factory::class, $this->mapper::class));
+        return new RoomsResource($this);
     }
 
     public function me(): MeResource
@@ -54,24 +57,29 @@ final class ChatworkClient
      * @param  array<string, mixed>  $payload
      * @param  class-string|null  $dtoClass
      */
-    public function send(string $method, string $path, array $payload = [], ?string $dtoClass = null): mixed
-    {
-        throw new \LogicException(sprintf(
-            'not implemented in Phase 0 (method=%s, path=%s, payload_keys=%s, dto=%s)',
-            $method,
-            $path,
-            implode(',', array_keys($payload)),
-            $dtoClass ?? 'null',
-        ));
+    public function send(
+        string $method,
+        string $path,
+        array $payload = [],
+        ?string $dtoClass = null,
+        ?string $operationId = null,
+    ): mixed {
+        $verb = strtoupper($method);
+        $pending = $this->factory->create($this->connection);
+
+        $response = match ($verb) {
+            'POST' => $pending->asForm()->post($path, $payload),
+            'PUT' => $pending->asForm()->put($path, $payload),
+            'GET' => $pending->get($path, $payload),
+            'DELETE' => $pending->delete($path, $payload),
+            default => throw new InvalidArgumentException(sprintf('Unsupported HTTP method: %s', $verb)),
+        };
+
+        return $this->mapper->map($response, $this->mode, $dtoClass, $verb, $path, $operationId);
     }
 
     public function createRoomMessage(int $roomId, string $body, ?bool $selfUnread = null): mixed
     {
-        throw new \LogicException(sprintf(
-            'not implemented in Phase 0 (roomId=%d, body_length=%d, selfUnread=%s)',
-            $roomId,
-            strlen($body),
-            $selfUnread === null ? 'null' : ($selfUnread ? 'true' : 'false'),
-        ));
+        return $this->rooms()->messages()->create($roomId, $body, $selfUnread);
     }
 }

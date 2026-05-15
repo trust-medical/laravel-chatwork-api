@@ -48,7 +48,7 @@ final class RoomsResource
 
     public function messages(): RoomMessagesResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return new RoomMessagesResource($this->client);
     }
 
     public function members(): RoomMembersResource
