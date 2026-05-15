@@ -1,0 +1,6 @@
+{
+    "errors": [
+        "name is required",
+        "members_admin_ids is required"
+    ]
+}
