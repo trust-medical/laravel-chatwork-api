@@ -49,7 +49,13 @@ final class RoomMessagesResource
 
     public function find(int $roomId, string $messageId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d, messageId=%s)', $roomId, $messageId));
+        return $this->client->send(
+            'GET',
+            sprintf('/rooms/%d/messages/%s', $roomId, $messageId),
+            [],
+            MessageData::class,
+            'getRoomMessage',
+        );
     }
 
     public function update(int $roomId, string $messageId, string $body): mixed
