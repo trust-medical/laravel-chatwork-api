@@ -6,9 +6,12 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
+use TrustMedical\LaravelChatworkApi\Data\Requests\MarkAsUnreadRequest;
 use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateMessageRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedMessage;
 use TrustMedical\LaravelChatworkApi\Data\Responses\DeletedMessage;
+use TrustMedical\LaravelChatworkApi\Data\Responses\MarkReadResult;
+use TrustMedical\LaravelChatworkApi\Data\Responses\MarkUnreadResult;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MessageData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedMessage;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
@@ -87,15 +90,29 @@ final class RoomMessagesResource
 
     public function markAsRead(int $roomId, ?string $messageId = null): mixed
     {
-        throw new \LogicException(sprintf(
-            'not implemented in Phase 0 (roomId=%d, messageId=%s)',
-            $roomId,
-            $messageId ?? 'null',
-        ));
+        $payload = $messageId !== null && $messageId !== ''
+            ? ['message_id' => $messageId]
+            : [];
+
+        return $this->client->send(
+            'PUT',
+            sprintf('/rooms/%d/messages/read', $roomId),
+            $payload,
+            MarkReadResult::class,
+            'markRoomMessagesAsRead',
+        );
     }
 
     public function markAsUnread(int $roomId, string $messageId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d, messageId=%s)', $roomId, $messageId));
+        $request = new MarkAsUnreadRequest($messageId);
+
+        return $this->client->send(
+            'PUT',
+            sprintf('/rooms/%d/messages/unread', $roomId),
+            $request->toArray(),
+            MarkUnreadResult::class,
+            'markRoomMessagesAsUnread',
+        );
     }
 }
