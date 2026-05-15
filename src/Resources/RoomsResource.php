@@ -49,7 +49,13 @@ final class RoomsResource
 
     public function find(int $roomId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d)', $roomId));
+        return $this->client->send(
+            'GET',
+            sprintf('/rooms/%d', $roomId),
+            [],
+            RoomData::class,
+            'getRoom',
+        );
     }
 
     /**
