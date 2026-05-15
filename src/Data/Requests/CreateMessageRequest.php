@@ -8,10 +8,6 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class CreateMessageRequest
 {
-    private const int BODY_MIN = 1;
-
-    private const int BODY_MAX = 65535;
-
     public function __construct(
         public string $body,
         public ?bool $selfUnread = null,
@@ -37,17 +33,17 @@ final readonly class CreateMessageRequest
     {
         $length = mb_strlen($this->body);
 
-        if ($length < self::BODY_MIN) {
+        if ($length < MessageBodyConstraints::BODY_MIN) {
             throw new ChatworkValidationException(
                 'Message body must not be empty.',
                 ['body' => ['must not be empty']],
             );
         }
 
-        if ($length > self::BODY_MAX) {
+        if ($length > MessageBodyConstraints::BODY_MAX) {
             throw new ChatworkValidationException(
-                sprintf('Message body must be %d characters or less.', self::BODY_MAX),
-                ['body' => [sprintf('must be %d characters or less', self::BODY_MAX)]],
+                sprintf('Message body must be %d characters or less.', MessageBodyConstraints::BODY_MAX),
+                ['body' => [sprintf('must be %d characters or less', MessageBodyConstraints::BODY_MAX)]],
             );
         }
     }
