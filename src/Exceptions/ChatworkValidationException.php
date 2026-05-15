@@ -9,10 +9,20 @@ use RuntimeException;
 class ChatworkValidationException extends RuntimeException
 {
     /**
+     * @param  array<string, array<int, string>>  $violations
+     */
+    public function __construct(
+        string $message,
+        private readonly array $violations = [],
+    ) {
+        parent::__construct($message);
+    }
+
+    /**
      * @return array<string, array<int, string>>
      */
     public function violations(): array
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->violations;
     }
 }
