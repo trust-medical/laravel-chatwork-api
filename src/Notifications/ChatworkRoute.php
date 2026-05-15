@@ -8,33 +8,39 @@ use TrustMedical\LaravelChatworkApi\Connection;
 
 final class ChatworkRoute
 {
+    private function __construct(
+        private readonly int|string $roomId,
+        private ?string $connectionName = null,
+        private ?Connection $connection = null,
+    ) {}
+
     public static function room(int|string $roomId): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%s)', (string) $roomId));
+        return new self($roomId);
     }
 
     public function connection(string $name): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (name=%s)', $name));
+        return new self($this->roomId, connectionName: $name, connection: null);
     }
 
     public function using(Connection $connection): self
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (connection=%s)', $connection->name));
+        return new self($this->roomId, connectionName: null, connection: $connection);
     }
 
     public function roomId(): int|string
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->roomId;
     }
 
     public function connectionName(): ?string
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->connectionName;
     }
 
     public function getConnection(): ?Connection
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->connection;
     }
 }
