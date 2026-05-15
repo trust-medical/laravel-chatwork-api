@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Auth\OAuth;
 
+use Illuminate\Support\Facades\Http;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
+
 final class OAuthClient
 {
     private const STATE_TTL_SECONDS = 600;
@@ -49,12 +53,54 @@ final class OAuthClient
 
     public function exchange(string $code): TokenSet
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (code_length=%d)', strlen($code)));
+        return $this->postToken([
+            'grant_type' => 'authorization_code',
+            'code' => $code,
+            'client_id' => $this->configString('client_id'),
+            'client_secret' => $this->configString('client_secret'),
+            'redirect_uri' => $this->configString('redirect_uri'),
+        ]);
     }
 
     public function refresh(string $refreshToken): TokenSet
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (token_length=%d)', strlen($refreshToken)));
+        try {
+            return $this->postToken([
+                'grant_type' => 'refresh_token',
+                'refresh_token' => $refreshToken,
+                'client_id' => $this->configString('client_id'),
+                'client_secret' => $this->configString('client_secret'),
+            ]);
+        } catch (ChatworkRequestException $e) {
+            throw new ChatworkAuthenticationException('OAuth refresh failed.', previous: $e);
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $params
+     */
+    private function postToken(array $params): TokenSet
+    {
+        $tokenUrl = $this->configString('token_url');
+
+        $response = Http::asForm()->post($tokenUrl, $params);
+
+        if ($response->failed()) {
+            throw ChatworkRequestException::fromResponse(
+                $response,
+                'POST',
+                $tokenUrl,
+                'issueOAuthToken',
+            );
+        }
+
+        $body = $response->json();
+        if (! is_array($body)) {
+            throw new \RuntimeException('OAuth token endpoint returned a non-JSON object body.');
+        }
+
+        /** @var array<string, mixed> $body */
+        return TokenSet::fromArray($body);
     }
 
     private function generateState(): string
