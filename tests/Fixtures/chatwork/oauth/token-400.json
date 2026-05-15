@@ -1,0 +1,4 @@
+{
+    "error": "invalid_grant",
+    "error_description": "The authorization code has expired or has already been used."
+}

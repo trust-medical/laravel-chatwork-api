@@ -1,0 +1,24 @@
+[
+    {
+        "message_id": "5",
+        "account": {
+            "account_id": 123,
+            "name": "Bob",
+            "avatar_image_url": "https://example.com/avatar/bob.png"
+        },
+        "body": "Hello, Chatwork!",
+        "send_time": 1735707600,
+        "update_time": 0
+    },
+    {
+        "message_id": "6",
+        "account": {
+            "account_id": 456,
+            "name": "Alice",
+            "avatar_image_url": "https://example.com/avatar/alice.png"
+        },
+        "body": "[To:123] Reply.",
+        "send_time": 1735707900,
+        "update_time": 1735708200
+    }
+]
