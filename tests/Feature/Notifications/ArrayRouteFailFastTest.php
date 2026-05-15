@@ -1,0 +1,108 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Http\Client\Request;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Http;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkRoute;
+
+beforeEach(function () {
+    config()->set('chatwork.connections.default', [
+        'auth' => 'api_token',
+        'token' => 'default-token',
+    ]);
+});
+
+/**
+ * @param  array<int, ChatworkRoute|int|string>  $rooms
+ */
+function userWithRoomArray(array $rooms): object
+{
+    return new class($rooms)
+    {
+        use Notifiable;
+
+        /**
+         * @param  array<int, ChatworkRoute|int|string>  $rooms
+         */
+        public function __construct(private readonly array $rooms) {}
+
+        /**
+         * @return array<int, ChatworkRoute|int|string>
+         */
+        public function routeNotificationForChatwork(): array
+        {
+            return $this->rooms;
+        }
+    };
+}
+
+it('sends to all rooms in order when all succeed', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
+    ]);
+
+    userWithRoomArray([
+        ChatworkRoute::room(11),
+        ChatworkRoute::room(22),
+        ChatworkRoute::room(33),
+    ])->notify(new ChatworkMessage('Hi'));
+
+    Http::assertSentCount(3);
+    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/11/messages');
+    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/22/messages');
+    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/33/messages');
+});
+
+it('stops at the first failure (4xx) and does not send to later rooms', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/11/messages' => Http::response(['message_id' => '1'], 201),
+        'https://api.chatwork.com/v2/rooms/22/messages' => Http::response(['errors' => ['nope']], 400),
+        'https://api.chatwork.com/v2/rooms/33/messages' => Http::response(['message_id' => '3'], 201),
+    ]);
+
+    $caught = null;
+    try {
+        userWithRoomArray([
+            ChatworkRoute::room(11),
+            ChatworkRoute::room(22),
+            ChatworkRoute::room(33),
+        ])->notify(new ChatworkMessage('Hi'));
+    } catch (ChatworkRequestException $e) {
+        $caught = $e;
+    }
+
+    expect($caught)->toBeInstanceOf(ChatworkRequestException::class)
+        ->and($caught?->status())->toBe(400);
+
+    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/11/messages');
+    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/22/messages');
+    Http::assertNotSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/33/messages');
+});
+
+it('also stops at the first 5xx failure and does not send to later rooms', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/11/messages' => Http::response(['message_id' => '1'], 201),
+        'https://api.chatwork.com/v2/rooms/22/messages' => Http::response('', 503),
+        'https://api.chatwork.com/v2/rooms/33/messages' => Http::response(['message_id' => '3'], 201),
+    ]);
+
+    $caught = null;
+    try {
+        userWithRoomArray([
+            ChatworkRoute::room(11),
+            ChatworkRoute::room(22),
+            ChatworkRoute::room(33),
+        ])->notify(new ChatworkMessage('Hi'));
+    } catch (ChatworkRequestException $e) {
+        $caught = $e;
+    }
+
+    expect($caught)->toBeInstanceOf(ChatworkRequestException::class)
+        ->and($caught?->status())->toBe(503);
+
+    Http::assertNotSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/33/messages');
+});
