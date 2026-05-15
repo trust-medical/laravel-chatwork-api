@@ -74,10 +74,3 @@ it('does not throw for Response mode on 5xx', function () {
 
     expect($result)->toBe($response);
 });
-
-it('throws LogicException for Dto mode until Phase 2', function () {
-    $mapper = new ResponseMapper();
-    $response = fakeChatworkResponse(200, ['message_id' => '1']);
-
-    $mapper->map($response, ResponseMode::Dto, stdClass::class, 'POST', '/probe', 'probe');
-})->throws(LogicException::class, 'DTO mapping is added in Phase 2');
