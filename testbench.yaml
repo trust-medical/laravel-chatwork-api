@@ -1,0 +1,4 @@
+providers:
+    - TrustMedical\LaravelChatworkApi\ChatworkServiceProvider
+
+migrations: false

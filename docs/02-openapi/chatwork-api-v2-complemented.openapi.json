@@ -1,0 +1,2931 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Chatwork API v2 - Complemented OpenAPI",
+    "version": "v2",
+    "description": "Chatwork公式Reference、公式PDF、OAuth文書、Changelogをもとに、raw swaggerの欠落operationを補完した実装参照用OpenAPI。"
+  },
+  "externalDocs": {
+    "description": "Chatwork API Reference",
+    "url": "https://developer.chatwork.com/reference"
+  },
+  "servers": [
+    {
+      "url": "https://api.chatwork.com/v2",
+      "description": "Chatwork API v2"
+    }
+  ],
+  "security": [
+    {
+      "chatworkToken": []
+    },
+    {
+      "oauth2": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Me"
+    },
+    {
+      "name": "My"
+    },
+    {
+      "name": "Contacts"
+    },
+    {
+      "name": "Rooms"
+    },
+    {
+      "name": "Members"
+    },
+    {
+      "name": "Messages"
+    },
+    {
+      "name": "Tasks"
+    },
+    {
+      "name": "Files"
+    },
+    {
+      "name": "InvitationLinks"
+    },
+    {
+      "name": "IncomingRequests"
+    },
+    {
+      "name": "OAuth"
+    }
+  ],
+  "paths": {
+    "/me": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "operationId": "getMe",
+        "summary": "自分の情報を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-me"
+        },
+        "x-chatwork-oauth-scopes": [
+          "users.profile.me:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyAccount"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/my/status": {
+      "get": {
+        "tags": [
+          "My"
+        ],
+        "operationId": "getMyStatus",
+        "summary": "自分の状態を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-my-status"
+        },
+        "x-chatwork-oauth-scopes": [
+          "users.status.me:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/my/tasks": {
+      "get": {
+        "tags": [
+          "My"
+        ],
+        "operationId": "listMyTasks",
+        "summary": "自分のタスク一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-my-tasks"
+        },
+        "x-chatwork-oauth-scopes": [
+          "users.tasks.me:read"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assignedByAccountId"
+          },
+          {
+            "$ref": "#/components/parameters/taskStatus"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyTask"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/contacts": {
+      "get": {
+        "tags": [
+          "Contacts"
+        ],
+        "operationId": "listContacts",
+        "summary": "コンタクト一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-contacts"
+        },
+        "x-chatwork-oauth-scopes": [
+          "contacts.all:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Contact"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms": {
+      "get": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "listRooms",
+        "summary": "チャット一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.info:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomSummary"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "createRoom",
+        "summary": "グループチャットを作成する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/post-rooms"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateRoom"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomId"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "getRoom",
+        "summary": "チャットの情報を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.info:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "updateRoom",
+        "summary": "チャットの情報を変更する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-rooms-room_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.info:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdateRoom"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomId"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "leaveOrDeleteRoom",
+        "summary": "チャットを退席または削除する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/delete-rooms-room_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/DeleteRoom"
+        },
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/members": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Members"
+        ],
+        "operationId": "listRoomMembers",
+        "summary": "チャットのメンバー一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-members"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.members:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomMember"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Members"
+        ],
+        "operationId": "replaceRoomMembers",
+        "summary": "チャットのメンバーを一括変更する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-rooms-room_id-members"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.members:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ReplaceRoomMembers"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomMembersUpdateResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/messages": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "operationId": "listRoomMessages",
+        "summary": "チャットのメッセージ一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-messages"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.messages:read"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/force"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Message"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Messages"
+        ],
+        "operationId": "createRoomMessage",
+        "summary": "チャットにメッセージを投稿する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/post-rooms-room_id-messages"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.messages:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateRoomMessage"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageId"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/messages/read": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "put": {
+        "tags": [
+          "Messages"
+        ],
+        "operationId": "markRoomMessagesAsRead",
+        "summary": "チャットのメッセージを既読にする",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-rooms-room_id-messages-read"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.messages:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/MarkRoomMessagesAsRead"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/messages/unread": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "put": {
+        "tags": [
+          "Messages"
+        ],
+        "operationId": "markRoomMessagesAsUnread",
+        "summary": "チャットのメッセージを未読にする",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-rooms-room_id-messages-unread"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.messages:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/MarkRoomMessagesAsUnread"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/messages/{message_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        },
+        {
+          "$ref": "#/components/parameters/messageId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "operationId": "getRoomMessage",
+        "summary": "チャットのメッセージを取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-messages-message_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.messages:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Messages"
+        ],
+        "operationId": "updateRoomMessage",
+        "summary": "チャットのメッセージを更新する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-rooms-room_id-messages-message_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.messages:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdateRoomMessage"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageId"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Messages"
+        ],
+        "operationId": "deleteRoomMessage",
+        "summary": "チャットのメッセージを削除する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/delete-rooms-room_id-messages-message_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.messages:write"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageId"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/tasks": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "listRoomTasks",
+        "summary": "チャットのタスク一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-tasks"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.tasks:read"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accountId"
+          },
+          {
+            "$ref": "#/components/parameters/assignedByAccountId"
+          },
+          {
+            "$ref": "#/components/parameters/taskStatus"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomTask"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "createRoomTask",
+        "summary": "チャットにタスクを追加する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/post-rooms-room_id-tasks"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.tasks:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateRoomTask"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskIds"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/tasks/{task_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        },
+        {
+          "$ref": "#/components/parameters/taskId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "getRoomTask",
+        "summary": "チャットのタスクの情報を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-tasks-task_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.tasks:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomTask"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/tasks/{task_id}/status": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        },
+        {
+          "$ref": "#/components/parameters/taskId"
+        }
+      ],
+      "put": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "updateRoomTaskStatus",
+        "summary": "チャットのタスクの完了状態を変更する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-rooms-room_id-tasks-task_id-status"
+        },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdateRoomTaskStatus"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomTask"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/files": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "operationId": "listRoomFiles",
+        "summary": "チャットのファイル一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-files"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.files:read"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accountId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileSummary"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "operationId": "uploadRoomFile",
+        "summary": "チャットにファイルをアップロードする",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/post-rooms-room_id-files"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.files:write"
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UploadRoomFile"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileId"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/files/{file_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        },
+        {
+          "$ref": "#/components/parameters/fileId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "operationId": "getRoomFile",
+        "summary": "チャットのファイルの情報を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-files-file_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "rooms.files:read"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/createDownloadUrl"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/File"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/rooms/{room_id}/link": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/roomId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "InvitationLinks"
+        ],
+        "operationId": "getRoomLink",
+        "summary": "チャットへの招待リンクを取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-rooms-room_id-link"
+        },
+        "x-chatwork-oauth-scopes": [],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationLink"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "InvitationLinks"
+        ],
+        "operationId": "createRoomLink",
+        "summary": "チャットへの招待リンクを作成する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/post-rooms-room_id-link"
+        },
+        "x-chatwork-oauth-scopes": [],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateRoomLink"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationLink"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "InvitationLinks"
+        ],
+        "operationId": "updateRoomLink",
+        "summary": "チャットへの招待リンクを変更する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-rooms-room_id-link"
+        },
+        "x-chatwork-oauth-scopes": [],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdateRoomLink"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationLink"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "InvitationLinks"
+        ],
+        "operationId": "deleteRoomLink",
+        "summary": "チャットへの招待リンクを削除する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/delete-rooms-room_id-link"
+        },
+        "x-chatwork-oauth-scopes": [],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationLink"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/incoming_requests": {
+      "get": {
+        "tags": [
+          "IncomingRequests"
+        ],
+        "operationId": "listIncomingRequests",
+        "summary": "コンタクト承認依頼一覧を取得する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/get-incoming_requests"
+        },
+        "x-chatwork-oauth-scopes": [
+          "contacts.all:read"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomingRequest"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/incoming_requests/{request_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/requestId"
+        }
+      ],
+      "put": {
+        "tags": [
+          "IncomingRequests"
+        ],
+        "operationId": "acceptIncomingRequest",
+        "summary": "コンタクト承認依頼を承認する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/put-incoming_requests-request_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "contacts.all:write"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingRequestAccount"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "IncomingRequests"
+        ],
+        "operationId": "declineIncomingRequest",
+        "summary": "コンタクト承認依頼を拒否する",
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/reference/delete-incoming_requests-request_id"
+        },
+        "x-chatwork-oauth-scopes": [
+          "contacts.all:write"
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/token": {
+      "post": {
+        "tags": [
+          "OAuth"
+        ],
+        "operationId": "issueOAuthToken",
+        "summary": "OAuth2 access tokenを発行または再発行する",
+        "servers": [
+          {
+            "url": "https://oauth.chatwork.com",
+            "description": "Chatwork OAuth token endpoint"
+          }
+        ],
+        "externalDocs": {
+          "url": "https://developer.chatwork.com/docs/oauth"
+        },
+        "security": [],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/OAuthToken"
+        },
+        "responses": {
+          "200": {
+            "description": "成功した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "OAuth error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "chatworkToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-chatworktoken",
+        "description": "Chatwork API Token"
+      },
+      "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://www.chatwork.com/packages/oauth2/login.php",
+            "tokenUrl": "https://oauth.chatwork.com/token",
+            "scopes": {
+              "offline_access": "永続的なAPIアクセスの許可",
+              "users.all:read": "自分のアカウントに紐づく情報の取得",
+              "users.profile.me:read": "GET /me",
+              "users.status.me:read": "GET /my/status",
+              "users.tasks.me:read": "GET /my/tasks",
+              "rooms.all:read_write": "チャットルームに紐づく情報の取得/操作",
+              "rooms.all:read": "チャットルームに紐づく情報の取得",
+              "rooms.all:write": "チャットルームに紐づく情報の操作",
+              "rooms:write": "POST /rooms, DELETE /rooms/{room_id}",
+              "rooms.info:read": "GET /rooms, GET /rooms/{room_id}",
+              "rooms.info:write": "PUT /rooms/{room_id}",
+              "rooms.members:read": "GET /rooms/{room_id}/members",
+              "rooms.members:write": "PUT /rooms/{room_id}/members",
+              "rooms.messages:read": "GET room messages",
+              "rooms.messages:write": "POST, PUT, DELETE room messages and read/unread",
+              "rooms.tasks:read": "GET room tasks",
+              "rooms.tasks:write": "POST room tasks",
+              "rooms.files:read": "GET room files",
+              "rooms.files:write": "POST room files",
+              "contacts.all:read_write": "コンタクト情報の取得/操作",
+              "contacts.all:read": "GET /contacts, GET /incoming_requests",
+              "contacts.all:write": "PUT/DELETE /incoming_requests/{request_id}"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "roomId": {
+        "name": "room_id",
+        "in": "path",
+        "required": true,
+        "description": "ルームID",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "messageId": {
+        "name": "message_id",
+        "in": "path",
+        "required": true,
+        "description": "メッセージID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "taskId": {
+        "name": "task_id",
+        "in": "path",
+        "required": true,
+        "description": "タスクID",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "fileId": {
+        "name": "file_id",
+        "in": "path",
+        "required": true,
+        "description": "ファイルID",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "requestId": {
+        "name": "request_id",
+        "in": "path",
+        "required": true,
+        "description": "リクエストID",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "force": {
+        "name": "force",
+        "in": "query",
+        "required": false,
+        "description": "強制的に最大件数まで取得するかどうか",
+        "schema": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ],
+          "default": 0
+        }
+      },
+      "accountId": {
+        "name": "account_id",
+        "in": "query",
+        "required": false,
+        "description": "アカウントID",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "assignedByAccountId": {
+        "name": "assigned_by_account_id",
+        "in": "query",
+        "required": false,
+        "description": "タスクの依頼者のアカウントID",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "taskStatus": {
+        "name": "status",
+        "in": "query",
+        "required": false,
+        "description": "タスクの完了状態",
+        "schema": {
+          "$ref": "#/components/schemas/TaskStatus"
+        }
+      },
+      "createDownloadUrl": {
+        "name": "create_download_url",
+        "in": "query",
+        "required": false,
+        "description": "ダウンロードURLを作成するか。作成されるダウンロードURLは30秒間のみ有効。",
+        "schema": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ],
+          "default": 0
+        }
+      }
+    },
+    "requestBodies": {
+      "CreateRoom": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateRoomRequest"
+            }
+          }
+        }
+      },
+      "UpdateRoom": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdateRoomRequest"
+            }
+          }
+        }
+      },
+      "DeleteRoom": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/DeleteRoomRequest"
+            }
+          }
+        }
+      },
+      "ReplaceRoomMembers": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/ReplaceRoomMembersRequest"
+            }
+          }
+        }
+      },
+      "CreateRoomMessage": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateRoomMessageRequest"
+            }
+          }
+        }
+      },
+      "MarkRoomMessagesAsRead": {
+        "required": false,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/MarkRoomMessagesAsReadRequest"
+            }
+          }
+        }
+      },
+      "MarkRoomMessagesAsUnread": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/MarkRoomMessagesAsUnreadRequest"
+            }
+          }
+        }
+      },
+      "UpdateRoomMessage": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdateRoomMessageRequest"
+            }
+          }
+        }
+      },
+      "CreateRoomTask": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateRoomTaskRequest"
+            }
+          }
+        }
+      },
+      "UpdateRoomTaskStatus": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdateRoomTaskStatusRequest"
+            }
+          }
+        }
+      },
+      "UploadRoomFile": {
+        "required": true,
+        "content": {
+          "multipart/form-data": {
+            "schema": {
+              "$ref": "#/components/schemas/UploadRoomFileRequest"
+            }
+          }
+        }
+      },
+      "CreateRoomLink": {
+        "required": false,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateRoomLinkRequest"
+            }
+          }
+        }
+      },
+      "UpdateRoomLink": {
+        "required": false,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdateRoomLinkRequest"
+            }
+          }
+        }
+      },
+      "OAuthToken": {
+        "required": true,
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/OAuthTokenRequest"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "NoContent": {
+        "description": "空のレスポンス"
+      },
+      "BadRequest": {
+        "description": "リクエストまたはアクセストークンのパラメーターが不足している、または不正な値が指定されている",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "認証に失敗した",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "権限またはスコープが不足している",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "対象リソースが存在しない",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "APIの利用回数制限を超過した",
+        "headers": {
+          "x-ratelimit-limit": {
+            "schema": {
+              "type": "integer"
+            },
+            "description": "最大コール回数"
+          },
+          "x-ratelimit-remaining": {
+            "schema": {
+              "type": "integer"
+            },
+            "description": "残りコール回数"
+          },
+          "x-ratelimit-reset": {
+            "schema": {
+              "type": "integer"
+            },
+            "description": "制限がリセットされるUnix時刻"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "errors"
+        ],
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "example": {
+          "errors": [
+            "Invalid API token"
+          ]
+        }
+      },
+      "TaskStatus": {
+        "type": "string",
+        "enum": [
+          "open",
+          "done"
+        ]
+      },
+      "LimitType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "date",
+          "time"
+        ]
+      },
+      "RoomType": {
+        "type": "string",
+        "enum": [
+          "my",
+          "direct",
+          "group"
+        ]
+      },
+      "RoomRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "member",
+          "readonly"
+        ]
+      },
+      "RoomIconPreset": {
+        "type": "string",
+        "enum": [
+          "group",
+          "check",
+          "document",
+          "meeting",
+          "event",
+          "project",
+          "business",
+          "study",
+          "security",
+          "star",
+          "idea",
+          "heart",
+          "magcup",
+          "beer",
+          "music",
+          "sports",
+          "travel"
+        ]
+      },
+      "SimpleAccount": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "name",
+          "avatar_image_url"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "avatar_image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "MyAccount": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "room_id",
+          "name",
+          "chatwork_id",
+          "organization_id",
+          "organization_name",
+          "department",
+          "title",
+          "url",
+          "introduction",
+          "mail",
+          "tel_organization",
+          "tel_extension",
+          "tel_mobile",
+          "skype",
+          "facebook",
+          "twitter",
+          "avatar_image_url"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "integer"
+          },
+          "room_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "chatwork_id": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "integer"
+          },
+          "organization_name": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "introduction": {
+            "type": "string"
+          },
+          "mail": {
+            "type": "string"
+          },
+          "tel_organization": {
+            "type": "string"
+          },
+          "tel_extension": {
+            "type": "string"
+          },
+          "tel_mobile": {
+            "type": "string"
+          },
+          "skype": {
+            "type": "string"
+          },
+          "facebook": {
+            "type": "string"
+          },
+          "twitter": {
+            "type": "string"
+          },
+          "avatar_image_url": {
+            "type": "string"
+          },
+          "login_mail": {
+            "type": "string",
+            "description": "raw swaggerには存在するが公式PDF例には存在しない追加フィールド"
+          }
+        }
+      },
+      "MyStatus": {
+        "type": "object",
+        "required": [
+          "unread_room_num",
+          "mention_room_num",
+          "mytask_room_num",
+          "unread_num",
+          "mention_num",
+          "mytask_num"
+        ],
+        "properties": {
+          "unread_room_num": {
+            "type": "integer"
+          },
+          "mention_room_num": {
+            "type": "integer"
+          },
+          "mytask_room_num": {
+            "type": "integer"
+          },
+          "unread_num": {
+            "type": "integer"
+          },
+          "mention_num": {
+            "type": "integer"
+          },
+          "mytask_num": {
+            "type": "integer"
+          }
+        }
+      },
+      "Contact": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "room_id",
+          "name",
+          "chatwork_id",
+          "organization_id",
+          "organization_name",
+          "department",
+          "avatar_image_url"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "integer"
+          },
+          "room_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "chatwork_id": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "integer"
+          },
+          "organization_name": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "avatar_image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "RoomSummary": {
+        "type": "object",
+        "required": [
+          "room_id",
+          "name",
+          "type",
+          "role",
+          "sticky",
+          "unread_num",
+          "mention_num",
+          "mytask_num",
+          "message_num",
+          "file_num",
+          "task_num",
+          "icon_path",
+          "last_update_time"
+        ],
+        "properties": {
+          "room_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RoomType"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoomRole"
+          },
+          "sticky": {
+            "type": "boolean"
+          },
+          "unread_num": {
+            "type": "integer"
+          },
+          "mention_num": {
+            "type": "integer"
+          },
+          "mytask_num": {
+            "type": "integer"
+          },
+          "message_num": {
+            "type": "integer"
+          },
+          "file_num": {
+            "type": "integer"
+          },
+          "task_num": {
+            "type": "integer"
+          },
+          "icon_path": {
+            "type": "string"
+          },
+          "last_update_time": {
+            "type": "integer"
+          }
+        }
+      },
+      "Room": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RoomSummary"
+          },
+          {
+            "type": "object",
+            "required": [
+              "description"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "RoomId": {
+        "type": "object",
+        "required": [
+          "room_id"
+        ],
+        "properties": {
+          "room_id": {
+            "type": "integer"
+          }
+        }
+      },
+      "RoomMember": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "role",
+          "name",
+          "chatwork_id",
+          "organization_id",
+          "organization_name",
+          "department",
+          "avatar_image_url"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "integer"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoomRole"
+          },
+          "name": {
+            "type": "string"
+          },
+          "chatwork_id": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "integer"
+          },
+          "organization_name": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "avatar_image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "RoomMembersUpdateResult": {
+        "type": "object",
+        "required": [
+          "admin",
+          "member",
+          "readonly"
+        ],
+        "properties": {
+          "admin": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "member": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "readonly": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "required": [
+          "message_id",
+          "account",
+          "body",
+          "send_time",
+          "update_time"
+        ],
+        "properties": {
+          "message_id": {
+            "type": "string"
+          },
+          "account": {
+            "$ref": "#/components/schemas/SimpleAccount"
+          },
+          "body": {
+            "type": "string"
+          },
+          "send_time": {
+            "type": "integer"
+          },
+          "update_time": {
+            "type": "integer"
+          }
+        }
+      },
+      "MessageId": {
+        "type": "object",
+        "required": [
+          "message_id"
+        ],
+        "properties": {
+          "message_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ReadStatus": {
+        "type": "object",
+        "required": [
+          "unread_num",
+          "mention_num"
+        ],
+        "properties": {
+          "unread_num": {
+            "type": "integer"
+          },
+          "mention_num": {
+            "type": "integer"
+          }
+        }
+      },
+      "MyTask": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "room",
+          "assigned_by_account",
+          "message_id",
+          "body",
+          "limit_time",
+          "status"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "integer"
+          },
+          "room": {
+            "type": "object",
+            "required": [
+              "room_id",
+              "name",
+              "icon_path"
+            ],
+            "properties": {
+              "room_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "icon_path": {
+                "type": "string"
+              }
+            }
+          },
+          "assigned_by_account": {
+            "$ref": "#/components/schemas/SimpleAccount"
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "limit_time": {
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaskStatus"
+          },
+          "limit_type": {
+            "$ref": "#/components/schemas/LimitType"
+          }
+        }
+      },
+      "RoomTask": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "account",
+          "assigned_by_account",
+          "message_id",
+          "body",
+          "limit_time",
+          "status"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "integer"
+          },
+          "account": {
+            "$ref": "#/components/schemas/SimpleAccount"
+          },
+          "assigned_by_account": {
+            "$ref": "#/components/schemas/SimpleAccount"
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "limit_time": {
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaskStatus"
+          },
+          "limit_type": {
+            "$ref": "#/components/schemas/LimitType"
+          }
+        }
+      },
+      "TaskIds": {
+        "type": "object",
+        "required": [
+          "task_ids"
+        ],
+        "properties": {
+          "task_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "FileSummary": {
+        "type": "object",
+        "required": [
+          "file_id",
+          "account",
+          "message_id",
+          "filename",
+          "filesize",
+          "upload_time"
+        ],
+        "properties": {
+          "file_id": {
+            "type": "integer"
+          },
+          "account": {
+            "$ref": "#/components/schemas/SimpleAccount"
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "filesize": {
+            "type": "integer"
+          },
+          "upload_time": {
+            "type": "integer"
+          }
+        }
+      },
+      "File": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FileSummary"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "download_url": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "FileId": {
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "properties": {
+          "file_id": {
+            "type": "integer"
+          }
+        }
+      },
+      "InvitationLink": {
+        "type": "object",
+        "required": [
+          "public"
+        ],
+        "properties": {
+          "public": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": "string"
+          },
+          "need_acceptance": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "IncomingRequest": {
+        "type": "object",
+        "required": [
+          "request_id",
+          "account_id",
+          "message",
+          "name",
+          "chatwork_id",
+          "organization_id",
+          "organization_name",
+          "department",
+          "avatar_image_url"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "integer"
+          },
+          "account_id": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "chatwork_id": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "integer"
+          },
+          "organization_name": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "avatar_image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "IncomingRequestAccount": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "room_id",
+          "name",
+          "chatwork_id",
+          "organization_id",
+          "organization_name",
+          "department",
+          "avatar_image_url"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "integer"
+          },
+          "room_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "chatwork_id": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "integer"
+          },
+          "organization_name": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "avatar_image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateRoomRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "members_admin_ids"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string"
+          },
+          "link": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "default": 0
+          },
+          "link_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "link_need_acceptance": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "default": 1
+          },
+          "members_admin_ids": {
+            "type": "string",
+            "description": "カンマ区切りのアカウントID一覧"
+          },
+          "members_member_ids": {
+            "type": "string",
+            "description": "カンマ区切りのアカウントID一覧"
+          },
+          "members_readonly_ids": {
+            "type": "string",
+            "description": "カンマ区切りのアカウントID一覧"
+          },
+          "icon_preset": {
+            "$ref": "#/components/schemas/RoomIconPreset"
+          }
+        }
+      },
+      "UpdateRoomRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon_preset": {
+            "$ref": "#/components/schemas/RoomIconPreset"
+          }
+        }
+      },
+      "DeleteRoomRequest": {
+        "type": "object",
+        "required": [
+          "action_type"
+        ],
+        "properties": {
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "leave",
+              "delete"
+            ]
+          }
+        }
+      },
+      "ReplaceRoomMembersRequest": {
+        "type": "object",
+        "required": [
+          "members_admin_ids"
+        ],
+        "properties": {
+          "members_admin_ids": {
+            "type": "string",
+            "description": "カンマ区切りのアカウントID一覧。最低1人は必須。"
+          },
+          "members_member_ids": {
+            "type": "string",
+            "description": "カンマ区切りのアカウントID一覧"
+          },
+          "members_readonly_ids": {
+            "type": "string",
+            "description": "カンマ区切りのアカウントID一覧"
+          }
+        }
+      },
+      "CreateRoomMessageRequest": {
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65535
+          },
+          "self_unread": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "default": 0
+          }
+        }
+      },
+      "MarkRoomMessagesAsReadRequest": {
+        "type": "object",
+        "properties": {
+          "message_id": {
+            "type": "string"
+          }
+        }
+      },
+      "MarkRoomMessagesAsUnreadRequest": {
+        "type": "object",
+        "required": [
+          "message_id"
+        ],
+        "properties": {
+          "message_id": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateRoomMessageRequest": {
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65535
+          }
+        }
+      },
+      "CreateRoomTaskRequest": {
+        "type": "object",
+        "required": [
+          "body",
+          "to_ids"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65535
+          },
+          "to_ids": {
+            "type": "string",
+            "description": "カンマ区切りのアカウントID一覧"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Unix時間（秒）"
+          },
+          "limit_type": {
+            "$ref": "#/components/schemas/LimitType"
+          }
+        }
+      },
+      "UpdateRoomTaskStatusRequest": {
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/TaskStatus"
+          }
+        }
+      },
+      "UploadRoomFileRequest": {
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "アップロードするファイル。上限5MB。"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65535
+          }
+        }
+      },
+      "CreateRoomLinkRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "need_acceptance": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "default": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateRoomLinkRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "need_acceptance": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "default": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "OAuthTokenRequest": {
+        "type": "object",
+        "required": [
+          "grant_type"
+        ],
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "enum": [
+              "authorization_code",
+              "refresh_token"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "redirect_uri": {
+            "type": "string"
+          },
+          "code_verifier": {
+            "type": "string",
+            "minLength": 43,
+            "maxLength": 128
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string",
+            "description": "パブリッククライアントで利用"
+          }
+        }
+      },
+      "OAuthToken": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "scope": {
+            "type": "string"
+          }
+        }
+      },
+      "OAuthError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "invalid_grant"
+          },
+          "error_description": {
+            "type": "string"
+          },
+          "error_uri": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}

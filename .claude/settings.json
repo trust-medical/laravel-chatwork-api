@@ -1,0 +1,85 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(composer:*)",
+            "Bash(./vendor/bin/pint:*)",
+            "Bash(./vendor/bin/phpstan:*)",
+            "Bash(./vendor/bin/pest:*)",
+            "Bash(./vendor/bin/testbench:*)",
+            "Bash(php artisan:*)",
+            "Bash(php -v)",
+            "Bash(php --version)",
+            "Bash(git status:*)",
+            "Bash(git diff:*)",
+            "Bash(git log:*)",
+            "Bash(git branch:*)",
+            "Bash(git show:*)",
+            "Bash(jq:*)",
+            "Bash(ls:*)",
+            "Bash(cat:*)",
+            "Bash(mkdir:*)",
+            "Bash(touch:*)",
+            "Write(tests/**)",
+            "Write(tests/Fixtures/**)",
+            "Edit(tests/**)",
+            "Read(docs/**)",
+            "Read(.claude/**)",
+            "mcp__openapi-chatwork__*",
+            "ListMcpResourcesTool",
+            "ReadMcpResourceTool"
+        ]
+    },
+    "enabledMcpjsonServers": [
+        "openapi-chatwork"
+    ],
+    "enabledPlugins": {
+        "context7@claude-plugins-official": true,
+        "php-lsp@claude-plugins-official": true
+    },
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write|MultiEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "if": "Edit(src/**)",
+                        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/tdd-warn.sh",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write|MultiEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "if": "Edit(src/**) | Edit(tests/**)",
+                        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pint-on-edit.sh",
+                        "timeout": 15
+                    },
+                    {
+                        "type": "command",
+                        "if": "Edit(src/**)",
+                        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/phpstan-on-src.sh",
+                        "timeout": 45
+                    }
+                ]
+            }
+        ],
+        "SessionStart": [
+            {
+                "matcher": "startup",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-context.sh",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ]
+    }
+}

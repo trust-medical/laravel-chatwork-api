@@ -1,0 +1,67 @@
+{
+    "name": "trust-medical/laravel-chatwork-api",
+    "description": "A Laravel package for the Chatwork API v2 (HTTP client, Notification channel, OAuth2).",
+    "keywords": [
+        "laravel",
+        "chatwork",
+        "chatwork-api",
+        "notification",
+        "oauth2"
+    ],
+    "license": "MIT",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/http": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/notifications": "^11.0 || ^12.0 || ^13.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.18",
+        "larastan/larastan": "^3.0",
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TrustMedical\\LaravelChatworkApi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TrustMedical\\LaravelChatworkApi\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "lint": "pint",
+        "lint:test": "pint --test",
+        "analyse": "phpstan analyse --memory-limit=512M",
+        "test": "pest",
+        "test:coverage": "pest --coverage --min=80",
+        "ci": [
+            "@lint:test",
+            "@analyse",
+            "@test"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TrustMedical\\LaravelChatworkApi\\ChatworkServiceProvider"
+            ],
+            "aliases": {
+                "Chatwork": "TrustMedical\\LaravelChatworkApi\\Facades\\Chatwork"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

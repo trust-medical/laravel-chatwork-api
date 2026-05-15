@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "openapi-chatwork": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-openapi-schema-explorer@latest",
+                "${CLAUDE_PROJECT_DIR:-.}/docs/02-openapi/chatwork-api-v2-complemented.openapi.json"
+            ],
+            "env": {
+                "OUTPUT_FORMAT": "yaml"
+            }
+        }
+    }
+}

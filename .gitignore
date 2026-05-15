@@ -28,3 +28,18 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# Composer (library package: do not commit lock)
+/composer.lock
+
+# Test / static analysis caches
+.phpunit.cache/
+.phpstan.cache/
+.pint.cache
+
+# Claude Code local overrides
+.claude/settings.local.json
+
+# Intelephense (PHP LSP) project cache
+.intelephense/
+

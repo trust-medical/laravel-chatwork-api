@@ -1,0 +1,13 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - tests/Fixtures/*
+    tmpDir: .phpstan.cache
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false

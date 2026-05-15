@@ -1,0 +1,433 @@
+openapi_source:
+  local_file: docs/02-openapi/chatwork-api-v2-swagger3.json
+  complemented_file: docs/02-openapi/chatwork-api-v2-complemented.openapi.json
+  official_reference: https://developer.chatwork.com/reference
+  official_endpoint_notes: https://developer.chatwork.com/docs/endpoints
+  official_pdf: https://download.chatwork.com/ChatWork_API_Documentation.pdf
+  request_change_notice: https://developer.chatwork.com/changelog/202501-notice
+  generated_at: "2026-05-15"
+
+api:
+  name: Chatwork API
+  version: v2
+  base_uri: https://api.chatwork.com/v2
+  default_accept: application/json
+  default_form_content_type: application/x-www-form-urlencoded
+
+authentication:
+  api_token:
+    header: x-chatworktoken
+  oauth2_bearer:
+    header: Authorization
+    scheme: Bearer
+
+endpoints:
+  - operation_id: get_me
+    method: GET
+    path: /me
+    resource: me
+    request: none
+    response: MyAccount
+    destructive: false
+    priority: later
+
+  - operation_id: get_my_status
+    method: GET
+    path: /my/status
+    resource: my
+    request: query
+    response: MyStatus
+    destructive: false
+    priority: later
+
+  - operation_id: list_my_tasks
+    method: GET
+    path: /my/tasks
+    resource: my_tasks
+    request: query
+    query:
+      assigned_by_account_id: integer
+      status: [open, done]
+    response: MyTask[]
+    no_content: true
+    destructive: false
+    priority: later
+
+  - operation_id: list_contacts
+    method: GET
+    path: /contacts
+    resource: contacts
+    request: none
+    response: Contact[]
+    no_content: true
+    destructive: false
+    priority: later
+
+  - operation_id: list_rooms
+    method: GET
+    path: /rooms
+    resource: rooms
+    request: none
+    response: RoomSummary[]
+    destructive: false
+    priority: later
+
+  - operation_id: create_room
+    method: POST
+    path: /rooms
+    resource: rooms
+    request: form
+    form:
+      name: { type: string, required: true, min: 1, max: 255 }
+      description: { type: string, required: false }
+      link: { type: integer, required: false, enum: [0, 1] }
+      link_code: { type: string, required: false, min: 1, max: 50 }
+      link_need_acceptance: { type: integer, required: false, enum: [0, 1] }
+      members_admin_ids: { type: csv_integer_list, required: true }
+      members_member_ids: { type: csv_integer_list, required: false }
+      members_readonly_ids: { type: csv_integer_list, required: false }
+      icon_preset: { type: room_icon_preset, required: false }
+    response: RoomId
+    destructive: false
+    priority: later
+
+  - operation_id: get_room
+    method: GET
+    path: /rooms/{room_id}
+    resource: rooms
+    request: path
+    path_params:
+      room_id: integer
+    response: Room
+    destructive: false
+    priority: later
+
+  - operation_id: update_room
+    method: PUT
+    path: /rooms/{room_id}
+    resource: rooms
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      name: { type: string, required: false, min: 1, max: 255 }
+      description: { type: string, required: false }
+      icon_preset: { type: room_icon_preset, required: false }
+    response: RoomId
+    destructive: false
+    priority: later
+
+  - operation_id: leave_or_delete_room
+    method: DELETE
+    path: /rooms/{room_id}
+    resource: rooms
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      action_type: { type: string, required: true, enum: [leave, delete] }
+    response: NoContent
+    destructive: true
+    priority: later
+
+  - operation_id: list_room_members
+    method: GET
+    path: /rooms/{room_id}/members
+    resource: room_members
+    request: path
+    path_params:
+      room_id: integer
+    response: RoomMember[]
+    destructive: false
+    priority: later
+
+  - operation_id: replace_room_members
+    method: PUT
+    path: /rooms/{room_id}/members
+    resource: room_members
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      members_admin_ids: { type: csv_integer_list, required: true }
+      members_member_ids: { type: csv_integer_list, required: true }
+      members_readonly_ids: { type: csv_integer_list, required: true }
+    response: RoomMembersUpdateResult
+    destructive: true
+    priority: later
+
+  - operation_id: list_room_messages
+    method: GET
+    path: /rooms/{room_id}/messages
+    resource: room_messages
+    request: query
+    path_params:
+      room_id: integer
+    query:
+      force: { type: integer, required: false, enum: [0, 1], default: 0 }
+    response: Message[]
+    no_content: true
+    destructive: false
+    priority: early
+
+  - operation_id: create_room_message
+    method: POST
+    path: /rooms/{room_id}/messages
+    resource: room_messages
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      body: { type: string, required: true, min: 1, max: 65535 }
+      self_unread: { type: integer, required: false, enum: [0, 1], default: 0 }
+    response: MessageId
+    destructive: false
+    priority: first
+
+  - operation_id: mark_room_messages_as_read
+    method: PUT
+    path: /rooms/{room_id}/messages/read
+    resource: room_messages
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      message_id: { type: string, required: true }
+    response: ReadStatus
+    destructive: false
+    priority: later
+
+  - operation_id: mark_room_messages_as_unread
+    method: PUT
+    path: /rooms/{room_id}/messages/unread
+    resource: room_messages
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      message_id: { type: string, required: false }
+    response: ReadStatus
+    destructive: false
+    priority: later
+
+  - operation_id: get_room_message
+    method: GET
+    path: /rooms/{room_id}/messages/{message_id}
+    resource: room_messages
+    request: path
+    path_params:
+      room_id: integer
+      message_id: string
+    response: Message
+    destructive: false
+    priority: early
+
+  - operation_id: update_room_message
+    method: PUT
+    path: /rooms/{room_id}/messages/{message_id}
+    resource: room_messages
+    request: form
+    path_params:
+      room_id: integer
+      message_id: string
+    form:
+      body: { type: string, required: true, min: 1, max: 65535 }
+    response: MessageId
+    destructive: false
+    priority: early
+
+  - operation_id: delete_room_message
+    method: DELETE
+    path: /rooms/{room_id}/messages/{message_id}
+    resource: room_messages
+    request: path
+    path_params:
+      room_id: integer
+      message_id: string
+    response: MessageId
+    destructive: true
+    priority: early
+
+  - operation_id: list_room_tasks
+    method: GET
+    path: /rooms/{room_id}/tasks
+    resource: room_tasks
+    request: query
+    path_params:
+      room_id: integer
+    query:
+      account_id: integer
+      assigned_by_account_id: integer
+      status: [open, done]
+    response: RoomTask[]
+    no_content: true
+    destructive: false
+    priority: later
+
+  - operation_id: create_room_task
+    method: POST
+    path: /rooms/{room_id}/tasks
+    resource: room_tasks
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      body: { type: string, required: true, min: 1, max: 65535 }
+      to_ids: { type: csv_integer_list, required: true }
+      limit: { type: integer, required: false }
+      limit_type: { type: string, required: false, enum: [none, date, time], default: time }
+    response: TaskIds
+    destructive: false
+    priority: later
+
+  - operation_id: get_room_task
+    method: GET
+    path: /rooms/{room_id}/tasks/{task_id}
+    resource: room_tasks
+    request: path
+    path_params:
+      room_id: integer
+      task_id: integer
+    response: RoomTask
+    destructive: false
+    priority: later
+
+  - operation_id: update_room_task_status
+    method: PUT
+    path: /rooms/{room_id}/tasks/{task_id}/status
+    resource: room_tasks
+    request: form
+    path_params:
+      room_id: integer
+      task_id: integer
+    form:
+      body: { type: string, required: true, enum: [open, done] }
+    response: RoomTask
+    destructive: false
+    priority: later
+
+  - operation_id: list_room_files
+    method: GET
+    path: /rooms/{room_id}/files
+    resource: room_files
+    request: query
+    path_params:
+      room_id: integer
+    query:
+      account_id: integer
+    response: FileSummary[]
+    no_content: true
+    destructive: false
+    priority: later
+
+  - operation_id: upload_room_file
+    method: POST
+    path: /rooms/{room_id}/files
+    resource: room_files
+    request: multipart
+    path_params:
+      room_id: integer
+    multipart:
+      file: { type: file, required: true, max_bytes: 5242880 }
+      message: { type: string, required: false, min: 1, max: 65535 }
+    response: FileId
+    destructive: false
+    priority: later
+
+  - operation_id: get_room_file
+    method: GET
+    path: /rooms/{room_id}/files/{file_id}
+    resource: room_files
+    request: query
+    path_params:
+      room_id: integer
+      file_id: integer
+    query:
+      create_download_url: { type: integer, required: false, enum: [0, 1], default: 0 }
+    response: File
+    destructive: false
+    priority: later
+
+  - operation_id: get_room_link
+    method: GET
+    path: /rooms/{room_id}/link
+    resource: room_links
+    request: path
+    path_params:
+      room_id: integer
+    response: InvitationLink
+    destructive: false
+    priority: later
+
+  - operation_id: create_room_link
+    method: POST
+    path: /rooms/{room_id}/link
+    resource: room_links
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      code: { type: string, required: false, min: 1, max: 50 }
+      need_acceptance: { type: integer, required: false, enum: [0, 1], default: 1 }
+      description: { type: string, required: false }
+    response: InvitationLink
+    destructive: false
+    priority: later
+
+  - operation_id: update_room_link
+    method: PUT
+    path: /rooms/{room_id}/link
+    resource: room_links
+    request: form
+    path_params:
+      room_id: integer
+    form:
+      code: { type: string, required: false, min: 1, max: 50 }
+      need_acceptance: { type: integer, required: false, enum: [0, 1] }
+      description: { type: string, required: false }
+    response: InvitationLink
+    destructive: false
+    priority: later
+
+  - operation_id: delete_room_link
+    method: DELETE
+    path: /rooms/{room_id}/link
+    resource: room_links
+    request: path
+    path_params:
+      room_id: integer
+    response: InvitationLink
+    destructive: true
+    priority: later
+
+  - operation_id: list_incoming_requests
+    method: GET
+    path: /incoming_requests
+    resource: incoming_requests
+    request: none
+    response: IncomingRequest[]
+    no_content: true
+    destructive: false
+    priority: later
+
+  - operation_id: accept_incoming_request
+    method: PUT
+    path: /incoming_requests/{request_id}
+    resource: incoming_requests
+    request: path
+    path_params:
+      request_id: integer
+    response: IncomingRequestAccount
+    destructive: false
+    priority: later
+
+  - operation_id: decline_incoming_request
+    method: DELETE
+    path: /incoming_requests/{request_id}
+    resource: incoming_requests
+    request: path
+    path_params:
+      request_id: integer
+    response: NoContent
+    destructive: true
+    priority: later
