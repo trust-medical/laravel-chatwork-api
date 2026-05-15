@@ -6,8 +6,10 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
+use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateMessageRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedMessage;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MessageData;
+use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedMessage;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 
 final class RoomMessagesResource
@@ -60,12 +62,15 @@ final class RoomMessagesResource
 
     public function update(int $roomId, string $messageId, string $body): mixed
     {
-        throw new \LogicException(sprintf(
-            'not implemented in Phase 0 (roomId=%d, messageId=%s, body_length=%d)',
-            $roomId,
-            $messageId,
-            strlen($body),
-        ));
+        $request = new UpdateMessageRequest($body);
+
+        return $this->client->send(
+            'PUT',
+            sprintf('/rooms/%d/messages/%s', $roomId, $messageId),
+            $request->toArray(),
+            UpdatedMessage::class,
+            'updateRoomMessage',
+        );
     }
 
     public function deleteMessage(int $roomId, string $messageId): mixed
