@@ -28,6 +28,16 @@ final class ChatworkClient
         return $this->connection;
     }
 
+    public function mode(): ResponseMode
+    {
+        return $this->mode;
+    }
+
+    public function withMode(ResponseMode $mode): self
+    {
+        return new self($this->connection, $this->factory, $this->mapper, $mode);
+    }
+
     public function rooms(): RoomsResource
     {
         return new RoomsResource($this);

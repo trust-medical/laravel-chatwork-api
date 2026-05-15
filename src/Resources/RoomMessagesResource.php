@@ -7,6 +7,8 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedMessage;
+use TrustMedical\LaravelChatworkApi\Data\Responses\MessageData;
+use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 
 final class RoomMessagesResource
 {
@@ -27,11 +29,22 @@ final class RoomMessagesResource
 
     public function list(int $roomId, ?bool $force = null): mixed
     {
-        throw new \LogicException(sprintf(
-            'not implemented in Phase 0 (roomId=%d, force=%s)',
-            $roomId,
-            $force === null ? 'null' : ($force ? 'true' : 'false'),
-        ));
+        $query = $force === true ? ['force' => 1] : [];
+        $path = sprintf('/rooms/%d/messages', $roomId);
+
+        if ($this->client->mode() === ResponseMode::Dto) {
+            $collection = $this->client->withMode(ResponseMode::Collection)->send(
+                'GET',
+                $path,
+                $query,
+                MessageData::class,
+                'listRoomMessages',
+            );
+
+            return $collection->all();
+        }
+
+        return $this->client->send('GET', $path, $query, MessageData::class, 'listRoomMessages');
     }
 
     public function find(int $roomId, string $messageId): mixed
