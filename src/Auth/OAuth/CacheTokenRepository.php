@@ -40,6 +40,6 @@ final class CacheTokenRepository implements TokenRepository
 
     private function cacheKey(string $connectionName): string
     {
-        return self::KEY_PREFIX . $connectionName;
+        return self::KEY_PREFIX . hash('sha256', $connectionName);
     }
 }

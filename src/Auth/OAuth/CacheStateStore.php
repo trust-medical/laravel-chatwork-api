@@ -32,6 +32,6 @@ final class CacheStateStore implements StateStore
 
     private function cacheKey(string $state): string
     {
-        return self::KEY_PREFIX . $state;
+        return self::KEY_PREFIX . hash('sha256', $state);
     }
 }

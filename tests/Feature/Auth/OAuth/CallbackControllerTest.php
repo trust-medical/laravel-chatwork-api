@@ -160,6 +160,22 @@ it('falls back to root path when redirect_after_callback is a scheme-relative UR
     expect($path)->toBe('/');
 });
 
+it('rejects code values longer than the safety limit and skips the token endpoint', function () {
+    Http::fake();
+
+    $store = new CacheStateStore(Cache::store());
+    $repo = new CacheTokenRepository(Cache::store());
+    $controller = buildController($store, $repo);
+
+    $store->put('state-long', ['connection' => 'default', 'context' => []], 600);
+
+    $tooLong = str_repeat('a', 1025);
+    $response = $controller(callbackRequest("state=state-long&code={$tooLong}"));
+
+    expect($response->getStatusCode())->toBe(400);
+    Http::assertNothingSent();
+});
+
 it('returns a Response (Symfony) regardless of branch', function () {
     Http::fake();
 

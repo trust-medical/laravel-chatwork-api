@@ -45,7 +45,7 @@ Phase 14: Release Preparation
 | 1 | Foundation | — | `[x]` |
 | 2 | createRoomMessage | 1 | `[x]` |
 | 3 | Notifications | — | `[x]` |
-| 4 | OAuth2 | 1 (`/token`) | `[ ]` |
+| 4 | OAuth2 | 1 (`/token`) | `[x]` |
 | 5 | Messages 残 | 6 | `[ ]` |
 | 6 | Rooms | 5 (action_type で2分割) | `[ ]` |
 | 7 | Room Members | 2 | `[ ]` |

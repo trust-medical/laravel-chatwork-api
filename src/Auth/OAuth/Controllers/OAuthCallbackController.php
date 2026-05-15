@@ -12,6 +12,8 @@ use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenRepository;
 
 final class OAuthCallbackController
 {
+    private const MAX_CODE_LENGTH = 1024;
+
     public function __construct(
         private readonly StateStore $stateStore,
         private readonly OAuthClient $oauthClient,
@@ -35,7 +37,7 @@ final class OAuthCallbackController
         }
 
         $code = (string) $request->query('code', '');
-        if ($code === '') {
+        if ($code === '' || strlen($code) > self::MAX_CODE_LENGTH) {
             return $this->errorResponse(400, 'missing_code');
         }
 
