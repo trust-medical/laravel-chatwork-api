@@ -1,0 +1,32 @@
+[
+    {
+        "account_id": 123,
+        "role": "admin",
+        "name": "Alice Admin",
+        "chatwork_id": "alice",
+        "organization_id": 101,
+        "organization_name": "Example Corp",
+        "department": "Engineering",
+        "avatar_image_url": "https://example.com/avatar/123.png"
+    },
+    {
+        "account_id": 456,
+        "role": "member",
+        "name": "Bob Member",
+        "chatwork_id": "bob",
+        "organization_id": 101,
+        "organization_name": "Example Corp",
+        "department": "Sales",
+        "avatar_image_url": "https://example.com/avatar/456.png"
+    },
+    {
+        "account_id": 789,
+        "role": "readonly",
+        "name": "Carol Readonly",
+        "chatwork_id": "carol",
+        "organization_id": 102,
+        "organization_name": "Partner Inc",
+        "department": "Support",
+        "avatar_image_url": "https://example.com/avatar/789.png"
+    }
+]
