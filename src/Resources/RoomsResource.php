@@ -100,7 +100,7 @@ final class RoomsResource
 
     public function members(): RoomMembersResource
     {
-        throw new \LogicException('RoomMembersResource is implemented in Phase 7.');
+        return new RoomMembersResource($this->client);
     }
 
     public function tasks(): RoomTasksResource
