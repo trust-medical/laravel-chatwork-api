@@ -1,0 +1,10 @@
+{
+    "account_id": 363,
+    "room_id": 1234,
+    "name": "Bob Bob",
+    "chatwork_id": "bobbob",
+    "organization_id": 101,
+    "organization_name": "Example Corp",
+    "department": "Sales",
+    "avatar_image_url": "https://example.com/avatar/363.png"
+}

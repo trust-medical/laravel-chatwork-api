@@ -1,0 +1,24 @@
+[
+    {
+        "request_id": 123,
+        "account_id": 363,
+        "message": "Please add me to your contacts.",
+        "name": "Bob Bob",
+        "chatwork_id": "bobbob",
+        "organization_id": 101,
+        "organization_name": "Example Corp",
+        "department": "Sales",
+        "avatar_image_url": "https://example.com/avatar/363.png"
+    },
+    {
+        "request_id": 124,
+        "account_id": 364,
+        "message": "Let's connect.",
+        "name": "Carol Carol",
+        "chatwork_id": "carolcarol",
+        "organization_id": 102,
+        "organization_name": "Partner Inc",
+        "department": "Support",
+        "avatar_image_url": "https://example.com/avatar/364.png"
+    }
+]
