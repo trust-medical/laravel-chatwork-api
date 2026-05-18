@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -14,6 +15,7 @@ use TrustMedical\LaravelChatworkApi\Auth\OAuth\Controllers\OAuthCallbackControll
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\OAuthClient;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\StateStore;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenRepository;
+use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenSet;
 
 beforeEach(function () {
     Config::set('cache.default', 'array');
@@ -30,6 +32,7 @@ function buildController(StateStore $stateStore, TokenRepository $repo): OAuthCa
         $stateStore,
         new OAuthClient($stateStore, config('chatwork.oauth')),
         $repo,
+        app(Repository::class),
     );
 }
 
@@ -186,4 +189,56 @@ it('どの分岐でもResponse (Symfony) を返す', function () {
     $response = $controller(callbackRequest('state=missing-here&code=auth-code'));
 
     expect($response)->toBeInstanceOf(Response::class);
+});
+
+it('コード交換が失敗した場合は502を返し秘密情報を漏らさない', function () {
+    Http::fake([
+        'oauth.chatwork.com/token' => Http::response(
+            '{"error":"invalid_grant","client_secret":"super-secret"}',
+            400,
+        ),
+    ]);
+
+    $store = new CacheStateStore(Cache::store());
+    $repo = new CacheTokenRepository(Cache::store(), testEncrypter());
+    $controller = buildController($store, $repo);
+
+    $store->put('state-err', ['connection' => 'default', 'context' => []], 600);
+
+    $response = $controller(callbackRequest('state=state-err&code=auth-code-xyz'));
+
+    expect($response->getStatusCode())->toBe(502);
+    $body = (string) $response->getContent();
+    expect($body)->toContain('token_exchange_failed');
+    expect(str_contains($body, 'super-secret'))->toBeFalse();
+    expect(str_contains($body, 'auth-code-xyz'))->toBeFalse();
+    expect($repo->find('default'))->toBeNull();
+});
+
+it('トークン保存が設定不備で失敗した場合は500を返す', function () {
+    Http::fake([
+        'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
+    ]);
+
+    $store = new CacheStateStore(Cache::store());
+    $failingRepo = new class() implements TokenRepository
+    {
+        public function save(TokenSet $tokenSet, array $context = []): void
+        {
+            throw new InvalidArgumentException('connection misconfigured');
+        }
+
+        public function find(string $connectionName): ?TokenSet
+        {
+            return null;
+        }
+    };
+    $controller = buildController($store, $failingRepo);
+
+    $store->put('state-save', ['connection' => 'default', 'context' => []], 600);
+
+    $response = $controller(callbackRequest('state=state-save&code=auth-code'));
+
+    expect($response->getStatusCode())->toBe(500);
+    expect((string) $response->getContent())->toContain('oauth_misconfigured');
 });
