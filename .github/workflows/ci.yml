@@ -64,9 +64,12 @@ jobs:
       - name: Pin Laravel versions
         run: |
           composer require \
-            "illuminate/support:${{ matrix.laravel }}" \
+            "illuminate/cache:${{ matrix.laravel }}" \
+            "illuminate/contracts:${{ matrix.laravel }}" \
             "illuminate/http:${{ matrix.laravel }}" \
             "illuminate/notifications:${{ matrix.laravel }}" \
+            "illuminate/routing:${{ matrix.laravel }}" \
+            "illuminate/support:${{ matrix.laravel }}" \
             --no-update --no-interaction
       - name: Install dependencies
         run: composer update --${{ matrix.dependency-version }} --no-interaction --prefer-dist
