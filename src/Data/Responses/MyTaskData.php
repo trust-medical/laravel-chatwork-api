@@ -17,7 +17,7 @@ final readonly class MyTaskData
         public string $body,
         public int $limitTime,
         public TaskStatus $status,
-        public ?LimitType $limitType,
+        public ?LimitType $limitType = null,
     ) {}
 
     /**

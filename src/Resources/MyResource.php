@@ -31,10 +31,10 @@ final class MyResource
 
         $path = '/my/tasks';
 
-        // GET /my/tasks returns array<MyTask> on 200 and an empty body on
-        // 204. Routing Dto mode through Collection makes both degrade
-        // correctly: 204 -> []. Other modes flow through
-        // ChatworkClient::send unchanged.
+        // ResponseMode::Dto is the package default but the wire shape here
+        // is an array, so internally route through Collection mode and
+        // unwrap. This path also makes the spec's 204 empty body degrade
+        // to []. Other modes flow through ChatworkClient::send unchanged.
         if ($this->client->mode() === ResponseMode::Dto) {
             $collection = $this->client->withMode(ResponseMode::Collection)->send(
                 'GET',
