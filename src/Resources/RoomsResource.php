@@ -105,7 +105,7 @@ final class RoomsResource
 
     public function tasks(): RoomTasksResource
     {
-        throw new \LogicException('RoomTasksResource is implemented in Phase 8.');
+        return new RoomTasksResource($this->client);
     }
 
     public function files(): RoomFilesResource
