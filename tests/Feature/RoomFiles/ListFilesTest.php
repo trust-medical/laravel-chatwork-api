@@ -117,6 +117,17 @@ it('returns an empty array in asDto mode on 204 No Content', function () {
     expect($result)->toBe([]);
 });
 
+it('returns an empty Collection in asCollection mode on 204 No Content', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/files' => Http::response('', 204),
+    ]);
+
+    $result = Chatwork::asCollection()->rooms()->files()->list(123);
+
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and($result->isEmpty())->toBeTrue();
+});
+
 it('returns a successful Result in asResult mode', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(

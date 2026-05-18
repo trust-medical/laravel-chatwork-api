@@ -29,6 +29,34 @@ if (! function_exists('fixtureJson')) {
     }
 }
 
+if (! function_exists('tempUploadFile')) {
+    /**
+     * Creates a temporary file for upload tests and schedules its removal.
+     *
+     * When $truncateTo is given a sparse file of exactly that many bytes is
+     * created without writing real IO (used for the 5 MiB boundary cases);
+     * otherwise $contents is written verbatim.
+     */
+    function tempUploadFile(string $contents = 'hello world', ?int $truncateTo = null): string
+    {
+        $path = (string) tempnam(sys_get_temp_dir(), 'cwfile');
+        register_shutdown_function(static fn () => @unlink($path));
+
+        if ($truncateTo !== null) {
+            $fp = fopen($path, 'w');
+            assert($fp !== false);
+            ftruncate($fp, $truncateTo);
+            fclose($fp);
+
+            return $path;
+        }
+
+        file_put_contents($path, $contents);
+
+        return $path;
+    }
+}
+
 if (! function_exists('fixture')) {
     /**
      * Reads a fixture file under tests/Fixtures/chatwork/ and returns it as a raw string.

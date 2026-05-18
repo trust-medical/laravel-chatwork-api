@@ -9,6 +9,7 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\UploadedRoomFile;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
+use TrustMedical\LaravelChatworkApi\Http\Result;
 
 beforeEach(function () {
     config()->set('chatwork.connections.default', [
@@ -16,15 +17,6 @@ beforeEach(function () {
         'token' => 'api-default-token',
     ]);
 });
-
-function tmpUploadFile(string $contents = 'hello world'): string
-{
-    $path = (string) tempnam(sys_get_temp_dir(), 'cwfile');
-    file_put_contents($path, $contents);
-    register_shutdown_function(static fn () => @unlink($path));
-
-    return $path;
-}
 
 it('POSTs /rooms/{room_id}/files with a multipart body', function () {
     Http::fake([
@@ -34,7 +26,7 @@ it('POSTs /rooms/{room_id}/files with a multipart body', function () {
         ),
     ]);
 
-    $path = tmpUploadFile('PDF-CONTENT');
+    $path = tempUploadFile('PDF-CONTENT');
 
     Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(
         path: $path,
@@ -60,7 +52,7 @@ it('uses the basename of the path when no filename override is given', function 
         ),
     ]);
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
 
     Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
 
@@ -75,7 +67,7 @@ it('sends the message field when provided', function () {
         ),
     ]);
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
 
     Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(
         path: $path,
@@ -95,7 +87,7 @@ it('omits the message field when not provided', function () {
         ),
     ]);
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
 
     Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
 
@@ -110,7 +102,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         ),
     ]);
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
 
     Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
 
@@ -126,7 +118,7 @@ it('returns UploadedRoomFile DTO in asDto mode', function () {
         ),
     ]);
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
 
     $result = Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
 
@@ -134,10 +126,43 @@ it('returns UploadedRoomFile DTO in asDto mode', function () {
         ->and($result->fileId)->toBe(12345);
 });
 
+it('returns the raw array in asArray mode', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
+            fixtureJson('files/upload-room-file-200.json'),
+            200,
+        ),
+    ]);
+
+    $path = tempUploadFile();
+
+    $result = Chatwork::asArray()->rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
+
+    expect($result)->toBe(['file_id' => 12345]);
+});
+
+it('returns a failed Result on 400 in asResult mode without throwing', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
+            fixtureJson('files/upload-room-file-400.json'),
+            400,
+        ),
+    ]);
+
+    $path = tempUploadFile();
+
+    $result = Chatwork::asResult()->rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
+
+    expect($result)->toBeInstanceOf(Result::class)
+        ->and($result->failed())->toBeTrue()
+        ->and($result->status())->toBe(400)
+        ->and($result->errors())->toBe(['file is required']);
+});
+
 it('throws ChatworkValidationException for an empty message without sending HTTP', function () {
     Http::fake();
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
     $caught = null;
     try {
         Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(
@@ -171,7 +196,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ),
     ]);
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
     $caught = null;
     try {
         Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
@@ -196,7 +221,7 @@ it('exposes rateLimit() on 429', function () {
         ),
     ]);
 
-    $path = tmpUploadFile();
+    $path = tempUploadFile();
     $caught = null;
     try {
         Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));

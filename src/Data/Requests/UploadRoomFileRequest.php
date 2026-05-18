@@ -29,9 +29,19 @@ final readonly class UploadRoomFileRequest
 
     public function contents(): string
     {
-        // validate() has already confirmed the path; read lazily so a large
-        // file is not held in memory before the request is actually sent.
-        return (string) file_get_contents($this->path);
+        // validate() confirmed the path at construction, but the file may have
+        // been removed since (TOCTOU). Fail loudly rather than silently sending
+        // an empty multipart body. Read lazily so a large file is not held in
+        // memory before the request is actually sent.
+        $contents = file_get_contents($this->path);
+        if ($contents === false) {
+            throw new ChatworkValidationException(
+                'file could not be read.',
+                ['file' => ['could not be read']],
+            );
+        }
+
+        return $contents;
     }
 
     /**
