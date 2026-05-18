@@ -93,3 +93,23 @@ it('fromArray() に不完全なデータを渡すと InvalidArgumentException �
 
     expect($caught)->toBeInstanceOf(InvalidArgumentException::class);
 });
+
+it('var_dump 出力に access/refresh トークンを平文露出しない (__debugInfo)', function () {
+    $tokenSet = new TokenSet(
+        accessToken: 'at-super-secret-value',
+        refreshToken: 'rt-super-secret-value',
+        expiresAt: new DateTimeImmutable('2026-05-15T13:00:00+00:00'),
+        tokenType: 'Bearer',
+    );
+
+    ob_start();
+    var_dump($tokenSet);
+    $dump = (string) ob_get_clean();
+
+    expect(str_contains($dump, 'at-super-secret-value'))->toBeFalse();
+    expect(str_contains($dump, 'rt-super-secret-value'))->toBeFalse();
+    expect($dump)
+        ->toContain('***redacted***')
+        ->toContain('Bearer')
+        ->toContain('2026-05-15T13:00:00');
+});
