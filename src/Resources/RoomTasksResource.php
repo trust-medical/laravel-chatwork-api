@@ -6,6 +6,7 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomTaskRequest;
+use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateRoomTaskStatusRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedTask;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomTaskData;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
@@ -108,7 +109,7 @@ final class RoomTasksResource
         return $this->client->send(
             'PUT',
             sprintf('/rooms/%d/tasks/%d/status', $roomId, $taskId),
-            ['body' => $status->value],
+            (new UpdateRoomTaskStatusRequest($status))->toArray(),
             RoomTaskData::class,
             'updateRoomTaskStatus',
         );
