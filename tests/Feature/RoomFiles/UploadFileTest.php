@@ -82,7 +82,9 @@ it('sends the message field when provided', function () {
         message: 'See attached',
     ));
 
-    Http::assertSent(fn (Request $r) => $r['message'] === 'See attached');
+    // Laravel exposes every multipart part (file and non-file) through
+    // hasFile(); non-file parts simply have no filename.
+    Http::assertSent(fn (Request $r) => $r->hasFile('message', 'See attached'));
 });
 
 it('omits the message field when not provided', function () {
@@ -97,7 +99,7 @@ it('omits the message field when not provided', function () {
 
     Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
 
-    Http::assertSent(fn (Request $r) => ! isset($r->data()['message']));
+    Http::assertSent(fn (Request $r) => ! $r->hasFile('message'));
 });
 
 it('sends x-chatworktoken header for api_token connection', function () {

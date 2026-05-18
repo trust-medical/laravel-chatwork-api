@@ -95,6 +95,29 @@ final class ChatworkClient
         return $this->mapper->map($response, $this->mode, $dtoClass, $verb, $path, $operationId);
     }
 
+    /**
+     * Multipart file upload. Kept separate from send() because attach() forces
+     * multipart body format whereas every other write goes through asForm().
+     *
+     * @param  array<string, scalar>  $fields  non-file multipart parts
+     * @param  class-string|null  $dtoClass
+     */
+    public function upload(
+        string $path,
+        string $fileField,
+        string $fileContents,
+        string $filename,
+        array $fields = [],
+        ?string $dtoClass = null,
+        ?string $operationId = null,
+    ): mixed {
+        $response = $this->factory->create($this->connection)
+            ->attach($fileField, $fileContents, $filename)
+            ->post($path, $fields);
+
+        return $this->mapper->map($response, $this->mode, $dtoClass, 'POST', $path, $operationId);
+    }
+
     public function createRoomMessage(int $roomId, string $body, ?bool $selfUnread = null): mixed
     {
         return $this->rooms()->messages()->create($roomId, $body, $selfUnread);

@@ -110,7 +110,7 @@ final class RoomsResource
 
     public function files(): RoomFilesResource
     {
-        throw new \LogicException('RoomFilesResource is implemented in Phase 9.');
+        return new RoomFilesResource($this->client);
     }
 
     public function links(): RoomLinksResource
