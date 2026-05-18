@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class ReplacedRoomMembers
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+
+final readonly class ReplacedRoomMembers implements MapsFromArray
 {
     /**
      * @param  list<int>  $admin
@@ -20,7 +22,7 @@ final readonly class ReplacedRoomMembers
     /**
      * @param  array{admin?: mixed, member?: mixed, readonly?: mixed}  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             admin: self::toIntList($data['admin'] ?? []),

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class RoomFileData
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+
+final readonly class RoomFileData implements MapsFromArray
 {
     public function __construct(
         public int $fileId,
@@ -27,7 +29,7 @@ final readonly class RoomFileData
      *     download_url?: string
      * }  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         $account = $data['account'] ?? [];
 

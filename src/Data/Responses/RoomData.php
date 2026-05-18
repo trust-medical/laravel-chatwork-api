@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class RoomData
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+
+final readonly class RoomData implements MapsFromArray
 {
     public function __construct(
         public int $roomId,
@@ -41,7 +43,7 @@ final readonly class RoomData
      *     description?: string
      * }  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             roomId: (int) ($data['room_id'] ?? 0),

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
 use TrustMedical\LaravelChatworkApi\Enums\LimitType;
 use TrustMedical\LaravelChatworkApi\Enums\TaskStatus;
 
-final readonly class RoomTaskData
+final readonly class RoomTaskData implements MapsFromArray
 {
     public function __construct(
         public int $taskId,
@@ -32,7 +33,7 @@ final readonly class RoomTaskData
      *     limit_type?: string
      * }  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         $account = $data['account'] ?? [];
         $assignedByAccount = $data['assigned_by_account'] ?? [];

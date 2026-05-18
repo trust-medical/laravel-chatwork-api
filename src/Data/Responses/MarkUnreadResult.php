@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class MarkUnreadResult
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+
+final readonly class MarkUnreadResult implements MapsFromArray
 {
     public function __construct(
         public int $unreadNum,
@@ -14,7 +16,7 @@ final readonly class MarkUnreadResult
     /**
      * @param  array{unread_num?: int|string, mention_num?: int|string}  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             unreadNum: (int) ($data['unread_num'] ?? 0),

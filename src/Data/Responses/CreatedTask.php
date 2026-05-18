@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class CreatedTask
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+
+final readonly class CreatedTask implements MapsFromArray
 {
     /**
      * @param  list<int>  $taskIds
@@ -16,7 +18,7 @@ final readonly class CreatedTask
     /**
      * @param  array{task_ids?: list<int|string>}  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             taskIds: self::toIntList($data['task_ids'] ?? []),
