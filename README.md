@@ -268,18 +268,14 @@ $data = $result->data();
 
 `Notification` から Chatwork へ送信できます。チャンネルは内部的に `asResult()` 固定で、4xx は permanent failure として例外化、5xx / 429 / ネットワークエラーはそのまま伝播してキュー再試行に委譲されます。
 
+`ChatworkMessage` はメッセージ組み立て専用のビルダー / DTO です（`Notification` ではありません）。`ChatworkNotification` を継承すると `via()` は自動で `ChatworkChannel` に接続されるため、`toChatwork()` を実装するだけで送信できます。
+
 ```php
-use Illuminate\Notifications\Notification;
-use TrustMedical\LaravelChatworkApi\Notifications\ChatworkChannel;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkNotification;
 
-class DeployFinished extends Notification
+class DeployFinished extends ChatworkNotification
 {
-    public function via(object $notifiable): array
-    {
-        return [ChatworkChannel::class];
-    }
-
     public function toChatwork(object $notifiable): ChatworkMessage
     {
         return (new ChatworkMessage())
@@ -289,6 +285,8 @@ class DeployFinished extends Notification
     }
 }
 ```
+
+`ChatworkNotification` を使わず通常の `Notification` で `via()` に `[ChatworkChannel::class]` を返し、`toChatwork($notifiable): ChatworkMessage` を実装しても構いません（queueable・複数チャンネル併用などはこちら）。
 
 メッセージビルダーは `body()` / `title()` / `code()` / `hr()` / `plain()` / `escape()` / `to()`（TO 付与）/ `toRoom()` / `selfUnread()` を提供します。
 

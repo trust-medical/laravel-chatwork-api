@@ -81,7 +81,7 @@ src/
   Notifications/
     ChatworkChannel.php
     ChatworkNotification.php
-    ChatworkMessage.php        # Notification 兼 message builder
+    ChatworkMessage.php        # message builder / DTO（Notification ではない）
     ChatworkRoute.php
   Resources/
     RoomsResource.php
@@ -179,22 +179,13 @@ tests/Fixtures/chatwork/
 
 ファイル名は `{operation-kebab}-{actual-status-code}.json`。fixture は `docs/02-openapi/chatwork-api-v2-complemented.openapi.json` の response example を参照して作る。詳細は `docs/06-testing/http-fake-strategy.md`。
 
-### TDD フェーズ
-
-1. **Phase 1**: ServiceProvider・Facade・Connection・認証ヘッダー
-2. **Phase 2**: `POST /rooms/{room_id}/messages`（初期エンドポイント）
-3. **Phase 3**: `ChatworkChannel` / `ChatworkMessage` / `ChatworkRoute`
-4. **Phase 4**: OAuth2（認可URL・callback・refresh token）
-5. **Phase 5**: Message Resource 残メソッド
-6. **Phase 6+**: rooms → members → tasks → files → links → contacts → me/my → incoming_requests
-
 ## API 仕様ソース
 
 実装時の参照優先順位：
 
 1. Chatwork 公式 Reference: https://developer.chatwork.com/reference
-2. `docs/02-openapi/chatwork-api-v2-complemented.openapi.json`（補完済み OpenAPI）
-3. `docs/02-openapi/normalized-chatwork-api-v2.yaml`（実装順序・DTO 候補）
+2. `docs/02-openapi/chatwork-api-v2-complemented.openapi.json`
+3. `docs/02-openapi/normalized-chatwork-api-v2.yaml`
 
 ## セキュリティ
 

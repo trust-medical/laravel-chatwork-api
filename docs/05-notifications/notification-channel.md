@@ -18,17 +18,18 @@ TrustMedical\LaravelChatworkApi\Notifications\ChatworkRoute
 
 ### ChatworkNotification と ChatworkMessage の責務分離
 
-両クラスを残し、`ChatworkMessage` は **糖衣**として位置づける。内部的には両者とも同じ `ChatworkChannel` の経路を通る。
+`ChatworkMessage` は **送信payload の builder / DTO** に専念する。Notification ではない。
+Chatwork チャンネルへ送るための Notification 責務は `ChatworkNotification`（abstract）に一元化する。
 
 | クラス | 役割 | 利用シーン |
 | --- | --- | --- |
-| `ChatworkMessage` | (a) 送信payload（body / self_unread / 記法）の builder、(b) 単独で `Notification` としても扱える糖衣 | 短文を送るだけ、Notification class を作りたくない |
-| `ChatworkNotification` | Laravel の `Illuminate\Notifications\Notification` を継承した正規パターン。`toChatwork(): ChatworkMessage` を実装する | 通常の Notification class（複雑なロジック・queueable・複数 channel） |
+| `ChatworkMessage` | 送信payload（body / self_unread / 記法）の builder / DTO。Notification ではない | `toChatwork()` の戻り値としてメッセージを組み立てる |
+| `ChatworkNotification` | `Illuminate\Notifications\Notification` を継承した abstract。`via()` は `ChatworkChannel` に事前接続済み。`toChatwork(): ChatworkMessage` を実装する | Chatwork へ通知を送るすべてのケース |
 
 具体的な実装関係:
 
-- `ChatworkMessage extends \Illuminate\Notifications\Notification` とし、`via() = [ChatworkChannel::class]` と `toChatwork($notifiable): self`（自身を返す）を内蔵する。
-- `ChatworkNotification extends \Illuminate\Notifications\Notification` は abstract。利用者が継承して `toChatwork($notifiable): ChatworkMessage` を実装する。
+- `ChatworkMessage` は **どのクラスも継承しない**。`via()` / `toChatwork()` は持たない。builder API（`body()` / `to()` / `info()` / `selfUnread()` / `toRoom()` 等）と `toPayload()` のみを公開する。
+- `ChatworkNotification extends \Illuminate\Notifications\Notification` は abstract。利用者が継承して `toChatwork($notifiable): ChatworkMessage` を実装する。`via()` は `[ChatworkChannel::class]` を返すよう内蔵済みのため再宣言不要。
 - `ChatworkChannel::send()` は `$notification->toChatwork($notifiable)` を呼び、戻り値（`ChatworkMessage`）を `RoomMessagesResource::create()` に渡す。
 
 ### `toChatwork()` の戻り値型
@@ -36,19 +37,29 @@ TrustMedical\LaravelChatworkApi\Notifications\ChatworkRoute
 `toChatwork($notifiable): ChatworkMessage`（厳格な型）。
 
 - 戻り値が `string` の場合は **許可しない**（`TypeError` または `ChatworkValidationException`）。
-- 短文だけ送りたい場合は `return ChatworkMessage::make()->body('本文');` または `return new ChatworkMessage('本文');` を使う。
+- 短文だけ送りたい場合も `return ChatworkMessage::make()->body('本文');` または `return new ChatworkMessage('本文');` を `toChatwork()` から返す。
 - これにより `selfUnread` / `to(...)` / `info(...)` などの builder API へのアクセス経路を1つに保つ。
 
 ## 基本利用
 
+`ChatworkMessage` は単独では送信できない。`ChatworkNotification` を継承した Notification から返す。
+
 ```php
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkNotification;
 
-$user->notify(new ChatworkMessage('本文'));
+class QuickMessage extends ChatworkNotification
+{
+    public function __construct(private string $text) {}
+
+    public function toChatwork(object $notifiable): ChatworkMessage
+    {
+        return new ChatworkMessage($this->text);
+    }
+}
+
+$user->notify(new QuickMessage('本文'));
 ```
-
-簡易利用のため、`ChatworkMessage` 自体をNotificationとして送れるようにする。
-内部的には `ChatworkNotification` と同じ経路で処理する。
 
 ## 明示的なNotification
 

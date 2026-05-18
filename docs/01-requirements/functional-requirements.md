@@ -39,19 +39,19 @@ Chatwork::forConnection($connection)->rooms()->messages()->create($roomId, '本�
 Laravel 11から13のNotification機構に準拠する。
 custom channel として `ChatworkChannel` を提供する。
 
-対応する送信方法:
+対応する送信方法（`$notification` は `ChatworkNotification` を継承し `toChatwork(): ChatworkMessage` を実装した通知。`ChatworkMessage` 自体は通知ではない）:
 
 ```php
-$user->notify(new ChatworkMessage('本文'));
+$user->notify($notification);
 ```
 
 ```php
 Notification::route('chatwork', $roomId)
-    ->notify(new ChatworkMessage('本文'));
+    ->notify($notification);
 ```
 
 ```php
-Notification::send($users, new ChatworkMessage('本文'));
+Notification::send($users, $notification);
 ```
 
 ## Message Builder
@@ -180,7 +180,7 @@ DTOまたはrequest object生成時に、API制約を超える明らかな値を
 | API Token認証 | Phase 1 | `withApiToken()` で `x-chatworktoken` ヘッダーが送信される |
 | OAuth2 Bearer認証 | Phase 1 | `withBearerToken()` で `Authorization: Bearer` ヘッダーが送信される |
 | `POST /rooms/{room_id}/messages` | Phase 2 | `asDto()` で `CreatedMessage` 返却、400で `ChatworkRequestException`、`asResponse()/asResult()` は throw しない |
-| Notification経由送信 | Phase 3 | `$user->notify(new ChatworkMessage('本文'))` でPOSTされる、戻り値モードは `asResult()` 固定 |
+| Notification経由送信 | Phase 3 | `$user->notify($notification)`（`ChatworkNotification` 経由）でPOSTされる、戻り値モードは `asResult()` 固定 |
 | OAuth2フロー | Phase 4 | authorization URL生成、callback state検証、refresh tokenによる更新が `Http::fake()` でテスト可能 |
 | Messages残API | Phase 5 | list / find / update / delete / markAsRead / markAsUnread のすべてのテストが緑 |
 | 全エンドポイント | Phase 6+ | rooms / members / tasks / files / links / contacts / me / my / incoming_requests を順次対応 |

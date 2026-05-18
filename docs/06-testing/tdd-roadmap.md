@@ -89,7 +89,7 @@ POST /rooms/{room_id}/messages
 
 テスト項目:
 
-- `$user->notify(new ChatworkMessage('本文'))` でPOSTされる。
+- `$user->notify($notification)`（`ChatworkNotification` 経由）でPOSTされる。
 - `Notification::route('chatwork', $roomId)` でPOSTされる。
 - `ChatworkRoute::room($roomId)->connection('sales')` が該当connectionを使う。
 - `routeNotificationForChatwork()` のroom IDが使われる。

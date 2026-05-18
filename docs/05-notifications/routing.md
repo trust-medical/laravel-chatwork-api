@@ -41,20 +41,21 @@ public function routeNotificationForChatwork(): ChatworkRoute
 
 ## On-Demand Notification
 
+`notify()` に渡すのは `ChatworkNotification` を継承した通知（`$notification`）。
+`ChatworkMessage` 自体は通知ではなく、`toChatwork()` の戻り値として組み立てる。
+
 ```php
 Notification::route(
     'chatwork',
     ChatworkRoute::room($roomId)->connection('sales')
-)->notify(
-    ChatworkMessage::make()->body('本文')
-);
+)->notify($notification);
 ```
 
 単純形:
 
 ```php
 Notification::route('chatwork', $roomId)
-    ->notify(new ChatworkMessage('本文'));
+    ->notify($notification);
 ```
 
 ## 配列指定
