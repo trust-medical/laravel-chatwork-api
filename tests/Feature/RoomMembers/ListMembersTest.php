@@ -9,6 +9,7 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\RoomMemberData;
 use TrustMedical\LaravelChatworkApi\Enums\RoomRole;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
+use TrustMedical\LaravelChatworkApi\Http\Result;
 
 beforeEach(function () {
     config()->set('chatwork.connections.default', [
@@ -92,6 +93,37 @@ it('returns raw array in asArray mode', function () {
 
     expect($result)->toBeArray();
     expect($result[0]['account_id'])->toBe(123);
+});
+
+it('returns a successful Result in asResult mode without unwrapping to a Collection', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
+            fixtureJson('members/list-room-members-200.json'),
+            200,
+        ),
+    ]);
+
+    $result = Chatwork::asResult()->rooms()->members()->list(123);
+
+    expect($result)->toBeInstanceOf(Result::class)
+        ->and($result->failed())->toBeFalse()
+        ->and($result->status())->toBe(200);
+});
+
+it('does not throw on 400 in asResult mode', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
+            fixtureJson('members/list-room-members-400.json'),
+            400,
+        ),
+    ]);
+
+    $result = Chatwork::asResult()->rooms()->members()->list(123);
+
+    expect($result)->toBeInstanceOf(Result::class)
+        ->and($result->failed())->toBeTrue()
+        ->and($result->status())->toBe(400)
+        ->and($result->errors())->toBe(['room_id is invalid']);
 });
 
 it('throws ChatworkRequestException with errors() on 400', function () {

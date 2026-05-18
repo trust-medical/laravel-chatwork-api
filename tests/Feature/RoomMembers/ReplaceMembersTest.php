@@ -111,6 +111,8 @@ it('returns ReplacedRoomMembers DTO in asDto mode', function () {
 });
 
 it('throws ChatworkValidationException for empty membersAdminIds without sending HTTP', function () {
+    Http::fake();
+
     $caught = null;
     try {
         Chatwork::rooms()->members()->replaceMembers(123, new ReplaceRoomMembersRequest(
