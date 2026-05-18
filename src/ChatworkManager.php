@@ -153,7 +153,7 @@ final class ChatworkManager
 
     public function incomingRequests(): IncomingRequestsResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->client()->incomingRequests();
     }
 
     private function withMode(ResponseMode $mode): self
