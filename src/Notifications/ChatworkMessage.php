@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Notifications;
 
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 /**
  * Chatwork メッセージのビルダー / DTO。
@@ -127,7 +128,14 @@ final class ChatworkMessage
     }
 
     /**
+     * 蓄積したセグメントを Chatwork メッセージ送信ペイロードへ変換する。
+     *
+     * 少なくとも 1 回 `body()` 系で本文を追加していること。本文が空のまま
+     * 呼ぶと送信前バリデーションで失敗する。
+     *
      * @return array{body: string, self_unread?: 0|1}
+     *
+     * @throws ChatworkValidationException 本文が空、または文字数上限を超える場合。
      */
     public function toPayload(): array
     {

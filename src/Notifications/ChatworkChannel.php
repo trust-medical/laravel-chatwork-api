@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notification;
 use TrustMedical\LaravelChatworkApi\ChatworkManager;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRoutingException;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 use TrustMedical\LaravelChatworkApi\Http\Result;
 
 final class ChatworkChannel
@@ -28,6 +29,7 @@ final class ChatworkChannel
      * @return array<int, Result> ルート順に並んだ、成功した Result の配列
      *
      * @throws ChatworkRoutingException toChatwork() が存在しない/無効な場合、またはルート競合/ルート未設定の場合
+     * @throws ChatworkValidationException ChatworkMessage の本文が空、または文字数上限超過の場合（toPayload() 経由）
      * @throws ChatworkRequestException いずれかのルートが失敗 HTTP（4xx / 5xx / 429）を返した場合
      */
     public function send(object $notifiable, Notification $notification): array

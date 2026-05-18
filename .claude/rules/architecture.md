@@ -92,7 +92,10 @@ Notification
   3. `ChatworkManager` から connection 付き client 取得
   4. `POST /rooms/{room_id}/messages` 実行
   5. レスポンスを Laravel `NotificationSent` event 用に返却
-- channel は `asDto()` 相当で送信する。失敗は `ChatworkRequestException`。
+- channel は `asResult()` 固定で送信する。失敗 Result（4xx / 5xx / 429）は
+  `ChatworkRequestException` に変換して throw し、queue retry のトリガーとする
+  （5xx / 429 / network は再試行、4xx は実質 permanent failure）。
+  `ChatworkMessage` 本文が空/上限超過の場合は `ChatworkValidationException`。
 
 ## HTTP
 

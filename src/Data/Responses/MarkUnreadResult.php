@@ -6,6 +6,12 @@ namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
 use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
 
+/**
+ * `PUT /rooms/{room_id}/messages/unread` の結果。
+ *
+ * MarkReadResult と構造は同一だが、呼び出し側が戻り値の意味を型で
+ * 区別できるよう意図的に別クラスに保つ（統合しない）。
+ */
 final readonly class MarkUnreadResult implements MapsFromArray
 {
     public function __construct(
