@@ -52,6 +52,27 @@ it('asDto は 400 で errors() を持つ ChatworkRequestException をスロー�
         ->and($exception?->errors())->toBe(['body is required']);
 });
 
+it('asDto は 401 で Invalid API token の ChatworkRequestException をスローする', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
+            fixtureJson('messages/create-message-401.json'),
+            401,
+        ),
+    ]);
+
+    $exception = null;
+
+    try {
+        Chatwork::asDto()->rooms()->messages()->create(123, 'Hello');
+    } catch (ChatworkRequestException $e) {
+        $exception = $e;
+    }
+
+    expect($exception)->toBeInstanceOf(ChatworkRequestException::class)
+        ->and($exception?->status())->toBe(401)
+        ->and($exception?->errors())->toBe(['Invalid API token']);
+});
+
 it('asDto は 429 で rateLimit 配列を返す (P2-T12)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
