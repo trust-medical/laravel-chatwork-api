@@ -1,0 +1,22 @@
+[
+    {
+        "account_id": 123,
+        "room_id": 322,
+        "name": "Alice Contact",
+        "chatwork_id": "alice",
+        "organization_id": 101,
+        "organization_name": "Example Corp",
+        "department": "Engineering",
+        "avatar_image_url": "https://example.com/avatar/123.png"
+    },
+    {
+        "account_id": 456,
+        "room_id": 654,
+        "name": "Bob Contact",
+        "chatwork_id": "bob",
+        "organization_id": 102,
+        "organization_name": "Partner Inc",
+        "department": "Sales",
+        "avatar_image_url": "https://example.com/avatar/456.png"
+    }
+]
