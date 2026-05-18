@@ -16,9 +16,10 @@ final class ContactsResource
     {
         $path = '/contacts';
 
-        // ResponseMode::Dto unwraps the Collection so callers get
-        // array<ContactData>; other modes (Collection / Array / Response /
-        // PsrResponse / Result) flow through ChatworkClient::send unchanged.
+        // GET /contacts returns array<Contact> on 200 and an empty body on
+        // 204 (the only list endpoint whose spec declares 204). Routing Dto
+        // mode through Collection makes both degrade correctly: 204 -> [].
+        // Other modes flow through ChatworkClient::send unchanged.
         if ($this->client->mode() === ResponseMode::Dto) {
             $collection = $this->client->withMode(ResponseMode::Collection)->send(
                 'GET',

@@ -136,6 +136,18 @@ it('maps a 204 empty body to an empty Collection in asCollection mode', function
         ->and($result)->toHaveCount(0);
 });
 
+it('returns a successful Result with status 204 in asResult mode', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/contacts' => Http::response('', 204),
+    ]);
+
+    $result = Chatwork::asResult()->contacts()->list();
+
+    expect($result)->toBeInstanceOf(Result::class)
+        ->and($result->succeeded())->toBeTrue()
+        ->and($result->status())->toBe(204);
+});
+
 it('does not throw on 400 in asResult mode', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
