@@ -65,6 +65,25 @@ it('returns the updated RoomTaskData DTO in asDto mode', function () {
         ->and($task->status)->toBe(TaskStatus::Done);
 });
 
+it('throws ChatworkRequestException with errors() on 400', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(
+            fixtureJson('tasks/update-room-task-status-400.json'),
+            400,
+        ),
+    ]);
+
+    $caught = null;
+    try {
+        Chatwork::rooms()->tasks()->updateStatus(123, 99, TaskStatus::Done);
+    } catch (ChatworkRequestException $e) {
+        $caught = $e;
+    }
+
+    expect($caught?->status())->toBe(400)
+        ->and($caught?->errors())->toBe(['status is invalid']);
+});
+
 it('throws ChatworkRequestException on 404', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(

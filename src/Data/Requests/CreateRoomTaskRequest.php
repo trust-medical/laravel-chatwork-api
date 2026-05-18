@@ -14,6 +14,10 @@ final readonly class CreateRoomTaskRequest
     private const int BODY_MAX = 65535;
 
     /**
+     * limit と limit_type は OpenAPI 仕様どおり独立した optional。
+     * limit_type=none は期限なしを表し limit を要さないため、両者の
+     * クロスバリデーションは行わずサーバー側仕様に委ねる。
+     *
      * @param  array<int, int>  $toIds
      */
     public function __construct(

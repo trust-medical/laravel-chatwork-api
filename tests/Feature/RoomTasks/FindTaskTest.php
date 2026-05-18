@@ -56,6 +56,25 @@ it('returns a RoomTaskData DTO with nested SimpleAccount and enums', function ()
         ->and($task->limitType)->toBe(LimitType::Time);
 });
 
+it('throws ChatworkRequestException with errors() on 400', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/rooms/123/tasks/99' => Http::response(
+            fixtureJson('tasks/get-room-task-400.json'),
+            400,
+        ),
+    ]);
+
+    $caught = null;
+    try {
+        Chatwork::rooms()->tasks()->find(123, 99);
+    } catch (ChatworkRequestException $e) {
+        $caught = $e;
+    }
+
+    expect($caught?->status())->toBe(400)
+        ->and($caught?->errors())->toBe(['room_id is invalid']);
+});
+
 it('throws ChatworkRequestException on 404', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99' => Http::response(

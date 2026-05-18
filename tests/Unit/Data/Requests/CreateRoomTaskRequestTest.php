@@ -61,6 +61,17 @@ it('rejects a non-positive limit timestamp', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
+it('rejects a negative limit timestamp', function () {
+    $caught = null;
+    try {
+        new CreateRoomTaskRequest(body: 'Buy milk', toIds: [1], limit: -1);
+    } catch (ChatworkValidationException $e) {
+        $caught = $e;
+    }
+
+    expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
+});
+
 it('serializes body and toIds as CSV', function () {
     $request = new CreateRoomTaskRequest(body: 'Buy milk', toIds: [1, 2, 3]);
 
