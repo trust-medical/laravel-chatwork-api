@@ -21,7 +21,16 @@ final readonly class RoomTaskData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     task_id?: int|numeric-string,
+     *     account?: mixed,
+     *     assigned_by_account?: mixed,
+     *     message_id?: int|string,
+     *     body?: string,
+     *     limit_time?: int|numeric-string,
+     *     status?: string,
+     *     limit_type?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

@@ -13,7 +13,11 @@ final readonly class SimpleRoom
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     room_id?: int|numeric-string,
+     *     name?: string,
+     *     icon_path?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

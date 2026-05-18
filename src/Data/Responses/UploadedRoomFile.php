@@ -11,7 +11,7 @@ final readonly class UploadedRoomFile
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{file_id?: int|numeric-string}  $data
      */
     public static function fromArray(array $data): self
     {

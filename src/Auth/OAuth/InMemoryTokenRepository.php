@@ -7,11 +7,11 @@ namespace TrustMedical\LaravelChatworkApi\Auth\OAuth;
 use InvalidArgumentException;
 
 /**
- * In-memory token store for tests and local development only.
+ * テストおよびローカル開発専用のインメモリトークンストア。
  *
- * Tokens live in PHP process memory and are lost when the request ends, so
- * production deployments (multi-worker / queue workers) must use a persistent
- * implementation such as CacheTokenRepository or a custom database-backed one.
+ * トークンは PHP プロセスメモリ上に存在し、リクエスト終了時に失われる。
+ * 本番環境（マルチワーカー / キューワーカー）では CacheTokenRepository か
+ * カスタムのデータベースバックエンド実装を使用すること。
  */
 final class InMemoryTokenRepository implements TokenRepository
 {
@@ -20,6 +20,8 @@ final class InMemoryTokenRepository implements TokenRepository
 
     /**
      * @param  array<string, mixed>  $context
+     *
+     * @throws InvalidArgumentException $context['connection'] が存在しないか空でない文字列でない場合。
      */
     public function save(TokenSet $tokenSet, array $context = []): void
     {

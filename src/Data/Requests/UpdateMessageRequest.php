@@ -8,6 +8,9 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class UpdateMessageRequest
 {
+    /**
+     * @throws ChatworkValidationException 本文が空、または Chatwork の文字数上限を超えた場合。
+     */
     public function __construct(public string $body)
     {
         $this->validate();

@@ -8,6 +8,9 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class MarkAsUnreadRequest
 {
+    /**
+     * @throws ChatworkValidationException message_id が空文字列の場合。
+     */
     public function __construct(public string $messageId)
     {
         $this->validate();

@@ -6,6 +6,12 @@ namespace TrustMedical\LaravelChatworkApi\Auth\OAuth;
 
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
+/**
+ * キャッシュバックエンドを用いた OAuth2 CSRF state ストア。
+ *
+ * 生の `state` 値はキャッシュキーに直接使用しない。SHA-256 ハッシュ化することで
+ * シークレットがキャッシュキーやバックエンドログに漏洩しない。
+ */
 final class CacheStateStore implements StateStore
 {
     private const KEY_PREFIX = 'chatwork:oauth:state:';

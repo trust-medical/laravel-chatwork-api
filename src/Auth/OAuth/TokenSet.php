@@ -8,6 +8,9 @@ use DateTimeImmutable;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 
+/**
+ * イミュータブルな OAuth2 トークンセット: access/refresh トークンと絶対有効期限を保持。
+ */
 final readonly class TokenSet
 {
     public function __construct(
@@ -17,13 +20,25 @@ final readonly class TokenSet
         public string $tokenType = 'Bearer',
     ) {}
 
+    /**
+     * 現在時刻（＋leeway）が expiresAt 以上であれば true を返す。
+     *
+     * @param  int  $leewaySeconds  有効期限の何秒前から「期限切れ」とみなすか（プロアクティブ refresh 用）。
+     */
     public function isExpired(int $leewaySeconds = 0): bool
     {
         return Carbon::now()->getTimestamp() + $leewaySeconds >= $this->expiresAt->getTimestamp();
     }
 
     /**
+     * トークンエンドポイントレスポンスまたは永続化スナップショットから構築。
+     *
+     * 有効期限は `expires_at`（ISO 8601）が存在する場合はそちらを優先し、
+     * 存在しない場合は `expires_in`（現在からの秒数）から導出する。
+     *
      * @param  array<string, mixed>  $data
+     *
+     * @throws InvalidArgumentException access_token/refresh_token が存在しない場合、または expires_at・expires_in のいずれも利用できない場合。
      */
     public static function fromArray(array $data): self
     {
@@ -48,7 +63,7 @@ final readonly class TokenSet
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{access_token: string, refresh_token: string, expires_at: string, token_type: string}
      */
     public function toArray(): array
     {
@@ -62,6 +77,8 @@ final readonly class TokenSet
 
     /**
      * @param  array<string, mixed>  $data
+     *
+     * @throws InvalidArgumentException パース可能な expires_at も整数の expires_in も存在しない場合。
      */
     private static function resolveExpiresAt(array $data): DateTimeImmutable
     {

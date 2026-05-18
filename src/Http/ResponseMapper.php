@@ -6,13 +6,28 @@ namespace TrustMedical\LaravelChatworkApi\Http;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
+use Psr\Http\Message\ResponseInterface;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 final class ResponseMapper
 {
     /**
-     * @param  class-string|null  $dtoClass
+     * HTTP レスポンスを ResponseMode が指示する値に変換する。
+     *
+     * 具体的な戻り値の型は $mode に完全に依存する:
+     *  - Array      => array<int|string, mixed> (4xx/5xx で throw)
+     *  - Dto        => $dtoClass のオブジェクトインスタンス (4xx/5xx で throw)
+     *  - Collection => $dtoClass の Collection<int, object> (4xx/5xx で throw)
+     *  - Response   => Illuminate\Http\Client\Response (throw しない)
+     *  - PsrResponse=> Psr\Http\Message\ResponseInterface (throw しない)
+     *  - Result     => 成功/失敗をラップした Result (throw しない)
+     *
+     * @param  class-string|null  $dtoClass  Dto / Collection モードでのみ必須
+     * @return array<int|string, mixed>|object|Collection<int, object>|Response|ResponseInterface|Result
+     *
+     * @throws ChatworkRequestException Array / Dto / Collection モードで 4xx/5xx の場合
+     * @throws \LogicException Dto / Collection モードで $dtoClass が未指定の場合
      */
     public function map(
         Response $response,
@@ -34,6 +49,8 @@ final class ResponseMapper
 
     /**
      * @return array<int|string, mixed>
+     *
+     * @throws ChatworkRequestException 4xx/5xx の場合
      */
     private function toArrayOrThrow(
         Response $response,
@@ -50,6 +67,9 @@ final class ResponseMapper
 
     /**
      * @param  class-string|null  $dtoClass
+     *
+     * @throws ChatworkRequestException 4xx/5xx の場合
+     * @throws \LogicException $dtoClass が null の場合
      */
     private function toDto(
         Response $response,
@@ -78,6 +98,9 @@ final class ResponseMapper
     /**
      * @param  class-string|null  $dtoClass
      * @return Collection<int, object>
+     *
+     * @throws ChatworkRequestException 4xx/5xx の場合
+     * @throws \LogicException $dtoClass が null の場合
      */
     private function toCollection(
         Response $response,
@@ -105,6 +128,9 @@ final class ResponseMapper
         return $collection;
     }
 
+    /**
+     * @throws ChatworkRequestException レスポンスステータスが 4xx/5xx の場合
+     */
     private function throwIfFailed(
         Response $response,
         ?string $method,

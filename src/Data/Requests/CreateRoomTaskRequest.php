@@ -19,6 +19,8 @@ final readonly class CreateRoomTaskRequest
      * クロスバリデーションは行わずサーバー側仕様に委ねる。
      *
      * @param  array<int, int>  $toIds
+     *
+     * @throws ChatworkValidationException 本文の長さ、to_ids リスト、または limit の値が不正な場合。
      */
     public function __construct(
         public string $body,
@@ -30,7 +32,7 @@ final readonly class CreateRoomTaskRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{body: string, to_ids: string, limit?: positive-int, limit_type?: string}
      */
     public function toArray(): array
     {

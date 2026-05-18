@@ -12,18 +12,29 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\NoContentData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedRoom;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
+/**
+ * Chatwork `/rooms` エンドポイントグループ（一覧取得・単件取得・作成・更新・退室・削除）とネストリソースの公開 API。
+ */
 final class RoomsResource
 {
     public function __construct(private readonly ChatworkClient $client) {}
 
+    /**
+     * 認証ユーザーが所属する全ルームを一覧取得する (GET /rooms)。
+     *
+     * @return list<RoomData> デフォルトの Dto モードでは配列を返す。他のレスポンスモードはそれぞれ対応する形式で返す
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function list(): mixed
     {
         $path = '/rooms';
 
-        // Dto mode unwraps the Collection so callers get array<RoomData>; other
-        // modes (Collection / Array / Response / PsrResponse / Result) flow
-        // through ChatworkClient::send unchanged.
+        // Dto モードは Collection をアンラップして呼び出し元に array<RoomData> を返す。
+        // 他のモード (Collection / Array / Response / PsrResponse / Result) は
+        // ChatworkClient::send をそのまま通過する。
         if ($this->client->mode() === ResponseMode::Dto) {
             $collection = $this->client->withMode(ResponseMode::Collection)->send(
                 'GET',
@@ -39,6 +50,11 @@ final class RoomsResource
         return $this->client->send('GET', $path, [], RoomData::class, 'listRooms');
     }
 
+    /**
+     * 新しいグループルームを作成する (POST /rooms)。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function create(CreateRoomRequest $request): mixed
     {
         return $this->client->send(
@@ -50,6 +66,11 @@ final class RoomsResource
         );
     }
 
+    /**
+     * 指定したルームの設定とメタデータを 1 件取得する (GET /rooms/{room_id})。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function find(int $roomId): mixed
     {
         return $this->client->send(
@@ -61,6 +82,11 @@ final class RoomsResource
         );
     }
 
+    /**
+     * 既存のルーム設定を更新する (PUT /rooms/{room_id})。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function update(int $roomId, UpdateRoomRequest $request): mixed
     {
         return $this->client->send(
@@ -72,11 +98,29 @@ final class RoomsResource
         );
     }
 
+    /**
+     * 残りのメンバーにルームを残したまま退室する
+     * (DELETE /rooms/{room_id} with action_type=leave)。
+     *
+     * ルームとその履歴は他の全員に対して保持され、認証ユーザーのみが除外される。
+     * 全メンバーに対してルームを破壊する {@see self::deleteRoom()} と対比される。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function leaveRoom(int $roomId): mixed
     {
         return $this->leaveOrDelete($roomId, 'leave', 'leaveRoom');
     }
 
+    /**
+     * 全メンバーに対してルームを完全削除し、メッセージ・タスク・ファイルをすべて破壊する
+     * (DELETE /rooms/{room_id} with action_type=delete)。
+     *
+     * 取り消し不能であり全メンバーに影響する。認証ユーザーのみを除外する
+     * {@see self::leaveRoom()} と対比される。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function deleteRoom(int $roomId): mixed
     {
         return $this->leaveOrDelete($roomId, 'delete', 'deleteRoom');

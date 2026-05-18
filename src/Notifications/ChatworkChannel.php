@@ -6,6 +6,7 @@ namespace TrustMedical\LaravelChatworkApi\Notifications;
 
 use Illuminate\Notifications\Notification;
 use TrustMedical\LaravelChatworkApi\ChatworkManager;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRoutingException;
 use TrustMedical\LaravelChatworkApi\Http\Result;
 
@@ -14,7 +15,19 @@ final class ChatworkChannel
     public function __construct(private readonly ChatworkManager $manager) {}
 
     /**
-     * @return array<int, Result>
+     * 解決されたすべての Chatwork ルートに通知を送信する。
+     *
+     * チャンネルは asResult() モード固定。4xx レスポンスは permanent failure:
+     * Result を ChatworkRequestException に変換して throw し、残りのルート処理を中断する。
+     * 5xx / 429 / ネットワークエラーはここでキャッチしない — queue retry を
+     * Laravel のキューワーカーに委譲するため、そのまま伝播させる。
+     *
+     * @param  object  $notifiable  通知対象。routeNotificationFor('chatwork', ...) を公開していてもよい
+     * @param  Notification  $notification  toChatwork($notifiable): ChatworkMessage を定義しなければならない
+     * @return array<int, Result> ルート順に並んだ、成功した Result の配列
+     *
+     * @throws ChatworkRoutingException toChatwork() が存在しない/無効な場合、またはルート競合/ルート未設定の場合
+     * @throws ChatworkRequestException 4xx の permanent failure の場合
      */
     public function send(object $notifiable, Notification $notification): array
     {
@@ -33,6 +46,9 @@ final class ChatworkChannel
         return $results;
     }
 
+    /**
+     * @throws ChatworkRoutingException notification に toChatwork() が存在しない場合、または ChatworkMessage を返さない場合
+     */
     private function resolveMessage(object $notifiable, Notification $notification): ChatworkMessage
     {
         if (! method_exists($notification, 'toChatwork')) {
@@ -55,7 +71,11 @@ final class ChatworkChannel
     }
 
     /**
+     * 送信先ルートを解決する。message の toRoom() を notifiable の routeNotificationForChatwork() より優先する — 両方指定は競合エラー。
+     *
      * @return array<int, ChatworkRoute>
+     *
+     * @throws ChatworkRoutingException 両方のルートソースが設定されている場合、またはルートが一つも存在しない場合
      */
     private function resolveRoutes(object $notifiable, Notification $notification, ChatworkMessage $message): array
     {
@@ -97,7 +117,11 @@ final class ChatworkChannel
     }
 
     /**
+     * 生のルート値（ChatworkRoute、int/string のルーム ID、またはそれらのネスト配列）をフラットな ChatworkRoute リストに展開する。
+     *
      * @return array<int, ChatworkRoute>
+     *
+     * @throws ChatworkRoutingException サポート外の型の要素が含まれる場合
      */
     private function normalizeRoutes(mixed $raw): array
     {
@@ -124,6 +148,9 @@ final class ChatworkChannel
         );
     }
 
+    /**
+     * 単一ルートにメッセージを投稿する。connection の選択は優先順位に従う: 明示 Connection > 名前付き connection > デフォルト。
+     */
     private function sendOne(ChatworkRoute $route, ChatworkMessage $message): Result
     {
         $manager = $this->manager->asResult();

@@ -19,7 +19,17 @@ final readonly class IncomingRequestData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     request_id?: int|string,
+     *     account_id?: int|string,
+     *     message?: string,
+     *     name?: string,
+     *     chatwork_id?: string,
+     *     organization_id?: int|string,
+     *     organization_name?: string,
+     *     department?: string,
+     *     avatar_image_url?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

@@ -28,6 +28,7 @@ class ChatworkMessage extends Notification
         return new self();
     }
 
+    /** @return $this */
     public function body(string $text): self
     {
         $this->segments[] = $text;
@@ -35,6 +36,7 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /** @return $this */
     public function to(int $accountId): self
     {
         $this->segments[] = sprintf('[To:%d]', $accountId);
@@ -42,6 +44,7 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /** @return $this */
     public function info(string $title, string $body): self
     {
         $this->segments[] = sprintf('[info][title]%s[/title]%s[/info]', $title, $body);
@@ -49,6 +52,7 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /** @return $this */
     public function title(string $text): self
     {
         $this->segments[] = sprintf('[title]%s[/title]', $text);
@@ -56,6 +60,7 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /** @return $this */
     public function code(string $text): self
     {
         $this->segments[] = sprintf('[code]%s[/code]', $text);
@@ -63,6 +68,7 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /** @return $this */
     public function hr(): self
     {
         $this->segments[] = '[hr]';
@@ -70,6 +76,12 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /**
+     * Chatwork タグの角括弧を全角文字に無害化してテキストを追加する。
+     * 意図しないマークアップ / タグインジェクションを防止する。
+     *
+     * @return $this
+     */
     public function plain(string $text): self
     {
         $this->segments[] = self::neutralize($text);
@@ -77,11 +89,17 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /**
+     * plain() のエイリアス: タグ無害化済みテキストを追加する。
+     *
+     * @return $this
+     */
     public function escape(string $text): self
     {
         return $this->plain($text);
     }
 
+    /** @return $this */
     public function selfUnread(bool $value = true): self
     {
         $this->selfUnread = $value;
@@ -89,6 +107,7 @@ class ChatworkMessage extends Notification
         return $this;
     }
 
+    /** @return $this */
     public function toRoom(int|string $roomId): self
     {
         $this->targetRoomId = $roomId;
@@ -111,6 +130,10 @@ class ChatworkMessage extends Notification
         return [ChatworkChannel::class];
     }
 
+    /**
+     * メッセージ自身を返す: スタンドアロンの ChatworkMessage はそれ自体が notification であるため、
+     * チャンネルはこのビルダーをそのまま受け取る。
+     */
     public function toChatwork(object $notifiable): self
     {
         unset($notifiable);
@@ -119,7 +142,7 @@ class ChatworkMessage extends Notification
     }
 
     /**
-     * @return array{body: string, self_unread?: int}
+     * @return array{body: string, self_unread?: 0|1}
      */
     public function toPayload(): array
     {

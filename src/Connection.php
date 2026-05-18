@@ -6,6 +6,11 @@ namespace TrustMedical\LaravelChatworkApi;
 
 use TrustMedical\LaravelChatworkApi\Auth\Credentials;
 
+/**
+ * Chatwork connection のアイデンティティ・credentials・base URI・タイムアウトを統一する
+ * イミュータブルな値オブジェクト。config・DB・動的解決済みトークンのどれが起源かを問わない。
+ * name + credentials が同じであれば同一とみなせる。
+ */
 final readonly class Connection
 {
     public function __construct(

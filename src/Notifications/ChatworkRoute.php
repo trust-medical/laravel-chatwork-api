@@ -6,6 +6,13 @@ namespace TrustMedical\LaravelChatworkApi\Notifications;
 
 use TrustMedical\LaravelChatworkApi\Connection;
 
+/**
+ * Chatwork チャンネルのイミュータブルなルーティング対象。
+ *
+ * ルーム ID とオプションの connection セレクターを保持する。connection()
+ * （名前指定）と using()（明示 Connection）は排他: いずれも相手セレクターを
+ * リセットした新規インスタンスを返す。
+ */
 final class ChatworkRoute
 {
     private function __construct(

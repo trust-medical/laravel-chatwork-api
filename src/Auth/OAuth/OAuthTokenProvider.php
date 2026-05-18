@@ -10,6 +10,10 @@ use TrustMedical\LaravelChatworkApi\Auth\Credentials;
 use TrustMedical\LaravelChatworkApi\Auth\TokenProvider;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
 
+/**
+ * 保存済み OAuth2 トークンセットから Bearer credentials を返す TokenProvider。
+ * 有効期限切れ時にはプロセス間協調を伴うリフレッシュを透過的に実行する。
+ */
 final class OAuthTokenProvider implements TokenProvider
 {
     private const LOCK_KEY_PREFIX = 'chatwork:oauth:refresh:';
@@ -25,6 +29,11 @@ final class OAuthTokenProvider implements TokenProvider
         private readonly int $leewaySeconds = 60,
     ) {}
 
+    /**
+     * Bearer credentials を解決し、leeway ウィンドウ内であればトークンセットをリフレッシュする。
+     *
+     * @throws ChatworkAuthenticationException connection に対してトークンセットが未保存の場合、またはリフレッシュが必要だが完了できない場合。
+     */
     public function credentials(): Credentials
     {
         $tokenSet = $this->repository->find($this->connectionName);
@@ -41,6 +50,15 @@ final class OAuthTokenProvider implements TokenProvider
         return new BearerTokenCredentials($this->coalescedRefresh($tokenSet)->accessToken);
     }
 
+    /**
+     * Cache::lock 下でトークンセットをリフレッシュし、並行ワーカーが最大1回しか refresh を発行しないよう制御する。
+     *
+     * ロック取得者はプロバイダ呼び出し前に、既にリフレッシュ済みのトークンがないか再確認する。
+     * ロック取得に失敗したワーカーは短時間待機してロック保持者が永続化した値を再利用する。
+     * それでもまだ有効期限切れの場合は、競合する refresh を発行せず失敗とする。
+     *
+     * @throws ChatworkAuthenticationException ロックを取得できず、かつ保存済みトークンがまだ有効期限切れの場合。
+     */
     private function coalescedRefresh(TokenSet $current): TokenSet
     {
         $lock = Cache::lock($this->lockKey(), self::LOCK_TTL_SECONDS);

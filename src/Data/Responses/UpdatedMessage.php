@@ -9,7 +9,7 @@ final readonly class UpdatedMessage
     public function __construct(public string $messageId) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{message_id?: int|string}  $data
      */
     public static function fromArray(array $data): self
     {

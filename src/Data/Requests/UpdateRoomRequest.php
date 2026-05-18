@@ -13,6 +13,9 @@ final readonly class UpdateRoomRequest
 
     private const int NAME_MAX = 255;
 
+    /**
+     * @throws ChatworkValidationException null でない name が空、または文字数上限を超えた場合。
+     */
     public function __construct(
         public ?string $name = null,
         public ?string $description = null,
@@ -22,7 +25,7 @@ final readonly class UpdateRoomRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{name?: string, description?: string, icon_preset?: string}
      */
     public function toArray(): array
     {

@@ -10,11 +10,23 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedTask;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomTaskData;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Enums\TaskStatus;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
+/**
+ * Chatwork `/rooms/{room_id}/tasks` エンドポイントグループ（一覧取得・単件取得・作成・ステータス更新）の公開 API。
+ */
 final class RoomTasksResource
 {
     public function __construct(private readonly ChatworkClient $client) {}
 
+    /**
+     * ルームのタスク一覧を取得する。担当者・作成者・ステータスで絞り込み可能
+     * (GET /rooms/{room_id}/tasks)。
+     *
+     * @return list<RoomTaskData> デフォルトの Dto モードでは配列を返す。他のレスポンスモードはそれぞれ対応する形式で返す
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function list(
         int $roomId,
         ?int $accountId = null,
@@ -34,10 +46,10 @@ final class RoomTasksResource
 
         $path = sprintf('/rooms/%d/tasks', $roomId);
 
-        // ResponseMode::Dto is the package default but the wire shape here is an
-        // array of tasks, so internally route through Collection mode and
-        // unwrap. Other modes (Collection / Array / Response / PsrResponse /
-        // Result) flow straight through ChatworkClient::send unchanged.
+        // ResponseMode::Dto はパッケージのデフォルトだが、ワイヤー形式はタスクの配列なので、
+        // 内部的に Collection モード経由で送信してアンラップする。
+        // 他のモード (Collection / Array / Response / PsrResponse / Result) は
+        // ChatworkClient::send をそのまま通過する。
         if ($this->client->mode() === ResponseMode::Dto) {
             $collection = $this->client->withMode(ResponseMode::Collection)->send(
                 'GET',
@@ -53,6 +65,12 @@ final class RoomTasksResource
         return $this->client->send('GET', $path, $query, RoomTaskData::class, 'listRoomTasks');
     }
 
+    /**
+     * ルームに 1 人以上のメンバーを担当者として割り当てたタスクを作成する
+     * (POST /rooms/{room_id}/tasks)。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function create(int $roomId, CreateRoomTaskRequest $request): mixed
     {
         return $this->client->send(
@@ -64,6 +82,11 @@ final class RoomTasksResource
         );
     }
 
+    /**
+     * 指定した ID のタスクを 1 件取得する (GET /rooms/{room_id}/tasks/{task_id})。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function find(int $roomId, int $taskId): mixed
     {
         return $this->client->send(
@@ -75,6 +98,11 @@ final class RoomTasksResource
         );
     }
 
+    /**
+     * タスクを未完了または完了に更新する (PUT /rooms/{room_id}/tasks/{task_id}/status)。
+     *
+     * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
+     */
     public function updateStatus(int $roomId, int $taskId, TaskStatus $status): mixed
     {
         return $this->client->send(

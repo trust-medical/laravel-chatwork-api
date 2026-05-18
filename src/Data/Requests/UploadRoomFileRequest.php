@@ -14,6 +14,9 @@ final readonly class UploadRoomFileRequest
 
     private const int FILE_MAX_BYTES = 5_242_880;
 
+    /**
+     * @throws ChatworkValidationException パスが読み取れない、ファイルが空または大きすぎる、あるいはメッセージ長が不正な場合。
+     */
     public function __construct(
         public string $path,
         public ?string $filename = null,
@@ -27,12 +30,14 @@ final readonly class UploadRoomFileRequest
         return $this->filename ?? basename($this->path);
     }
 
+    /**
+     * @throws ChatworkValidationException ファイルが読み取れなくなった場合（構築後の TOCTOU）。
+     */
     public function contents(): string
     {
-        // validate() confirmed the path at construction, but the file may have
-        // been removed since (TOCTOU). Fail loudly rather than silently sending
-        // an empty multipart body. Read lazily so a large file is not held in
-        // memory before the request is actually sent.
+        // validate() で構築時にパスを確認済みだが、その後ファイルが削除されている可能性がある
+        // (TOCTOU)。空の multipart ボディをサイレントに送信するのを避け、明示的に失敗させる。
+        // リクエスト送信直前まで読み込みを遅延し、大きなファイルをメモリに保持しないようにする。
         $contents = file_get_contents($this->path);
         if ($contents === false) {
             throw new ChatworkValidationException(
@@ -45,7 +50,7 @@ final readonly class UploadRoomFileRequest
     }
 
     /**
-     * @return array<string, string>
+     * @return array{message?: string}
      */
     public function toFields(): array
     {

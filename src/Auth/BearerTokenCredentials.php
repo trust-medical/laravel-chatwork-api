@@ -10,6 +10,9 @@ final readonly class BearerTokenCredentials implements Credentials
 {
     public function __construct(public string $token) {}
 
+    /**
+     * OAuth2 トークンを `Authorization: Bearer` ヘッダーとしてリクエストに付与する。
+     */
     public function applyTo(PendingRequest $request): PendingRequest
     {
         return $request->withToken($this->token);

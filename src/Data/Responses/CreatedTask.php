@@ -7,14 +7,14 @@ namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 final readonly class CreatedTask
 {
     /**
-     * @param  array<int, int>  $taskIds
+     * @param  list<int>  $taskIds
      */
     public function __construct(
         public array $taskIds,
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{task_ids?: list<int|string>}  $data
      */
     public static function fromArray(array $data): self
     {
@@ -24,7 +24,7 @@ final readonly class CreatedTask
     }
 
     /**
-     * @return array<int, int>
+     * @return list<int>
      */
     private static function toIntList(mixed $value): array
     {

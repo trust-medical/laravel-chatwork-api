@@ -12,6 +12,8 @@ final readonly class ReplaceRoomMembersRequest
      * @param  array<int, int>  $membersAdminIds
      * @param  array<int, int>|null  $membersMemberIds
      * @param  array<int, int>|null  $membersReadonlyIds
+     *
+     * @throws ChatworkValidationException members_admin_ids が空、またはいずれかのメンバー ID リストに正でない整数が含まれる場合。
      */
     public function __construct(
         public array $membersAdminIds,
@@ -22,7 +24,7 @@ final readonly class ReplaceRoomMembersRequest
     }
 
     /**
-     * @return array<string, string>
+     * @return array{members_admin_ids: string, members_member_ids?: string, members_readonly_ids?: string}
      */
     public function toArray(): array
     {

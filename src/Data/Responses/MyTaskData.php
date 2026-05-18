@@ -21,7 +21,16 @@ final readonly class MyTaskData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     task_id?: int|string,
+     *     room?: mixed,
+     *     assigned_by_account?: mixed,
+     *     message_id?: string|int,
+     *     body?: string,
+     *     limit_time?: int|string,
+     *     status?: string,
+     *     limit_type?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

@@ -14,7 +14,14 @@ final readonly class RoomLinkData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * Chatwork は通常 bool を返すが、過去の挙動互換のため int(0/1) も受理して bool へ正規化する。
+     *
+     * @param  array{
+     *     public?: bool|int,
+     *     url?: string,
+     *     need_acceptance?: bool|int,
+     *     description?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

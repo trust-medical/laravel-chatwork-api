@@ -7,9 +7,21 @@ namespace TrustMedical\LaravelChatworkApi\Exceptions;
 use Illuminate\Http\Client\Response;
 use RuntimeException;
 
+/**
+ * Chatwork が 4xx/5xx レスポンスを返した場合にスローされる。
+ *
+ * スローする戻り値モード（`asArray()` / `asDto()` / `asCollection()`）では
+ * HTTP ディスパッチ後に送出される。スローしないモード
+ * （`asResponse()` / `asPsrResponse()` / `asResult()`）では失敗を値として返す。
+ * Chatwork のエラーボディ形式を両方公開する。通常 API の `{"errors":[...]}` は
+ * {@see self::errors()}、OAuth の `{"error":..., "error_description":...}` は
+ * {@see self::error()} / {@see self::errorDescription()} で取得する。
+ * 保持するボディはアクセストークン・リフレッシュトークン・クライアントシークレットを
+ * マスクした状態で保存する。
+ */
 class ChatworkRequestException extends RuntimeException
 {
-    /** @var array<int, string> */
+    /** @var list<string> */
     private array $errors = [];
 
     private ?string $error = null;
@@ -57,6 +69,12 @@ class ChatworkRequestException extends RuntimeException
         }
     }
 
+    /**
+     * 失敗した Chatwork HTTP レスポンスから生成する。
+     *
+     * `x-ratelimit-limit` ヘッダーが存在する場合（主に 429 レスポンス）のみ
+     * レートリミットの3値を設定し、それ以外は null とする。
+     */
     public static function fromResponse(
         Response $response,
         string $method,
@@ -109,18 +127,28 @@ class ChatworkRequestException extends RuntimeException
     }
 
     /**
-     * @return array<int, string>
+     * 通常 API エラーボディ `{"errors":[...]}` のメッセージ一覧。
+     *
+     * OAuth 形式のエラーボディの場合は空配列になる。{@see self::error()} を参照。
+     *
+     * @return list<string>
      */
     public function errors(): array
     {
         return $this->errors;
     }
 
+    /**
+     * OAuth エラーコード（`error` フィールド）。通常 API エラーの場合は null。
+     */
     public function error(): ?string
     {
         return $this->error;
     }
 
+    /**
+     * OAuth の `error_description`。値がない場合または OAuth エラーでない場合は null。
+     */
     public function errorDescription(): ?string
     {
         return $this->errorDescription;

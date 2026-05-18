@@ -9,7 +9,7 @@ final readonly class UpdatedRoom
     public function __construct(public int $roomId) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{room_id?: int|numeric-string}  $data
      */
     public static function fromArray(array $data): self
     {

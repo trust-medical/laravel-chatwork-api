@@ -34,7 +34,7 @@ final class ChatworkServiceProvider extends PackageServiceProvider
         $this->app->singleton(ResponseMapper::class);
 
         $this->app->bind(StateStore::class, function (Application $app): StateStore {
-            $configured = $app['config']->get('chatwork.oauth.state_store');
+            $configured = $app->make('config')->get('chatwork.oauth.state_store');
             if (is_string($configured) && $configured !== '') {
                 $instance = $app->make($configured);
                 if ($instance instanceof StateStore) {
@@ -42,11 +42,11 @@ final class ChatworkServiceProvider extends PackageServiceProvider
                 }
             }
 
-            return new CacheStateStore($app['cache']->store());
+            return new CacheStateStore($app->make('cache')->store());
         });
 
         $this->app->bind(TokenRepository::class, function (Application $app): TokenRepository {
-            $configured = $app['config']->get('chatwork.oauth.token_repository');
+            $configured = $app->make('config')->get('chatwork.oauth.token_repository');
             if (is_string($configured) && $configured !== '') {
                 $instance = $app->make($configured);
                 if ($instance instanceof TokenRepository) {
@@ -54,11 +54,11 @@ final class ChatworkServiceProvider extends PackageServiceProvider
                 }
             }
 
-            return new CacheTokenRepository($app['cache']->store());
+            return new CacheTokenRepository($app->make('cache')->store());
         });
 
         $this->app->bind(OAuthClient::class, function (Application $app): OAuthClient {
-            $config = $app['config']->get('chatwork.oauth');
+            $config = $app->make('config')->get('chatwork.oauth');
 
             return new OAuthClient(
                 $app->make(StateStore::class),
@@ -79,14 +79,14 @@ final class ChatworkServiceProvider extends PackageServiceProvider
             $manager->extend('chatwork', fn ($app) => $app->make(ChatworkChannel::class));
         });
 
-        if ($this->app['config']->get('chatwork.oauth.routes_enabled') === true) {
+        if ($this->app->make('config')->get('chatwork.oauth.routes_enabled') === true) {
             $this->registerOAuthRoutes();
         }
     }
 
     public function registerOAuthRoutes(): void
     {
-        $prefix = $this->app['config']->get('chatwork.oauth.route_prefix');
+        $prefix = $this->app->make('config')->get('chatwork.oauth.route_prefix');
         $resolvedPrefix = is_string($prefix) && $prefix !== '' ? $prefix : 'chatwork/oauth';
 
         Route::prefix($resolvedPrefix)

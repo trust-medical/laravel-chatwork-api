@@ -15,7 +15,13 @@ final readonly class MessageData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     message_id?: string|int,
+     *     account?: mixed,
+     *     body?: string,
+     *     send_time?: int|string,
+     *     update_time?: int|string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

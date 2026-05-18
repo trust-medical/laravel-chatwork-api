@@ -12,6 +12,9 @@ final readonly class RoomLinkRequest
 
     private const int CODE_MAX = 50;
 
+    /**
+     * @throws ChatworkValidationException null でない code が空、または文字数上限を超えた場合。
+     */
     public function __construct(
         public ?string $code = null,
         public ?bool $needAcceptance = null,
@@ -21,7 +24,7 @@ final readonly class RoomLinkRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{code?: string, need_acceptance?: 0|1, description?: string}
      */
     public function toArray(): array
     {

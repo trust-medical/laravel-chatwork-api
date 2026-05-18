@@ -13,7 +13,11 @@ final readonly class SimpleAccount
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     account_id?: int|numeric-string,
+     *     name?: string,
+     *     avatar_image_url?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

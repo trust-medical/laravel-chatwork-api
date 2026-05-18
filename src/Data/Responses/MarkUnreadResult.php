@@ -12,7 +12,7 @@ final readonly class MarkUnreadResult
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{unread_num?: int|string, mention_num?: int|string}  $data
      */
     public static function fromArray(array $data): self
     {

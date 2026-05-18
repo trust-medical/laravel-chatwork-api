@@ -7,6 +7,13 @@ namespace TrustMedical\LaravelChatworkApi\Auth\OAuth;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use InvalidArgumentException;
 
+/**
+ * キャッシュバックエンドを用いた永続化 OAuth2 トークンストア。
+ *
+ * リクエストをまたいでもキューワーカーをまたいでも存続するため、本番環境向けのデフォルト実装。
+ * connection 名の SHA-256 ハッシュをキーとすることで、connection 識別子が
+ * キャッシュキーやバックエンドログに漏洩しない。
+ */
 final class CacheTokenRepository implements TokenRepository
 {
     private const KEY_PREFIX = 'chatwork:oauth:token:';
@@ -15,6 +22,8 @@ final class CacheTokenRepository implements TokenRepository
 
     /**
      * @param  array<string, mixed>  $context
+     *
+     * @throws InvalidArgumentException $context['connection'] が存在しないか空でない文字列でない場合。
      */
     public function save(TokenSet $tokenSet, array $context = []): void
     {

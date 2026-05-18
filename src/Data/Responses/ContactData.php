@@ -18,7 +18,16 @@ final readonly class ContactData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     account_id?: int|string,
+     *     room_id?: int|string,
+     *     name?: string,
+     *     chatwork_id?: string,
+     *     organization_id?: int|string,
+     *     organization_name?: string,
+     *     department?: string,
+     *     avatar_image_url?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

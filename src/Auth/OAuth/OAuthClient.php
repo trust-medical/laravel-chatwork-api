@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Http;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
+/**
+ * OAuth2 認可コードクライアント: 認可 URL の構築、トークンエンドポイントへの
+ * コード交換および refresh リクエストの実行。
+ */
 final class OAuthClient
 {
     private const STATE_TTL_SECONDS = 600;
@@ -21,8 +25,12 @@ final class OAuthClient
     ) {}
 
     /**
-     * @param  array<string, mixed>  $context
-     * @param  array<int, string>|null  $scopes
+     * 新規 CSRF state を生成・永続化し、認可 URL を構築して返す。
+     *
+     * @param  array<string, mixed>  $context  state ストアを経由してコールバックまで往復させる任意データ。
+     * @param  list<string>|null  $scopes  指定時にスペース結合して `scope` クエリパラメータに付与。
+     *
+     * @throws \RuntimeException 必須の `chatwork.oauth.*` 設定キーが存在しないか空の場合。
      */
     public function buildAuthorizationUrl(
         array $context = [],
@@ -51,6 +59,12 @@ final class OAuthClient
         return $this->configString('authorization_url') . '?' . http_build_query($query);
     }
 
+    /**
+     * 認可コードをトークンセットに交換。
+     *
+     * @throws ChatworkRequestException トークンエンドポイントが 4xx/5xx を返した場合。
+     * @throws \RuntimeException 必須の設定キーが存在しないか、レスポンスボディが JSON でない場合。
+     */
     public function exchange(string $code): TokenSet
     {
         return $this->postToken([
@@ -62,6 +76,15 @@ final class OAuthClient
         ]);
     }
 
+    /**
+     * refresh token から新しいトークンセットを取得。
+     *
+     * トークンエンドポイントからの失敗レスポンスは、汎用リクエストエラーではなく
+     * 認証失敗として正規化する。
+     *
+     * @throws ChatworkAuthenticationException refresh リクエストがトークンエンドポイントに拒否された場合。
+     * @throws \RuntimeException 必須の設定キーが存在しないか、レスポンスボディが JSON でない場合。
+     */
     public function refresh(string $refreshToken): TokenSet
     {
         try {
@@ -78,6 +101,9 @@ final class OAuthClient
 
     /**
      * @param  array<string, string>  $params
+     *
+     * @throws ChatworkRequestException トークンエンドポイントが 4xx/5xx を返した場合。
+     * @throws \RuntimeException 必須の設定キーが存在しないか、レスポンスボディが JSON オブジェクトでない場合。
      */
     private function postToken(array $params): TokenSet
     {

@@ -31,6 +31,11 @@ final class ChatworkManager
 
     public function __construct(private readonly Container $container) {}
 
+    /**
+     * 指定された（またはデフォルトの）設定済み connection にバインドされたクローンを返す。
+     *
+     * @throws ChatworkAuthenticationException connection が存在しない、サポートされていない auth ドライバ、またはトークンがない場合。
+     */
     public function connection(?string $name = null): self
     {
         $resolved = $name ?? $this->defaultConnectionName();
@@ -95,11 +100,21 @@ final class ChatworkManager
         return $this->withMode(ResponseMode::Result);
     }
 
+    /**
+     * バインドされた connection を解決し、未設定の場合は設定済みのデフォルトにフォールバックする。
+     *
+     * @throws ChatworkAuthenticationException デフォルト connection を解決する必要があるが設定が不正な場合。
+     */
     public function getConnection(): Connection
     {
         return $this->connection ?? $this->resolveConnection($this->defaultConnectionName());
     }
 
+    /**
+     * withApiToken()/withBearerToken() のオーバーライドを適用して connection を解決する。
+     *
+     * @throws ChatworkAuthenticationException 基底の connection が設定不正な場合。
+     */
     public function getEffectiveConnection(): Connection
     {
         $base = $this->getConnection();
@@ -121,6 +136,11 @@ final class ChatworkManager
         return $this->mode;
     }
 
+    /**
+     * 有効な connection とアクティブなレスポンスモードで ChatworkClient を構築する。
+     *
+     * @throws ChatworkAuthenticationException 有効な connection が設定不正な場合。
+     */
     public function client(): ChatworkClient
     {
         return new ChatworkClient(
@@ -131,26 +151,31 @@ final class ChatworkManager
         );
     }
 
+    /** @throws ChatworkAuthenticationException 有効な connection が設定不正な場合。 */
     public function rooms(): RoomsResource
     {
         return $this->client()->rooms();
     }
 
+    /** @throws ChatworkAuthenticationException 有効な connection が設定不正な場合。 */
     public function me(): MeResource
     {
         return $this->client()->me();
     }
 
+    /** @throws ChatworkAuthenticationException 有効な connection が設定不正な場合。 */
     public function my(): MyResource
     {
         return $this->client()->my();
     }
 
+    /** @throws ChatworkAuthenticationException 有効な connection が設定不正な場合。 */
     public function contacts(): ContactsResource
     {
         return $this->client()->contacts();
     }
 
+    /** @throws ChatworkAuthenticationException 有効な connection が設定不正な場合。 */
     public function incomingRequests(): IncomingRequestsResource
     {
         return $this->client()->incomingRequests();
@@ -164,6 +189,9 @@ final class ChatworkManager
         return $new;
     }
 
+    /**
+     * @throws ChatworkAuthenticationException connection エントリが存在しないか、auth ドライバがサポートされていない場合。
+     */
     private function resolveConnection(string $name): Connection
     {
         $config = $this->container->make('config');
@@ -211,6 +239,8 @@ final class ChatworkManager
     /**
      * @param  array<string, mixed>  $entry
      * @param  class-string<ApiTokenCredentials|BearerTokenCredentials>  $credentialsClass
+     *
+     * @throws ChatworkAuthenticationException エントリに有効なトークンが設定されていない場合。
      */
     private function buildStaticCredentials(string $name, array $entry, string $credentialsClass): Credentials
     {
@@ -226,6 +256,8 @@ final class ChatworkManager
 
     /**
      * @param  array<string, mixed>  $entry
+     *
+     * @throws ChatworkAuthenticationException OAuth TokenRepository にトークンセットが未保存の場合、またはリフレッシュ競合が解決できない場合。
      */
     private function buildOAuthCredentials(string $name, array $entry): Credentials
     {

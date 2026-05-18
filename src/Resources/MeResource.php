@@ -6,11 +6,20 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MyAccountData;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
+/**
+ * Chatwork `/me` エンドポイントの公開 API。
+ */
 final class MeResource
 {
     public function __construct(private readonly ChatworkClient $client) {}
 
+    /**
+     * 認証ユーザー自身のアカウントプロフィールを取得する (GET /me)。
+     *
+     * @throws ChatworkRequestException throw するモード（asArray/asDto/asCollection）での 4xx/5xx 時。
+     */
     public function get(): mixed
     {
         return $this->client->send('GET', '/me', [], MyAccountData::class, 'getMe');

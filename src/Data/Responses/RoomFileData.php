@@ -17,7 +17,15 @@ final readonly class RoomFileData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     file_id?: int|numeric-string,
+     *     account?: mixed,
+     *     message_id?: int|string,
+     *     filename?: string,
+     *     filesize?: int|numeric-string,
+     *     upload_time?: int|numeric-string,
+     *     download_url?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

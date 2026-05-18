@@ -6,6 +6,7 @@ namespace TrustMedical\LaravelChatworkApi;
 
 use InvalidArgumentException;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
 use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
 use TrustMedical\LaravelChatworkApi\Resources\ContactsResource;
@@ -64,8 +65,16 @@ final class ChatworkClient
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  class-string|null  $dtoClass
+     * Chatwork API を1回呼び出し、アクティブなモードに従ってレスポンスをマップする。
+     *
+     * 具体的な戻り値の型は {@see ResponseMode} によって決まる: readonly DTO、
+     * array、Collection、Laravel/PSR-7 response、または ChatworkResult — そのため `mixed`。
+     *
+     * @param  array<string, mixed>  $payload  POST/PUT/DELETE のフォームボディ、GET のクエリパラメータ
+     * @param  class-string|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
+     *
+     * @throws InvalidArgumentException $method がサポートされていない HTTP メソッドの場合。
+     * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
      */
     public function send(
         string $method,
@@ -81,11 +90,10 @@ final class ChatworkClient
             'POST' => $pending->asForm()->post($path, $payload),
             'PUT' => $pending->asForm()->put($path, $payload),
             'GET' => $pending->get($path, $payload),
-            // Chatwork's OpenAPI spec defines DELETE bodies (e.g. action_type on
-            // /rooms/{room_id}) as application/x-www-form-urlencoded, so send a
-            // form body whenever a payload is present. Body-less DELETEs (like
-            // deleteRoomMessage) skip asForm() to keep the wire format identical
-            // to pre-Phase-6 behaviour.
+            // Chatwork の OpenAPI 仕様では DELETE ボディ（例: /rooms/{room_id} の action_type）が
+            // application/x-www-form-urlencoded と定義されているため、payload がある場合は
+            // フォームボディとして送信する。ボディなしの DELETE（deleteRoomMessage 等）は
+            // Phase-6 以前の動作と同一にするため asForm() をスキップする。
             'DELETE' => $payload === []
                 ? $pending->delete($path)
                 : $pending->asForm()->delete($path, $payload),
@@ -96,11 +104,15 @@ final class ChatworkClient
     }
 
     /**
-     * Multipart file upload. Kept separate from send() because attach() forces
-     * multipart body format whereas every other write goes through asForm().
+     * マルチパートファイルアップロード。attach() がマルチパートボディ形式を強制するのに対して、
+     * 他の書き込みはすべて asForm() を経由するため、send() と分離している。
      *
-     * @param  array<string, scalar>  $fields  non-file multipart parts
-     * @param  class-string|null  $dtoClass
+     * 具体的な戻り値の型は {@see ResponseMode} によって決まるため `mixed`。
+     *
+     * @param  array<string, scalar>  $fields  ファイル以外のマルチパートパーツ
+     * @param  class-string|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
+     *
+     * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
      */
     public function upload(
         string $path,
@@ -118,6 +130,11 @@ final class ChatworkClient
         return $this->mapper->map($response, $this->mode, $dtoClass, 'POST', $path, $operationId);
     }
 
+    /**
+     * rooms()->messages()->create() の簡易ショートカット。戻り値はアクティブなモードに従う。
+     *
+     * @throws ChatworkRequestException 投例モードで 4xx/5xx が返った場合。
+     */
     public function createRoomMessage(int $roomId, string $body, ?bool $selfUnread = null): mixed
     {
         return $this->rooms()->messages()->create($roomId, $body, $selfUnread);

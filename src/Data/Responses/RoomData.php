@@ -24,7 +24,22 @@ final readonly class RoomData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     room_id?: int|numeric-string,
+     *     name?: string,
+     *     type?: string,
+     *     role?: string,
+     *     sticky?: bool,
+     *     unread_num?: int|numeric-string,
+     *     mention_num?: int|numeric-string,
+     *     mytask_num?: int|numeric-string,
+     *     message_num?: int|numeric-string,
+     *     file_num?: int|numeric-string,
+     *     task_num?: int|numeric-string,
+     *     icon_path?: string,
+     *     last_update_time?: int|numeric-string,
+     *     description?: string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {

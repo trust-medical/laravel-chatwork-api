@@ -7,6 +7,14 @@ namespace TrustMedical\LaravelChatworkApi\Http;
 use Illuminate\Http\Client\Response;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
+/**
+ * asResult() レスポンスモードが返す成功/失敗の値オブジェクト。
+ *
+ * 4xx/5xx レスポンスでも throw しない。呼び出し側は succeeded()/failed() で分岐し、
+ * 必要に応じて toException() で ChatworkRequestException に変換できる。
+ * data() は成功・失敗いずれのケースでもデコード済みボディを公開する。
+ * errors() と rateLimit() は失敗時 / レート制限時のみ意味を持つ。
+ */
 final class Result
 {
     public function __construct(
@@ -31,13 +39,18 @@ final class Result
         return $this->response->status();
     }
 
+    /**
+     * デコード済み JSON ボディ（オブジェクト/リスト payload は配列、204 の場合は null）。
+     *
+     * @return array<array-key, mixed>|string|int|float|bool|null
+     */
     public function data(): mixed
     {
         return $this->response->json();
     }
 
     /**
-     * @return array<int, string>
+     * @return list<string>
      */
     public function errors(): array
     {

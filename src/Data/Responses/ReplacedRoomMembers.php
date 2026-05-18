@@ -7,9 +7,9 @@ namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 final readonly class ReplacedRoomMembers
 {
     /**
-     * @param  array<int, int>  $admin
-     * @param  array<int, int>  $member
-     * @param  array<int, int>  $readonly
+     * @param  list<int>  $admin
+     * @param  list<int>  $member
+     * @param  list<int>  $readonly
      */
     public function __construct(
         public array $admin,
@@ -18,7 +18,7 @@ final readonly class ReplacedRoomMembers
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{admin?: mixed, member?: mixed, readonly?: mixed}  $data
      */
     public static function fromArray(array $data): self
     {
@@ -30,7 +30,7 @@ final readonly class ReplacedRoomMembers
     }
 
     /**
-     * @return array<int, int>
+     * @return list<int>
      */
     private static function toIntList(mixed $value): array
     {

@@ -19,6 +19,8 @@ final readonly class CreateRoomRequest
      * @param  array<int, int>  $membersAdminIds
      * @param  array<int, int>|null  $membersMemberIds
      * @param  array<int, int>|null  $membersReadonlyIds
+     *
+     * @throws ChatworkValidationException 名前の長さ、link_code の長さ、またはメンバー ID リストが不正な場合。
      */
     public function __construct(
         public string $name,
@@ -35,7 +37,17 @@ final readonly class CreateRoomRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     name: string,
+     *     members_admin_ids: string,
+     *     description?: string,
+     *     icon_preset?: string,
+     *     link?: 0|1,
+     *     link_code?: string,
+     *     link_need_acceptance?: 0|1,
+     *     members_member_ids?: string,
+     *     members_readonly_ids?: string
+     * }
      */
     public function toArray(): array
     {

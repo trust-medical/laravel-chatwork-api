@@ -16,7 +16,14 @@ final readonly class MyStatusData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     unread_room_num?: int|string,
+     *     mention_room_num?: int|string,
+     *     mytask_room_num?: int|string,
+     *     unread_num?: int|string,
+     *     mention_num?: int|string,
+     *     mytask_num?: int|string
+     * }  $data
      */
     public static function fromArray(array $data): self
     {
