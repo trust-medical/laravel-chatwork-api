@@ -55,7 +55,7 @@ final class ChatworkClient
 
     public function contacts(): ContactsResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return new ContactsResource($this);
     }
 
     public function incomingRequests(): IncomingRequestsResource
