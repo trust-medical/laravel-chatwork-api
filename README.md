@@ -329,6 +329,8 @@ callback ルートは**既定で無効**です（セキュリティのため）�
 
 > **本番環境の推奨:** 既定の `StateStore` / `TokenRepository` は Cache ストアを使います。`state` の一度きりの消費（リプレイ攻撃防止）には read-and-delete のアトミック性が必要なため、本番では `redis` または `database` キャッシュドライバを使用してください。`array` / `file` ドライバは read→delete が非アトミックで、同一 `state` の二重消費が理論上成立し得ます。永続トークンには独自の `TokenRepository`（例: DB 実装）を設定することを推奨します。
 
+> **トークンの暗号化:** 既定の `CacheTokenRepository` は access/refresh トークンを Laravel の `Encrypter`（`APP_KEY`）で暗号化してからキャッシュへ保存します。Redis / Memcached を直接参照されてもトークンは平文露出しません。`APP_KEY` 未設定だと `MissingAppKeyException` になります（通常の Laravel アプリでは設定済み）。`APP_KEY` をローテーションした場合、暗号化済みの既存トークンは復号できず「未保存」とみなされ、利用者は再認証が必要になります。独自の `TokenRepository` を使う場合は暗号化も自実装の責務です。
+
 ## テスト
 
 ```bash

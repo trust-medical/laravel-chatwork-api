@@ -55,7 +55,10 @@ final class ChatworkServiceProvider extends PackageServiceProvider
                 }
             }
 
-            return new CacheTokenRepository($app->make('cache')->store());
+            return new CacheTokenRepository(
+                $app->make('cache')->store(),
+                $app->make('encrypter'),
+            );
         });
 
         $this->app->bind(OAuthClient::class, function (Application $app): OAuthClient {

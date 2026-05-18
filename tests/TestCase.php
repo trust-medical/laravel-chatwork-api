@@ -38,6 +38,16 @@ abstract class TestCase extends Orchestra
         ];
     }
 
+    /**
+     * 実 Laravel アプリと同様に APP_KEY を用意する。
+     * デフォルトの CacheTokenRepository は OAuth トークンを Encrypter で
+     * 暗号化保存するため、暗号鍵がないと MissingAppKeyException になる。
+     */
+    protected function getEnvironmentSetUp($app): void
+    {
+        $app['config']->set('app.key', 'base64:' . base64_encode(str_repeat('k', 32)));
+    }
+
     protected function fixture(string $relativePath): string
     {
         $path = __DIR__ . '/Fixtures/chatwork/' . ltrim($relativePath, '/');
