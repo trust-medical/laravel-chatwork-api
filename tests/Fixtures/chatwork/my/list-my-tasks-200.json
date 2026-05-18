@@ -1,0 +1,37 @@
+[
+    {
+        "task_id": 3,
+        "room": {
+            "room_id": 322,
+            "name": "Group Chat Name",
+            "icon_path": "https://example.com/icon/group.png"
+        },
+        "assigned_by_account": {
+            "account_id": 456,
+            "name": "Anna",
+            "avatar_image_url": "https://example.com/avatar/456.png"
+        },
+        "message_id": "13",
+        "body": "Buy milk",
+        "limit_time": 1735707600,
+        "status": "open",
+        "limit_type": "time"
+    },
+    {
+        "task_id": 4,
+        "room": {
+            "room_id": 654,
+            "name": "Project X",
+            "icon_path": "https://example.com/icon/projectx.png"
+        },
+        "assigned_by_account": {
+            "account_id": 789,
+            "name": "Carol",
+            "avatar_image_url": "https://example.com/avatar/789.png"
+        },
+        "message_id": "27",
+        "body": "Review PR",
+        "limit_time": 0,
+        "status": "done"
+    }
+]
