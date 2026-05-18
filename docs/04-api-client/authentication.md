@@ -128,6 +128,8 @@ OAuth2 で access token を refresh するタイミングは2系統用意する�
 - token保存先を差し替える `TokenRepository`
 - state保存先を差し替える `StateStore`
 
+> **`StateStore` のアトミック性に関する注意:** デフォルト実装 `CacheStateStore::pull()` は `Cache::pull()`（read-and-delete）で `state` を一度だけ消費する。このアトミック性はキャッシュドライバ依存である。`redis` は `GETDEL` 相当でアトミックだが、`file` / `array` / `database` ドライバは read→delete が非アトミックで、極小の競合窓で同一 `state` の二重消費（リプレイ）が理論上成立し得る。本番環境では `redis`（または同等のアトミックドライバ）を使用すること。独自 `StateStore` 実装に差し替える場合も「各 state は最大1回のみ受理」を保証すること。
+
 ## OAuth2 callback
 
 callback routeは任意登録にする。

@@ -129,5 +129,5 @@ Chatwork::rooms()->messages()->create(...);   // default mode = asDto に戻る
 Chatwork::asResult()->asArray()->rooms()->...; // asArray が有効
 ```
 
-config の `response.mode`（デフォルト `'dto'`）は ServiceProvider の boot 時に Manager の初期 mode を設定するためだけに使う。
+config の `response.mode`（デフォルト `'dto'`）は ServiceProvider の `packageRegistered()`（register 段）で `'chatwork'` シングルトン生成時に `ResponseMode::fromConfig()` を介して Manager の初期 mode を設定するためだけに使う。無効な値は黙ってフォールバックせず `ChatworkValidationException` を投げる（fail-fast）。
 
