@@ -109,7 +109,9 @@ final class OAuthClient
     {
         $tokenUrl = $this->configString('token_url');
 
-        $response = Http::asForm()->post($tokenUrl, $params);
+        $response = Http::asForm()
+            ->timeout($this->timeoutSeconds())
+            ->post($tokenUrl, $params);
 
         if ($response->failed()) {
             throw ChatworkRequestException::fromResponse(
@@ -132,6 +134,20 @@ final class OAuthClient
     private function generateState(): string
     {
         return bin2hex(random_bytes(24));
+    }
+
+    /**
+     * トークンエンドポイント要求のタイムアウト秒数。
+     *
+     * トークンエンドポイント（別ホスト）の無応答で PHP-FPM / queue worker が
+     * 無制限ブロックするのを防ぐ。未設定・不正値は安全側の 10 秒にフォールバック。
+     */
+    private function timeoutSeconds(): int
+    {
+        $value = $this->config['timeout'] ?? null;
+        $seconds = is_numeric($value) ? (int) $value : 10;
+
+        return $seconds > 0 ? $seconds : 10;
     }
 
     private function configString(string $key): string

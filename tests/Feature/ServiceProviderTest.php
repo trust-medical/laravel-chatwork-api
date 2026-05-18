@@ -13,6 +13,7 @@ it('chatwork.php から設定をマージする (P1-T02)', function () {
         ->and(config('chatwork.timeout'))->toBe(10)
         ->and(config('chatwork.default'))->toBe('default')
         ->and(config('chatwork.response.mode'))->toBe('dto')
+        ->and(config('chatwork.oauth.timeout'))->toBe(10)
         ->and(config('chatwork.oauth.routes_enabled'))->toBeFalse();
 });
 

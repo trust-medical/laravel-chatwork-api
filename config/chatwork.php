@@ -29,6 +29,7 @@ return [
         'redirect_uri' => env('CHATWORK_OAUTH_REDIRECT_URI'),
         'authorization_url' => 'https://www.chatwork.com/packages/oauth2/login.php',
         'token_url' => 'https://oauth.chatwork.com/token',
+        'timeout' => env('CHATWORK_OAUTH_TIMEOUT', 10),
         'routes_enabled' => false,
         'route_prefix' => 'chatwork/oauth',
         'redirect_after_callback' => null,
