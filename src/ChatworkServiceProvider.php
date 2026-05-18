@@ -103,11 +103,18 @@ final class ChatworkServiceProvider extends PackageServiceProvider
      */
     public function registerOAuthRoutes(): void
     {
-        $prefix = $this->app->make('config')->get('chatwork.oauth.route_prefix');
+        $config = $this->app->make('config');
+        $prefix = $config->get('chatwork.oauth.route_prefix');
         $resolvedPrefix = is_string($prefix) && $prefix !== '' ? $prefix : 'chatwork/oauth';
 
+        $middleware = ['web'];
+        $throttle = $config->get('chatwork.oauth.route_throttle');
+        if (is_string($throttle) && $throttle !== '') {
+            $middleware[] = 'throttle:' . $throttle;
+        }
+
         Route::prefix($resolvedPrefix)
-            ->middleware('web')
+            ->middleware($middleware)
             ->group(function (): void {
                 Route::get('callback', OAuthCallbackController::class)
                     ->name('chatwork.oauth.callback');
