@@ -90,6 +90,14 @@ final class ChatworkServiceProvider extends PackageServiceProvider
         }
     }
 
+    /**
+     * OAuth2 callback ルートを登録する。
+     *
+     * `chatwork.oauth.routes_enabled=true` のとき `packageBooted()` が自動で呼び出す。
+     * 意図的に public: `routes_enabled=false` のままにしつつ、独自の RouteServiceProvider
+     * から任意の middleware / ドメイン / プレフィックス配下でこの callback ルートを
+     * 手動登録したいアプリケーション向けの公開エントリポイントである。
+     */
     public function registerOAuthRoutes(): void
     {
         $prefix = $this->app->make('config')->get('chatwork.oauth.route_prefix');
