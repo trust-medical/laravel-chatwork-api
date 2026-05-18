@@ -178,3 +178,9 @@ it('Cache::lock で同時リフレッシュを一本化する', function () {
     expect($caught)->toBeInstanceOf(ChatworkAuthenticationException::class);
     Http::assertNothingSent();
 });
+
+it('リフレッシュロック TTL は OAuth timeout 既定値より十分長い', function () {
+    $ttl = (new ReflectionClass(OAuthTokenProvider::class))->getConstant('LOCK_TTL_SECONDS');
+
+    expect($ttl)->toBe(30);
+});
