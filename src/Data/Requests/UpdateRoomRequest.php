@@ -7,6 +7,14 @@ namespace TrustMedical\LaravelChatworkApi\Data\Requests;
 use TrustMedical\LaravelChatworkApi\Enums\IconPreset;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
+/**
+ * `PUT /rooms/{room_id}` の partial update リクエスト。
+ *
+ * 全フィールドは任意。フィールドを 1 つも指定しないインスタンスは空ペイロード `[]` を返す。
+ * 空更新に対しては Chatwork API が HTTP 400 を返し、`ChatworkRequestException`
+ * （result モードでは `Result`）として表面化する。「最低 1 フィールド必須」は
+ * サーバ側の責務であり、本パッケージは送信前バリデーションを行わない（`architecture.md` 方針）。
+ */
 final readonly class UpdateRoomRequest
 {
     private const int NAME_MIN = 1;
