@@ -25,11 +25,21 @@ final class ChatworkManager
 {
     private ?Connection $connection = null;
 
-    private ResponseMode $mode = ResponseMode::Dto;
+    private ResponseMode $mode;
 
     private ?Credentials $credentialsOverride = null;
 
-    public function __construct(private readonly Container $container) {}
+    /**
+     * @param  ResponseMode  $mode  既定の戻り値モード。`config('chatwork.response.mode')`
+     *                              から ServiceProvider 経由で注入される。デフォルト値は
+     *                              `app(ChatworkManager::class)` 等の直接解決を壊さないために必須。
+     */
+    public function __construct(
+        private readonly Container $container,
+        ResponseMode $mode = ResponseMode::Dto,
+    ) {
+        $this->mode = $mode;
+    }
 
     /**
      * 指定された（またはデフォルトの）設定済み connection にバインドされたクローンを返す。

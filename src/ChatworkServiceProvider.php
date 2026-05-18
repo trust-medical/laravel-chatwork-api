@@ -15,6 +15,7 @@ use TrustMedical\LaravelChatworkApi\Auth\OAuth\Controllers\OAuthCallbackControll
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\OAuthClient;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\StateStore;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenRepository;
+use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
 use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkChannel;
@@ -67,7 +68,12 @@ final class ChatworkServiceProvider extends PackageServiceProvider
         });
 
         $this->app->singleton('chatwork', function ($app) {
-            return new ChatworkManager($app);
+            $configured = $app->make('config')->get('chatwork.response.mode');
+
+            return new ChatworkManager(
+                $app,
+                ResponseMode::fromConfig(is_string($configured) ? $configured : null),
+            );
         });
 
         $this->app->alias('chatwork', ChatworkManager::class);
