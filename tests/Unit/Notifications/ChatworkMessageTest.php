@@ -87,6 +87,10 @@ it('toPayload() 時に 65535 文字を超えるボディを拒否する', functi
     ChatworkMessage::make()->body(str_repeat('a', 65536))->toPayload();
 })->throws(ChatworkValidationException::class);
 
+it('クラスが final で宣言されている (toPayload 契約を固定)', function () {
+    expect((new ReflectionClass(ChatworkMessage::class))->isFinal())->toBeTrue();
+});
+
 it('宣言順に複合ボディを構築する', function () {
     $message = ChatworkMessage::make()
         ->to(123)

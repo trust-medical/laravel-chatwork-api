@@ -13,7 +13,7 @@ use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
  * {@see ChatworkNotification} を継承するか、`via()` で ChatworkChannel を返し
  * `toChatwork($notifiable): ChatworkMessage` を実装した Notification から本ビルダーを返すこと。
  */
-class ChatworkMessage
+final class ChatworkMessage
 {
     /** @var array<int, string> */
     private array $segments = [];
