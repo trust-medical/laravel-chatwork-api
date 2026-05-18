@@ -44,9 +44,10 @@ CHATWORK_API_TOKEN=your-api-token
 | `default` | `default` | 使用する connection 名（`CHATWORK_CONNECTION`） |
 | `base_uri` | `https://api.chatwork.com/v2` | API ベース URI |
 | `timeout` | `10` | リクエストタイムアウト秒 |
-| `response.mode` | `dto` | 既定の戻り値モード |
+| `response.mode` | `dto` | 既定の戻り値モード（無効値は `ChatworkValidationException`） |
 | `connections` | API Token connection 1件 | 複数 connection 定義可 |
 | `oauth` | — | OAuth2 設定（後述） |
+| `oauth.timeout` | `10` | OAuth トークン要求のタイムアウト秒（`CHATWORK_OAUTH_TIMEOUT`） |
 
 複数 connection の例:
 
@@ -326,6 +327,8 @@ callback ルートは**既定で無効**です（セキュリティのため）�
 
 有効化すると `GET {route_prefix}/callback`（ルート名 `chatwork.oauth.callback`）が登録されます。callback では `state` 検証が必須で、token は設定した `TokenRepository` に保存されます。取得済みトークンは `Chatwork::connection('oauth-connection')` 経由で利用でき、期限切れ時は `Cache::lock` で多重発行を防ぎつつ自動 refresh されます。
 
+> **本番環境の推奨:** 既定の `StateStore` / `TokenRepository` は Cache ストアを使います。`state` の一度きりの消費（リプレイ攻撃防止）には read-and-delete のアトミック性が必要なため、本番では `redis` または `database` キャッシュドライバを使用してください。`array` / `file` ドライバは read→delete が非アトミックで、同一 `state` の二重消費が理論上成立し得ます。永続トークンには独自の `TokenRepository`（例: DB 実装）を設定することを推奨します。
+
 ## テスト
 
 ```bash
@@ -343,6 +346,7 @@ composer ci            # lint:test + analyse + test
 - API token / client secret / refresh token をログ・例外メッセージに含めません
 - OAuth2 callback は `state` 検証を必須とし、ルートは既定で無効です
 - API Token（`x-chatworktoken`）と OAuth2 Bearer（`Authorization: Bearer`）は1リクエストで同時送信されません（`Credentials` 実装で構造的に保証）
+- OAuth2 `state` のリプレイ防止には read-and-delete のアトミック性が必要なため、本番では `redis` / `database` キャッシュドライバを推奨します（`array` / `file` は非アトミック）
 
 脆弱性を発見した場合は公開 issue ではなく非公開でご連絡ください。
 
