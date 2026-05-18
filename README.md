@@ -1,1 +1,353 @@
 # laravel-chatwork-api
+
+[Chatwork API v2](https://developer.chatwork.com/reference) を Laravel から安全に利用するための Composer パッケージです。**Facade / DI / Laravel Notification** の3経路を公式サポートします。
+
+- PHP `^8.3`
+- Laravel `^11.0 || ^12.0 || ^13.0`
+- Chatwork API v2（Base URI: `https://api.chatwork.com/v2`）
+
+## 特長
+
+- すべてのエンドポイント（rooms / messages / members / tasks / files / links / contacts / me / my / incoming_requests）をカバー
+- API Token と OAuth2 Bearer Token の両認証に対応（排他は型で構造的に保証）
+- 戻り値モードを呼び出し側でチェーン切り替え（DTO / 配列 / Collection / Response / Result）
+- `readonly` Response DTO と immutable Request オブジェクトによる型安全な API
+- Laravel Notification channel（`ChatworkChannel`）を同梱
+- OAuth2 認可フロー（認可URL生成・callback・refresh token、`Cache::lock` による多重 refresh 防止）
+
+## インストール
+
+```bash
+composer require trust-medical/laravel-chatwork-api
+```
+
+ServiceProvider と Facade は Laravel のパッケージ自動検出で登録されるため、手動登録は不要です。
+
+設定ファイルを publish します:
+
+```bash
+php artisan vendor:publish --tag="chatwork-config"
+```
+
+`.env` に最低限の認証情報を設定します:
+
+```dotenv
+CHATWORK_API_TOKEN=your-api-token
+```
+
+## 設定
+
+`config/chatwork.php` の主なキー:
+
+| キー | 既定値 | 説明 |
+|---|---|---|
+| `default` | `default` | 使用する connection 名（`CHATWORK_CONNECTION`） |
+| `base_uri` | `https://api.chatwork.com/v2` | API ベース URI |
+| `timeout` | `10` | リクエストタイムアウト秒 |
+| `response.mode` | `dto` | 既定の戻り値モード |
+| `connections` | API Token connection 1件 | 複数 connection 定義可 |
+| `oauth` | — | OAuth2 設定（後述） |
+
+複数 connection の例:
+
+```php
+'connections' => [
+    'default' => [
+        'auth' => 'api_token',
+        'token' => env('CHATWORK_API_TOKEN'),
+    ],
+    'bot' => [
+        'auth' => 'api_token',
+        'token' => env('CHATWORK_BOT_TOKEN'),
+    ],
+],
+```
+
+## 基本的な使い方
+
+```php
+use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
+
+// メッセージ送信
+Chatwork::rooms()->messages()->create(123, 'こんにちは');
+
+// 自分の情報を取得（既定は DTO で返る）
+$me = Chatwork::me()->get();
+echo $me->name;
+```
+
+### connection の切り替え
+
+```php
+// 設定済み connection を名前で指定
+Chatwork::connection('bot')->rooms()->messages()->create(123, 'bot からの通知');
+
+// その場限りのトークンで実行
+Chatwork::withApiToken($token)->me()->get();
+Chatwork::withBearerToken($oauthAccessToken)->me()->get();
+```
+
+`connection()` / `withApiToken()` / `withBearerToken()` / `as*()` は新しい manager を返すイミュータブル設計のため、安全にチェーンできます。
+
+## 戻り値モード
+
+既定は `asDto()`。呼び出し側でチェーンして変更できます。
+
+| モード | 成功時 | 4xx / 5xx |
+|---|---|---|
+| `asDto()` | readonly DTO | `ChatworkRequestException` を throw |
+| `asArray()` | 配列 | `ChatworkRequestException` を throw |
+| `asCollection()` | `Illuminate\Support\Collection` | `ChatworkRequestException` を throw |
+| `asResponse()` | Laravel HTTP Response | throw しない |
+| `asPsrResponse()` | PSR-7 Response | throw しない |
+| `asResult()` | `Result`（`Http\Result`） | throw しない |
+
+```php
+$rooms = Chatwork::asCollection()->rooms()->list();
+$raw   = Chatwork::asArray()->me()->get();
+$res   = Chatwork::asResponse()->rooms()->find(123);
+```
+
+> 送信前バリデーション失敗は戻り値モードに関わらず常に `ChatworkValidationException` を throw します。
+
+## リソース別の例
+
+### Rooms
+
+```php
+use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomRequest;
+use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateRoomRequest;
+use TrustMedical\LaravelChatworkApi\Enums\IconPreset;
+
+Chatwork::rooms()->list();
+Chatwork::rooms()->find(123);
+
+Chatwork::rooms()->create(new CreateRoomRequest(
+    name: '新規ルーム',
+    membersAdminIds: [101, 102],
+    description: 'チーム連絡用',
+    iconPreset: IconPreset::Meeting,
+));
+
+Chatwork::rooms()->update(123, new UpdateRoomRequest(name: '改名後'));
+
+// 破壊的操作は対象を明示した命名（曖昧な delete() は提供しない）
+Chatwork::rooms()->leaveRoom(123);   // action_type=leave
+Chatwork::rooms()->deleteRoom(123);  // action_type=delete
+```
+
+### Messages
+
+```php
+Chatwork::rooms()->messages()->create(123, '本文', selfUnread: true);
+Chatwork::rooms()->messages()->list(123, force: true);
+Chatwork::rooms()->messages()->find(123, '1024');
+Chatwork::rooms()->messages()->update(123, '1024', '編集後の本文');
+Chatwork::rooms()->messages()->deleteMessage(123, '1024');
+Chatwork::rooms()->messages()->markAsRead(123, '1024');
+Chatwork::rooms()->messages()->markAsUnread(123, '1024');
+```
+
+### Members
+
+```php
+use TrustMedical\LaravelChatworkApi\Data\Requests\ReplaceRoomMembersRequest;
+
+Chatwork::rooms()->members()->list(123);
+
+Chatwork::rooms()->members()->replaceMembers(123, new ReplaceRoomMembersRequest(
+    membersAdminIds: [101],
+    membersMemberIds: [201, 202],
+    membersReadonlyIds: [301],
+));
+```
+
+### Tasks
+
+```php
+use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomTaskRequest;
+use TrustMedical\LaravelChatworkApi\Enums\LimitType;
+use TrustMedical\LaravelChatworkApi\Enums\TaskStatus;
+
+Chatwork::rooms()->tasks()->create(123, new CreateRoomTaskRequest(
+    body: '見積もりを確認する',
+    toIds: [101, 102],
+    limit: 1735718400,
+    limitType: LimitType::Time,
+));
+
+Chatwork::rooms()->tasks()->list(123, status: TaskStatus::Open);
+Chatwork::rooms()->tasks()->find(123, 456);
+Chatwork::rooms()->tasks()->updateStatus(123, 456, TaskStatus::Done);
+```
+
+### Files
+
+```php
+use TrustMedical\LaravelChatworkApi\Data\Requests\UploadRoomFileRequest;
+
+Chatwork::rooms()->files()->upload(123, new UploadRoomFileRequest(
+    path: storage_path('app/report.pdf'),
+    message: '月次レポートです',
+));
+
+Chatwork::rooms()->files()->list(123);
+Chatwork::rooms()->files()->find(123, 789, createDownloadUrl: true);
+```
+
+### Invitation Links
+
+```php
+use TrustMedical\LaravelChatworkApi\Data\Requests\RoomLinkRequest;
+
+Chatwork::rooms()->links()->find(123);
+Chatwork::rooms()->links()->create(123, new RoomLinkRequest(
+    code: 'team-invite',
+    needAcceptance: true,
+    description: '招待リンク',
+));
+Chatwork::rooms()->links()->update(123, new RoomLinkRequest(description: '説明更新'));
+Chatwork::rooms()->links()->deleteLink(123);
+```
+
+### Me / My / Contacts / Incoming Requests
+
+```php
+Chatwork::me()->get();
+Chatwork::my()->status();
+Chatwork::my()->tasks(status: TaskStatus::Open);
+Chatwork::contacts()->list();
+
+Chatwork::incomingRequests()->list();
+Chatwork::incomingRequests()->accept(456);
+Chatwork::incomingRequests()->decline(456);
+```
+
+## エラーハンドリング
+
+### 例外
+
+| 例外 | 発生条件 |
+|---|---|
+| `ChatworkValidationException` | 送信前バリデーション失敗（戻り値モードに関わらず常に throw） |
+| `ChatworkRequestException` | 4xx / 5xx（throw 系モード時） |
+| `ChatworkAuthenticationException` | 認証情報の解決失敗（connection 不正・OAuth refresh 失敗等） |
+
+`ChatworkRequestException` はエラーボディ2系統を取り出せます:
+
+```php
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
+
+try {
+    Chatwork::rooms()->messages()->create(123, '本文');
+} catch (ChatworkRequestException $e) {
+    $e->status();            // int
+    $e->errors();            // string[]（通常 API: {"errors":[...]}）
+    $e->error();             // ?string（OAuth: error）
+    $e->errorDescription();  // ?string（OAuth: error_description）
+    $e->rateLimit();         // ?array（429 時: limit / remaining / reset）
+}
+```
+
+### `asResult()`（例外を投げない）
+
+```php
+$result = Chatwork::asResult()->rooms()->messages()->create(123, '本文');
+
+if ($result->failed()) {
+    $result->status();   // int
+    $result->errors();   // string[]
+    $result->rateLimit();
+    return;
+}
+
+$data = $result->data();
+```
+
+## Notification チャンネル
+
+`Notification` から Chatwork へ送信できます。チャンネルは内部的に `asResult()` 固定で、4xx は permanent failure として例外化、5xx / 429 / ネットワークエラーはそのまま伝播してキュー再試行に委譲されます。
+
+```php
+use Illuminate\Notifications\Notification;
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkChannel;
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
+
+class DeployFinished extends Notification
+{
+    public function via(object $notifiable): array
+    {
+        return [ChatworkChannel::class];
+    }
+
+    public function toChatwork(object $notifiable): ChatworkMessage
+    {
+        return (new ChatworkMessage())
+            ->toRoom(123)
+            ->info('デプロイ完了', "本番反映が完了しました。\nコミット: abc123")
+            ->selfUnread();
+    }
+}
+```
+
+メッセージビルダーは `body()` / `title()` / `code()` / `hr()` / `plain()` / `escape()` / `to()`（TO 付与）/ `toRoom()` / `selfUnread()` を提供します。
+
+送信先は `ChatworkMessage::toRoom()` のほか、notifiable 側の `routeNotificationForChatwork()` でも指定できます（両方指定は競合エラー）:
+
+```php
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkRoute;
+
+public function routeNotificationForChatwork(): ChatworkRoute
+{
+    return ChatworkRoute::room(123)->connection('bot');
+}
+```
+
+## OAuth2
+
+`config/chatwork.php` の `oauth` セクションで設定します。
+
+```dotenv
+CHATWORK_OAUTH_CLIENT_ID=...
+CHATWORK_OAUTH_CLIENT_SECRET=...
+CHATWORK_OAUTH_REDIRECT_URI=https://example.com/chatwork/oauth/callback
+```
+
+callback ルートは**既定で無効**です（セキュリティのため）。利用する場合は `config/chatwork.php` で有効化します:
+
+```php
+'oauth' => [
+    // ...
+    'routes_enabled' => true,
+    'route_prefix' => 'chatwork/oauth',
+    'redirect_after_callback' => '/dashboard',
+    'token_repository' => \App\Chatwork\DatabaseTokenRepository::class,
+    'state_store' => null, // 既定は Cache ベース
+],
+```
+
+有効化すると `GET {route_prefix}/callback`（ルート名 `chatwork.oauth.callback`）が登録されます。callback では `state` 検証が必須で、token は設定した `TokenRepository` に保存されます。取得済みトークンは `Chatwork::connection('oauth-connection')` 経由で利用でき、期限切れ時は `Cache::lock` で多重発行を防ぎつつ自動 refresh されます。
+
+## テスト
+
+```bash
+composer test          # Pest 全件
+composer test:coverage # カバレッジ（目標 80%+）
+composer analyse       # PHPStan
+composer lint          # Pint で整形
+composer ci            # lint:test + analyse + test
+```
+
+すべてのテストは `Http::fake()` で実 API を叩かずに検証しています。
+
+## セキュリティ
+
+- API token / client secret / refresh token をログ・例外メッセージに含めません
+- OAuth2 callback は `state` 検証を必須とし、ルートは既定で無効です
+- API Token（`x-chatworktoken`）と OAuth2 Bearer（`Authorization: Bearer`）は1リクエストで同時送信されません（`Credentials` 実装で構造的に保証）
+
+脆弱性を発見した場合は公開 issue ではなく非公開でご連絡ください。
+
+## ライセンス
+
+[MIT License](LICENSE)
