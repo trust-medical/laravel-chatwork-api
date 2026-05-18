@@ -45,12 +45,12 @@ final class ChatworkClient
 
     public function me(): MeResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return new MeResource($this);
     }
 
     public function my(): MyResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return new MyResource($this);
     }
 
     public function contacts(): ContactsResource

@@ -138,12 +138,12 @@ final class ChatworkManager
 
     public function me(): MeResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->client()->me();
     }
 
     public function my(): MyResource
     {
-        throw new \LogicException('not implemented in Phase 0');
+        return $this->client()->my();
     }
 
     public function contacts(): ContactsResource

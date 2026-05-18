@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
+use TrustMedical\LaravelChatworkApi\Data\Responses\MyAccountData;
 
 final class MeResource
 {
@@ -12,6 +13,6 @@ final class MeResource
 
     public function get(): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (client=%s)', $this->client::class));
+        return $this->client->send('GET', '/me', [], MyAccountData::class, 'getMe');
     }
 }
