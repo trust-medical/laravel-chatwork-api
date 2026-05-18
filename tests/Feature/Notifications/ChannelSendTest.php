@@ -47,10 +47,10 @@ function fakeChatworkOk(): void
     ]);
 }
 
-it('$user->notify(new ChatworkMessage) で routeNotificationForChatwork の宛先に送信する', function () {
+it('routeNotificationForChatwork の宛先に ChatworkMessage を送信する', function () {
     fakeChatworkOk();
 
-    makeChatworkUser(111)->notify(new ChatworkMessage('Hello'));
+    makeChatworkUser(111)->notify(chatworkNotification(new ChatworkMessage('Hello')));
 
     Http::assertSent(fn (Request $r) => $r->method() === 'POST'
         && $r->url() === 'https://api.chatwork.com/v2/rooms/111/messages'
@@ -61,7 +61,7 @@ it('$user->notify(new ChatworkMessage) で routeNotificationForChatwork の宛�
 it('Notification::route(\'chatwork\', $roomId) で指定したルームに送信する', function () {
     fakeChatworkOk();
 
-    Notification::route('chatwork', 222)->notify(new ChatworkMessage('Hi'));
+    Notification::route('chatwork', 222)->notify(chatworkNotification(new ChatworkMessage('Hi')));
 
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/222/messages');
 });
@@ -70,7 +70,7 @@ it('ChatworkRoute::room()->connection() で名前付きコネクションを使�
     fakeChatworkOk();
 
     $route = ChatworkRoute::room(333)->connection('sales');
-    Notification::route('chatwork', $route)->notify(new ChatworkMessage('Hi'));
+    Notification::route('chatwork', $route)->notify(chatworkNotification(new ChatworkMessage('Hi')));
 
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/333/messages'
         && $r->hasHeader('Authorization', 'Bearer sales-token')
@@ -83,7 +83,7 @@ it('ChatworkRoute::room()->using(Connection) でアドホックなコネクシ�
     $connection = Connection::make('dynamic', new BearerTokenCredentials('dynamic-bearer'));
     $route = ChatworkRoute::room(444)->using($connection);
 
-    Notification::route('chatwork', $route)->notify(new ChatworkMessage('Hi'));
+    Notification::route('chatwork', $route)->notify(chatworkNotification(new ChatworkMessage('Hi')));
 
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/444/messages'
         && $r->hasHeader('Authorization', 'Bearer dynamic-bearer')
@@ -93,7 +93,7 @@ it('ChatworkRoute::room()->using(Connection) でアドホックなコネクシ�
 it('ChatworkMessage::toRoom() を上書き宛先として使用する', function () {
     fakeChatworkOk();
 
-    makeChatworkUser(null)->notify(ChatworkMessage::make()->body('Hi')->toRoom(555));
+    makeChatworkUser(null)->notify(chatworkNotification(ChatworkMessage::make()->body('Hi')->toRoom(555)));
 
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/555/messages');
 });
@@ -103,7 +103,7 @@ it('ルートが指定されていない場合は ChatworkRoutingException を�
 
     $caught = null;
     try {
-        makeChatworkUser(null)->notify(new ChatworkMessage('Hi'));
+        makeChatworkUser(null)->notify(chatworkNotification(new ChatworkMessage('Hi')));
     } catch (ChatworkRoutingException $e) {
         $caught = $e;
     }
@@ -118,7 +118,7 @@ it('4xx レスポンス時に ChatworkRequestException をスローする', func
 
     $caught = null;
     try {
-        makeChatworkUser(111)->notify(new ChatworkMessage('Hi'));
+        makeChatworkUser(111)->notify(chatworkNotification(new ChatworkMessage('Hi')));
     } catch (ChatworkRequestException $e) {
         $caught = $e;
     }
@@ -134,7 +134,7 @@ it('5xx レスポンス時に ChatworkRequestException をスローする (queue
 
     $caught = null;
     try {
-        makeChatworkUser(111)->notify(new ChatworkMessage('Hi'));
+        makeChatworkUser(111)->notify(chatworkNotification(new ChatworkMessage('Hi')));
     } catch (ChatworkRequestException $e) {
         $caught = $e;
     }

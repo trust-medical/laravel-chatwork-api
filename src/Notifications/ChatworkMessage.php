@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Notifications;
 
-use Illuminate\Notifications\Notification;
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
 
-class ChatworkMessage extends Notification
+/**
+ * Chatwork メッセージのビルダー / DTO。
+ *
+ * これは Notification ではない。Chatwork チャンネルへ送信するには、
+ * {@see ChatworkNotification} を継承するか、`via()` で ChatworkChannel を返し
+ * `toChatwork($notifiable): ChatworkMessage` を実装した Notification から本ビルダーを返すこと。
+ */
+class ChatworkMessage
 {
     /** @var array<int, string> */
     private array $segments = [];
@@ -118,27 +124,6 @@ class ChatworkMessage extends Notification
     public function targetRoomId(): int|string|null
     {
         return $this->targetRoomId;
-    }
-
-    /**
-     * @return array<int, class-string>
-     */
-    public function via(object $notifiable): array
-    {
-        unset($notifiable);
-
-        return [ChatworkChannel::class];
-    }
-
-    /**
-     * メッセージ自身を返す: スタンドアロンの ChatworkMessage はそれ自体が notification であるため、
-     * チャンネルはこのビルダーをそのまま受け取る。
-     */
-    public function toChatwork(object $notifiable): self
-    {
-        unset($notifiable);
-
-        return $this;
     }
 
     /**

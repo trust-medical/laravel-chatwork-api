@@ -49,7 +49,7 @@ it('すべて成功した場合、すべてのルームに順番どおりに送�
         ChatworkRoute::room(11),
         ChatworkRoute::room(22),
         ChatworkRoute::room(33),
-    ])->notify(new ChatworkMessage('Hi'));
+    ])->notify(chatworkNotification(new ChatworkMessage('Hi')));
 
     Http::assertSentCount(3);
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/11/messages');
@@ -70,7 +70,7 @@ it('最初の失敗 (4xx) で停止し、以降のルームには送信しない
             ChatworkRoute::room(11),
             ChatworkRoute::room(22),
             ChatworkRoute::room(33),
-        ])->notify(new ChatworkMessage('Hi'));
+        ])->notify(chatworkNotification(new ChatworkMessage('Hi')));
     } catch (ChatworkRequestException $e) {
         $caught = $e;
     }
@@ -96,7 +96,7 @@ it('5xx の最初の失敗でも停止し、以降のルームには送信しな
             ChatworkRoute::room(11),
             ChatworkRoute::room(22),
             ChatworkRoute::room(33),
-        ])->notify(new ChatworkMessage('Hi'));
+        ])->notify(chatworkNotification(new ChatworkMessage('Hi')));
     } catch (ChatworkRequestException $e) {
         $caught = $e;
     }

@@ -39,7 +39,7 @@ it('ShouldQueue を実装していない通知は同期的に実行される', f
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);
 
-    queueableNotifiable(801)->notify(new ChatworkMessage('Sync'));
+    queueableNotifiable(801)->notify(chatworkNotification(new ChatworkMessage('Sync')));
 
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/801/messages');
 });

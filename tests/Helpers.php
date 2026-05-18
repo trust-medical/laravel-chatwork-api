@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
+use TrustMedical\LaravelChatworkApi\Notifications\ChatworkNotification;
 
 /**
  * composer.json の `autoload-dev.files` 経由で読み込まれるテストヘルパー。
@@ -53,6 +55,30 @@ if (! function_exists('tempUploadFile')) {
         file_put_contents($path, $contents);
 
         return $path;
+    }
+}
+
+if (! function_exists('chatworkNotification')) {
+    /**
+     * ChatworkMessage を ChatworkNotification でラップして notify() に渡せるようにする。
+     *
+     * ChatworkMessage は Notification ではなく純粋なビルダーのため、テストで
+     * 単発メッセージを送る際にこのラッパーで通知化する。
+     */
+    function chatworkNotification(
+        ChatworkMessage $message
+    ): ChatworkNotification {
+        return new class($message) extends ChatworkNotification
+        {
+            public function __construct(
+                private readonly ChatworkMessage $message
+            ) {}
+
+            public function toChatwork(object $notifiable): ChatworkMessage
+            {
+                return $this->message;
+            }
+        };
     }
 }
 

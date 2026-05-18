@@ -39,7 +39,7 @@ it('toRoom() と routeNotificationForChatwork() が競合する場合は Chatwor
     $caught = null;
     try {
         withChatworkUserHavingRoom(111)->notify(
-            ChatworkMessage::make()->body('Hi')->toRoom(999),
+            chatworkNotification(ChatworkMessage::make()->body('Hi')->toRoom(999)),
         );
     } catch (ChatworkRoutingException $e) {
         $caught = $e;
@@ -69,7 +69,7 @@ it('routeNotificationForChatwork が int の配列を返す場合、すべての
         }
     };
 
-    $user->notify(new ChatworkMessage('Hi'));
+    $user->notify(chatworkNotification(new ChatworkMessage('Hi')));
 
     Http::assertSentCount(2);
 });
@@ -95,7 +95,7 @@ it('ChatworkRoute の配列が返された場合、各 ChatworkRoute に送信�
         }
     };
 
-    $user->notify(new ChatworkMessage('Hi'));
+    $user->notify(chatworkNotification(new ChatworkMessage('Hi')));
 
     Http::assertSentCount(2);
 });
@@ -107,7 +107,7 @@ it('サポートされていないルート型に対して ChatworkRoutingExcept
 
     $caught = null;
     try {
-        Notification::route('chatwork', new stdClass())->notify(new ChatworkMessage('Hi'));
+        Notification::route('chatwork', new stdClass())->notify(chatworkNotification(new ChatworkMessage('Hi')));
     } catch (ChatworkRoutingException $e) {
         $caught = $e;
     }
@@ -130,7 +130,7 @@ it('notifiable のルートが未指定の場合は toRoom() を優先する', f
         }
     };
 
-    $user->notify(ChatworkMessage::make()->body('Hi')->toRoom(777));
+    $user->notify(chatworkNotification(ChatworkMessage::make()->body('Hi')->toRoom(777)));
 
     Http::assertSent(fn ($r) => $r->url() === 'https://api.chatwork.com/v2/rooms/777/messages');
 });

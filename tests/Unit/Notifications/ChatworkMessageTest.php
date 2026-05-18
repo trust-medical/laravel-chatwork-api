@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
-use TrustMedical\LaravelChatworkApi\Notifications\ChatworkChannel;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
 
 it('コンストラクタからボディを構築する', function () {
@@ -78,20 +77,6 @@ it('toRoom() の送信先を保持する', function () {
     $message = ChatworkMessage::make()->toRoom(789);
 
     expect($message->targetRoomId())->toBe(789);
-});
-
-it('via() が [ChatworkChannel::class] を返す', function () {
-    $notifiable = new stdClass();
-    $message = new ChatworkMessage('Hi');
-
-    expect($message->via($notifiable))->toBe([ChatworkChannel::class]);
-});
-
-it('toChatwork() が self を返す', function () {
-    $notifiable = new stdClass();
-    $message = new ChatworkMessage('Hi');
-
-    expect($message->toChatwork($notifiable))->toBe($message);
 });
 
 it('toPayload() 時に空ボディを拒否する', function () {
