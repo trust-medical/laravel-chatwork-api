@@ -39,9 +39,9 @@ final class IncomingRequestsResource
 
     public function accept(int $requestId): mixed
     {
-        // The spec declares no request body; PUT sends an empty form body
-        // (same as RoomMessagesResource::markAsRead). The 200 response is
-        // the now-contact account, structurally identical to ContactData.
+        // The spec declares no request body, so the payload is empty. The
+        // 200 response is the now-contact account, byte-identical to
+        // ContactData, which is why ContactData is reused here.
         return $this->client->send(
             'PUT',
             sprintf('/incoming_requests/%d', $requestId),
@@ -53,8 +53,8 @@ final class IncomingRequestsResource
 
     public function decline(int $requestId): mixed
     {
-        // Body-less DELETE: ChatworkClient::send omits asForm() for an
-        // empty payload. The 204 No Content maps to NoContentData.
+        // The spec returns 204 No Content with no body, mapped to
+        // NoContentData.
         return $this->client->send(
             'DELETE',
             sprintf('/incoming_requests/%d', $requestId),

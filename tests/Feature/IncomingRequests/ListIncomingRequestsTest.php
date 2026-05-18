@@ -137,6 +137,16 @@ it('maps a 204 empty body to an empty Collection in asCollection mode', function
         ->and($result)->toHaveCount(0);
 });
 
+it('maps a 204 empty body to an empty array in asArray mode', function () {
+    Http::fake([
+        'https://api.chatwork.com/v2/incoming_requests' => Http::response('', 204),
+    ]);
+
+    $result = Chatwork::asArray()->incomingRequests()->list();
+
+    expect($result)->toBe([]);
+});
+
 it('returns a successful Result with status 204 in asResult mode', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests' => Http::response('', 204),
