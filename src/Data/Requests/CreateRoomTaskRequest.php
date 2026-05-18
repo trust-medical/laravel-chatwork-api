@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Requests;
 
+use TrustMedical\LaravelChatworkApi\Data\Requests\Concerns\NormalizesIntegerList;
 use TrustMedical\LaravelChatworkApi\Enums\LimitType;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class CreateRoomTaskRequest
 {
+    use NormalizesIntegerList;
+
     private const int BODY_MIN = 1;
 
     private const int BODY_MAX = 65535;
@@ -81,28 +84,5 @@ final readonly class CreateRoomTaskRequest
                 ['limit' => ['must be a positive Unix timestamp']],
             );
         }
-    }
-
-    /**
-     * @param  array<int, mixed>  $ids
-     */
-    private static function assertIntegerList(array $ids, string $field): void
-    {
-        foreach ($ids as $id) {
-            if (! is_int($id) || $id <= 0) {
-                throw new ChatworkValidationException(
-                    sprintf('%s must contain positive integers only.', $field),
-                    [$field => ['must contain positive integers only']],
-                );
-            }
-        }
-    }
-
-    /**
-     * @param  array<int, int>  $ids
-     */
-    private static function idsToCsv(array $ids): string
-    {
-        return implode(',', $ids);
     }
 }

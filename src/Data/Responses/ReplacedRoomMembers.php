@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
 use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+use TrustMedical\LaravelChatworkApi\Data\Responses\Concerns\ConvertsToIntList;
 
 final readonly class ReplacedRoomMembers implements MapsFromArray
 {
+    use ConvertsToIntList;
+
     /**
      * @param  list<int>  $admin
      * @param  list<int>  $member
@@ -29,17 +32,5 @@ final readonly class ReplacedRoomMembers implements MapsFromArray
             member: self::toIntList($data['member'] ?? []),
             readonly: self::toIntList($data['readonly'] ?? []),
         );
-    }
-
-    /**
-     * @return list<int>
-     */
-    private static function toIntList(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_map(static fn (mixed $id): int => (int) $id, $value));
     }
 }
