@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
+use TrustMedical\LaravelChatworkApi\Data\Requests\RoomLinkRequest;
+use TrustMedical\LaravelChatworkApi\Data\Responses\RoomLinkData;
 
 final class RoomLinksResource
 {
@@ -12,27 +14,48 @@ final class RoomLinksResource
 
     public function find(int $roomId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (client=%s, roomId=%d)', $this->client::class, $roomId));
+        return $this->client->send(
+            'GET',
+            sprintf('/rooms/%d/link', $roomId),
+            [],
+            RoomLinkData::class,
+            'getRoomLink',
+        );
     }
 
-    /**
-     * @param  array<string, mixed>  $request
-     */
-    public function create(int $roomId, array $request): mixed
+    public function create(int $roomId, RoomLinkRequest $request): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d, keys=%s)', $roomId, implode(',', array_keys($request))));
+        return $this->client->send(
+            'POST',
+            sprintf('/rooms/%d/link', $roomId),
+            $request->toArray(),
+            RoomLinkData::class,
+            'createRoomLink',
+        );
     }
 
-    /**
-     * @param  array<string, mixed>  $request
-     */
-    public function update(int $roomId, array $request): mixed
+    public function update(int $roomId, RoomLinkRequest $request): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d, keys=%s)', $roomId, implode(',', array_keys($request))));
+        return $this->client->send(
+            'PUT',
+            sprintf('/rooms/%d/link', $roomId),
+            $request->toArray(),
+            RoomLinkData::class,
+            'updateRoomLink',
+        );
     }
 
     public function deleteLink(int $roomId): mixed
     {
-        throw new \LogicException(sprintf('not implemented in Phase 0 (roomId=%d)', $roomId));
+        // No request body. ChatworkClient::send's DELETE branch calls
+        // $pending->delete($path) when the payload is empty (no asForm()),
+        // and the response body is mapped to RoomLinkData.
+        return $this->client->send(
+            'DELETE',
+            sprintf('/rooms/%d/link', $roomId),
+            [],
+            RoomLinkData::class,
+            'deleteRoomLink',
+        );
     }
 }

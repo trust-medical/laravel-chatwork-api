@@ -115,6 +115,6 @@ final class RoomsResource
 
     public function links(): RoomLinksResource
     {
-        throw new \LogicException('RoomLinksResource is implemented in Phase 10.');
+        return new RoomLinksResource($this->client);
     }
 }
