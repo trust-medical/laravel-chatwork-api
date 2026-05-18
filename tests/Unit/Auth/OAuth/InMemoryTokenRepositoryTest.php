@@ -14,7 +14,7 @@ afterEach(function () {
     Carbon::setTestNow();
 });
 
-it('saves and retrieves TokenSet by connection name', function () {
+it('コネクション名をキーに TokenSet を保存・取得できる', function () {
     $repo = new InMemoryTokenRepository();
     $token = new TokenSet('a', 'r', Carbon::now()->addHour()->toDateTimeImmutable());
 
@@ -23,6 +23,6 @@ it('saves and retrieves TokenSet by connection name', function () {
     expect($repo->find('sales')->accessToken)->toBe('a');
 });
 
-it('returns null when connection has never been saved', function () {
+it('一度も保存されていないコネクション名で find すると null を返す', function () {
     expect((new InMemoryTokenRepository())->find('unknown'))->toBeNull();
 });

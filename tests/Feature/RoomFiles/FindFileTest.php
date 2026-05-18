@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /rooms/{room_id}/files/{file_id} without query by default', function () {
+it('デフォルトではクエリなしで GET /rooms/{room_id}/files/{file_id} を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files/99' => Http::response(
             fixtureJson('files/get-room-file-200.json'),
@@ -31,7 +31,7 @@ it('GETs /rooms/{room_id}/files/{file_id} without query by default', function ()
         && $r->data() === []);
 });
 
-it('sends create_download_url=1 when requested', function () {
+it('要求時に create_download_url=1 を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files/99*' => Http::response(
             fixtureJson('files/get-room-file-200.json'),
@@ -44,7 +44,7 @@ it('sends create_download_url=1 when requested', function () {
     Http::assertSent(fn (Request $r) => $r['create_download_url'] === 1);
 });
 
-it('sends create_download_url=0 when explicitly disabled', function () {
+it('明示的に無効化した場合は create_download_url=0 を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files/99*' => Http::response(
             fixtureJson('files/get-room-file-200.json'),
@@ -57,7 +57,7 @@ it('sends create_download_url=0 when explicitly disabled', function () {
     Http::assertSent(fn (Request $r) => $r['create_download_url'] === 0);
 });
 
-it('returns a RoomFileData DTO with nested SimpleAccount and download url', function () {
+it('ネストした SimpleAccount とダウンロード URL を含む RoomFileData DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files/99' => Http::response(
             fixtureJson('files/get-room-file-200.json'),
@@ -78,7 +78,7 @@ it('returns a RoomFileData DTO with nested SimpleAccount and download url', func
         ->and($file->downloadUrl)->toBe('https://download.chatwork.com/files/99?token=abc');
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files/99' => Http::response(
             fixtureJson('files/get-room-file-400.json'),
@@ -97,7 +97,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['room_id is invalid']);
 });
 
-it('throws ChatworkRequestException on 404', function () {
+it('404 時に ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files/99' => Http::response(
             fixtureJson('files/get-room-file-404.json'),
@@ -116,7 +116,7 @@ it('throws ChatworkRequestException on 404', function () {
         ->and($caught?->errors())->toBe(['file not found']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files/99' => Http::response(
             fixtureJson('files/get-room-file-429.json'),

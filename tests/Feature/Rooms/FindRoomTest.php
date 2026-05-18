@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /rooms/{room_id}', function () {
+it('/rooms/{room_id} を GET する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             fixtureJson('rooms/get-room-200.json'),
@@ -30,7 +30,7 @@ it('GETs /rooms/{room_id}', function () {
         && $r->url() === 'https://api.chatwork.com/v2/rooms/123');
 });
 
-it('returns RoomData with description in asDto mode', function () {
+it('asDto モードで description を含む RoomData を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             fixtureJson('rooms/get-room-200.json'),
@@ -45,7 +45,7 @@ it('returns RoomData with description in asDto mode', function () {
     expect($result->description)->toBe('Group description text');
 });
 
-it('throws ChatworkRequestException on 404', function () {
+it('404 時に ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/9999' => Http::response(
             fixtureJson('rooms/get-room-404.json'),
@@ -63,7 +63,7 @@ it('throws ChatworkRequestException on 404', function () {
     expect($caught?->status())->toBe(404);
 });
 
-it('returns Result in asResult mode without throwing', function () {
+it('asResult モードでスローせず Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/9999' => Http::response(
             fixtureJson('rooms/get-room-404.json'),

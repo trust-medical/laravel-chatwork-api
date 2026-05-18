@@ -13,7 +13,7 @@ beforeEach(function () {
     ]);
 });
 
-it('sends x-chatworktoken when withApiToken is used (P1-T07)', function () {
+it('withApiToken 使用時に x-chatworktoken を送信する (P1-T07)', function () {
     $manager = Chatwork::withApiToken('runtime-api-token');
 
     app(ChatworkPendingRequestFactory::class)
@@ -25,7 +25,7 @@ it('sends x-chatworktoken when withApiToken is used (P1-T07)', function () {
     );
 });
 
-it('sends Authorization Bearer when withBearerToken is used (P1-T08)', function () {
+it('withBearerToken 使用時に Authorization Bearer を送信する (P1-T08)', function () {
     $manager = Chatwork::withBearerToken('runtime-bearer');
 
     app(ChatworkPendingRequestFactory::class)
@@ -37,7 +37,7 @@ it('sends Authorization Bearer when withBearerToken is used (P1-T08)', function 
     );
 });
 
-it('never sends both auth headers when both methods are chained (P1-T09)', function () {
+it('両メソッドをチェーンしても認証ヘッダーを同時に送信しない (P1-T09)', function () {
     $manager = Chatwork::withApiToken('first')->withBearerToken('second');
 
     app(ChatworkPendingRequestFactory::class)
@@ -49,7 +49,7 @@ it('never sends both auth headers when both methods are chained (P1-T09)', funct
     );
 });
 
-it('falls back to default connection auth when no override is set', function () {
+it('オーバーライドが未設定の場合はデフォルト接続の認証にフォールバックする', function () {
     config()->set('chatwork.connections.default', [
         'auth' => 'api_token',
         'token' => 'default-api-token',
@@ -64,7 +64,7 @@ it('falls back to default connection auth when no override is set', function () 
     Http::assertSent(fn (Request $r) => $r->hasHeader('x-chatworktoken', 'default-api-token'));
 });
 
-it('keeps base_uri / timeout from the underlying connection when overriding token', function () {
+it('トークンをオーバーライドしても base_uri / timeout は元の接続の値を保持する', function () {
     config()->set('chatwork.connections.tenant', [
         'auth' => 'bearer',
         'token' => 'tenant-bearer',

@@ -34,7 +34,7 @@ function queueableNotifiable(int $roomId): object
     };
 }
 
-it('runs synchronously when the notification does not implement ShouldQueue', function () {
+it('ShouldQueue を実装していない通知は同期的に実行される', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);
@@ -44,7 +44,7 @@ it('runs synchronously when the notification does not implement ShouldQueue', fu
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/801/messages');
 });
 
-it('dispatches SendQueuedNotifications job for a ShouldQueue notification', function () {
+it('ShouldQueue を実装した通知に対して SendQueuedNotifications ジョブをディスパッチする', function () {
     Queue::fake();
 
     $notification = new class() extends ChatworkNotification implements ShouldQueue

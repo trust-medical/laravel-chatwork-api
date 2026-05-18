@@ -17,7 +17,7 @@ beforeEach(function () {
     ]);
 });
 
-it('POSTs /rooms/{room_id}/link with form-encoded body', function () {
+it('フォームエンコードされたボディで POST /rooms/{room_id}/link を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/create-room-link-200.json'),
@@ -43,7 +43,7 @@ it('POSTs /rooms/{room_id}/link with form-encoded body', function () {
     });
 });
 
-it('serializes needAcceptance true as 1', function () {
+it('needAcceptance が true のとき 1 としてシリアライズする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/create-room-link-200.json'),
@@ -56,7 +56,7 @@ it('serializes needAcceptance true as 1', function () {
     Http::assertSent(fn (Request $r) => (int) $r['need_acceptance'] === 1);
 });
 
-it('omits optional fields when not provided', function () {
+it('任意フィールドが指定されない場合は省略する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/create-room-link-200.json'),
@@ -71,7 +71,7 @@ it('omits optional fields when not provided', function () {
         && ! isset($r->data()['description']));
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続時に x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/create-room-link-200.json'),
@@ -85,7 +85,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns a RoomLinkData DTO in asDto mode', function () {
+it('asDto モードで RoomLinkData DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/create-room-link-200.json'),
@@ -101,7 +101,7 @@ it('returns a RoomLinkData DTO in asDto mode', function () {
         ->and($link->needAcceptance)->toBeFalse();
 });
 
-it('throws ChatworkValidationException for an empty code without sending HTTP', function () {
+it('空の code に対して HTTP を送信せず ChatworkValidationException をスローする', function () {
     Http::fake();
 
     $caught = null;
@@ -115,7 +115,7 @@ it('throws ChatworkValidationException for an empty code without sending HTTP', 
     Http::assertNothingSent();
 });
 
-it('throws ChatworkValidationException for a code longer than 50 characters', function () {
+it('50 文字を超える code に対して ChatworkValidationException をスローする', function () {
     $caught = null;
     try {
         new RoomLinkRequest(code: str_repeat('a', 51));
@@ -126,7 +126,7 @@ it('throws ChatworkValidationException for a code longer than 50 characters', fu
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/create-room-link-400.json'),
@@ -145,7 +145,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['code is already used']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/create-room-link-429.json'),

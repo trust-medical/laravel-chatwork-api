@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('PUTs /rooms/{room_id}/messages/{message_id} with form body', function () {
+it('フォームボディとともに /rooms/{room_id}/messages/{message_id} を PUT する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/5' => Http::response(
             fixtureJson('messages/update-message-200.json'),
@@ -36,7 +36,7 @@ it('PUTs /rooms/{room_id}/messages/{message_id} with form body', function () {
     });
 });
 
-it('throws ChatworkValidationException without HTTP call when body is empty', function () {
+it('body が空のとき HTTP を呼ばず ChatworkValidationException をスローする', function () {
     Http::fake();
 
     $caught = null;
@@ -50,7 +50,7 @@ it('throws ChatworkValidationException without HTTP call when body is empty', fu
     Http::assertNothingSent();
 });
 
-it('returns UpdatedMessage DTO in asDto mode', function () {
+it('asDto モードで UpdatedMessage DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/5' => Http::response(
             fixtureJson('messages/update-message-200.json'),
@@ -64,7 +64,7 @@ it('returns UpdatedMessage DTO in asDto mode', function () {
     expect($result->messageId)->toBe('5');
 });
 
-it('throws ChatworkRequestException on 404', function () {
+it('404 で ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/9999' => Http::response(
             ['errors' => ['not found']],

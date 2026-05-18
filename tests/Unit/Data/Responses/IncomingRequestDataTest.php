@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\IncomingRequestData;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(IncomingRequestData::class)->toBeReadonly();
 });
 
-it('hydrates IncomingRequestData via fromArray', function () {
+it('fromArray で IncomingRequestData をハイドレートする', function () {
     $data = fixtureJson('incoming-requests/list-incoming-requests-200.json');
 
     $request = IncomingRequestData::fromArray($data[0]);
@@ -24,7 +24,7 @@ it('hydrates IncomingRequestData via fromArray', function () {
     expect($request->avatarImageUrl)->toBe('https://example.com/avatar/363.png');
 });
 
-it('casts numeric id strings to int', function () {
+it('数値文字列の id を int にキャストする', function () {
     $request = IncomingRequestData::fromArray([
         'request_id' => '42',
         'account_id' => '99',
@@ -36,7 +36,7 @@ it('casts numeric id strings to int', function () {
     expect($request->organizationId)->toBe(7);
 });
 
-it('falls back to defaults for missing fields without throwing', function () {
+it('フィールドが欠けていても例外を投げずにデフォルト値を返す', function () {
     $request = IncomingRequestData::fromArray([]);
 
     expect($request->requestId)->toBe(0);

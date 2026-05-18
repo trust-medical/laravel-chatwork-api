@@ -21,7 +21,7 @@ beforeEach(function () {
     ]);
 });
 
-it('Chatwork::client()->createRoomMessage delegates to RoomMessagesResource::create', function () {
+it('Chatwork::client()->createRoomMessage は RoomMessagesResource::create に委譲する', function () {
     $result = Chatwork::client()->createRoomMessage(456, 'shorthand body');
 
     expect($result)->toBeInstanceOf(CreatedMessage::class)
@@ -33,7 +33,7 @@ it('Chatwork::client()->createRoomMessage delegates to RoomMessagesResource::cre
     );
 });
 
-it('shorthand passes selfUnread through to the underlying request', function () {
+it('ショートハンドは selfUnread を下位リクエストにそのまま渡す', function () {
     Chatwork::client()->createRoomMessage(456, 'with self_unread', selfUnread: true);
 
     Http::assertSent(fn (Request $r) => (int) $r['self_unread'] === 1);

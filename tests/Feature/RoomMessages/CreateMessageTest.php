@@ -26,7 +26,7 @@ beforeEach(function () {
     ]);
 });
 
-it('POSTs to /rooms/{room_id}/messages (P2-T01)', function () {
+it('/rooms/{room_id}/messages に POST する (P2-T01)', function () {
     Chatwork::connection()->rooms()->messages()->create(123, 'Hello');
 
     Http::assertSent(fn (Request $r) => $r->method() === 'POST'
@@ -34,7 +34,7 @@ it('POSTs to /rooms/{room_id}/messages (P2-T01)', function () {
     );
 });
 
-it('sends application/x-www-form-urlencoded (P2-T02)', function () {
+it('application/x-www-form-urlencoded を送信する (P2-T02)', function () {
     Chatwork::connection()->rooms()->messages()->create(123, 'Hello');
 
     Http::assertSent(function (Request $r) {
@@ -44,7 +44,7 @@ it('sends application/x-www-form-urlencoded (P2-T02)', function () {
     });
 });
 
-it('sends x-chatworktoken for api_token connection (P2-T03)', function () {
+it('api_token 接続では x-chatworktoken を送信する (P2-T03)', function () {
     Chatwork::connection()->rooms()->messages()->create(123, 'Hello');
 
     Http::assertSent(fn (Request $r) => $r->hasHeader('x-chatworktoken', 'api-default-token')
@@ -52,7 +52,7 @@ it('sends x-chatworktoken for api_token connection (P2-T03)', function () {
     );
 });
 
-it('sends Authorization Bearer for bearer connection (P2-T04)', function () {
+it('bearer 接続では Authorization Bearer を送信する (P2-T04)', function () {
     Chatwork::connection('sales')->rooms()->messages()->create(123, 'Hello');
 
     Http::assertSent(fn (Request $r) => $r->hasHeader('Authorization', 'Bearer bearer-sales-token')
@@ -60,19 +60,19 @@ it('sends Authorization Bearer for bearer connection (P2-T04)', function () {
     );
 });
 
-it('includes body in the payload (P2-T05)', function () {
+it('ペイロードに body を含める (P2-T05)', function () {
     Chatwork::connection()->rooms()->messages()->create(123, 'Hello, Chatwork!');
 
     Http::assertSent(fn (Request $r) => $r['body'] === 'Hello, Chatwork!');
 });
 
-it('sends self_unread=1 when selfUnread is true (P2-T06)', function () {
+it('selfUnread が true のとき self_unread=1 を送信する (P2-T06)', function () {
     Chatwork::connection()->rooms()->messages()->create(123, 'Hello', selfUnread: true);
 
     Http::assertSent(fn (Request $r) => (int) $r['self_unread'] === 1);
 });
 
-it('omits self_unread when not specified (P2-T07)', function () {
+it('指定しない場合は self_unread を省略する (P2-T07)', function () {
     Chatwork::connection()->rooms()->messages()->create(123, 'Hello');
 
     Http::assertSent(function (Request $r) {
@@ -80,7 +80,7 @@ it('omits self_unread when not specified (P2-T07)', function () {
     });
 });
 
-it('throws ChatworkValidationException for empty body without sending HTTP (P2-T08)', function () {
+it('空の body では HTTP を送信せず ChatworkValidationException をスローする (P2-T08)', function () {
     try {
         Chatwork::connection()->rooms()->messages()->create(123, '');
     } catch (ChatworkValidationException) {
@@ -89,10 +89,10 @@ it('throws ChatworkValidationException for empty body without sending HTTP (P2-T
         return;
     }
 
-    throw new RuntimeException('Expected ChatworkValidationException');
+    throw new RuntimeException('ChatworkValidationException を期待');
 });
 
-it('throws ChatworkValidationException for body over 65535 chars without sending HTTP (P2-T09)', function () {
+it('65535 文字超の body では HTTP を送信せず ChatworkValidationException をスローする (P2-T09)', function () {
     $body = str_repeat('a', 65536);
 
     try {
@@ -103,5 +103,5 @@ it('throws ChatworkValidationException for body over 65535 chars without sending
         return;
     }
 
-    throw new RuntimeException('Expected ChatworkValidationException');
+    throw new RuntimeException('ChatworkValidationException を期待');
 });

@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 /**
- * Test helpers loaded via `autoload-dev.files` in composer.json.
+ * composer.json の `autoload-dev.files` 経由で読み込まれるテストヘルパー。
  *
- * Defined at file scope so PHPStan can resolve them inside Pest closures (where
- * `$this` is bound dynamically and cannot be typed as our TestCase).
+ * PHPStan が Pest クロージャ内（`$this` が動的にバインドされ TestCase として型付けできない）
+ * で解決できるよう、ファイルスコープで定義している。
  */
 if (! function_exists('fixtureJson')) {
     /**
-     * Reads a fixture JSON file under tests/Fixtures/chatwork/ and returns it as an array.
+     * tests/Fixtures/chatwork/ 配下のフィクスチャ JSON ファイルを読み込み、配列として返す。
      *
      * @return array<int|string, mixed>
      */
@@ -19,7 +19,7 @@ if (! function_exists('fixtureJson')) {
         $path = __DIR__ . '/Fixtures/chatwork/' . ltrim($relativePath, '/');
 
         if (! is_file($path)) {
-            throw new RuntimeException("Fixture not found: {$path}");
+            throw new RuntimeException("フィクスチャが見つかりません: {$path}");
         }
 
         /** @var array<int|string, mixed> $decoded */
@@ -31,11 +31,10 @@ if (! function_exists('fixtureJson')) {
 
 if (! function_exists('tempUploadFile')) {
     /**
-     * Creates a temporary file for upload tests and schedules its removal.
+     * アップロードテスト用の一時ファイルを作成し、シャットダウン時の削除をスケジュールする。
      *
-     * When $truncateTo is given a sparse file of exactly that many bytes is
-     * created without writing real IO (used for the 5 MiB boundary cases);
-     * otherwise $contents is written verbatim.
+     * $truncateTo が指定された場合は実 IO を書き込まずに正確にそのバイト数のスパースファイルを作成する
+     * （5 MiB 境界のテストケースで使用）。指定がない場合は $contents をそのまま書き込む。
      */
     function tempUploadFile(string $contents = 'hello world', ?int $truncateTo = null): string
     {
@@ -59,14 +58,14 @@ if (! function_exists('tempUploadFile')) {
 
 if (! function_exists('fixture')) {
     /**
-     * Reads a fixture file under tests/Fixtures/chatwork/ and returns it as a raw string.
+     * tests/Fixtures/chatwork/ 配下のフィクスチャファイルを読み込み、生の文字列として返す。
      */
     function fixture(string $relativePath): string
     {
         $path = __DIR__ . '/Fixtures/chatwork/' . ltrim($relativePath, '/');
 
         if (! is_file($path)) {
-            throw new RuntimeException("Fixture not found: {$path}");
+            throw new RuntimeException("フィクスチャが見つかりません: {$path}");
         }
 
         return (string) file_get_contents($path);

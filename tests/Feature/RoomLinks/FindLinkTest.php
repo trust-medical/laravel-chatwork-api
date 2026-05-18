@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /rooms/{room_id}/link without query', function () {
+it('クエリなしで GET /rooms/{room_id}/link を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/get-room-link-200.json'),
@@ -31,7 +31,7 @@ it('GETs /rooms/{room_id}/link without query', function () {
         && $r->data() === []);
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続時に x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/get-room-link-200.json'),
@@ -45,7 +45,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns a RoomLinkData DTO in asDto mode', function () {
+it('asDto モードで RoomLinkData DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/get-room-link-200.json'),
@@ -62,7 +62,7 @@ it('returns a RoomLinkData DTO in asDto mode', function () {
         ->and($link->description)->toBe('Join our project room');
 });
 
-it('returns raw array in asArray mode', function () {
+it('asArray モードで生の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/get-room-link-200.json'),
@@ -76,7 +76,7 @@ it('returns raw array in asArray mode', function () {
     expect($result['public'])->toBeTrue();
 });
 
-it('returns a successful Result in asResult mode', function () {
+it('asResult モードで成功した Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/get-room-link-200.json'),
@@ -91,7 +91,7 @@ it('returns a successful Result in asResult mode', function () {
         ->and($result->status())->toBe(200);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/get-room-link-400.json'),
@@ -110,7 +110,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['room_id is invalid']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/get-room-link-429.json'),

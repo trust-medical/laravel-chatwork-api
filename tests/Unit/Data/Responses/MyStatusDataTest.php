@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\MyStatusData;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(MyStatusData::class)->toBeReadonly();
 });
 
-it('hydrates MyStatusData via fromArray', function () {
+it('fromArray で MyStatusData をハイドレートする', function () {
     $status = MyStatusData::fromArray(fixtureJson('my/get-my-status-200.json'));
 
     expect($status->unreadRoomNum)->toBe(2);
@@ -19,7 +19,7 @@ it('hydrates MyStatusData via fromArray', function () {
     expect($status->mytaskNum)->toBe(7);
 });
 
-it('casts numeric strings to int', function () {
+it('数値文字列を int にキャストする', function () {
     $status = MyStatusData::fromArray([
         'unread_room_num' => '5',
         'unread_num' => '50',
@@ -29,7 +29,7 @@ it('casts numeric strings to int', function () {
     expect($status->unreadNum)->toBe(50);
 });
 
-it('falls back to 0 for missing fields without throwing', function () {
+it('フィールドが欠けていても例外を投げずに 0 を返す', function () {
     $status = MyStatusData::fromArray([]);
 
     expect($status->unreadRoomNum)->toBe(0);

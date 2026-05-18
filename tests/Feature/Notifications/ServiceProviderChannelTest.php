@@ -6,7 +6,7 @@ use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkChannel;
 
-it('resolves the chatwork short-name driver to a ChatworkChannel', function () {
+it('chatwork ショートネームドライバーを ChatworkChannel に解決する', function () {
     /** @var ChannelManager $manager */
     $manager = app(ChannelManager::class);
 
@@ -15,7 +15,7 @@ it('resolves the chatwork short-name driver to a ChatworkChannel', function () {
     expect($driver)->toBeInstanceOf(ChatworkChannel::class);
 });
 
-it('resolves the channel through the Notification facade', function () {
+it('Notification ファサード経由でチャンネルを解決する', function () {
     $driver = Notification::channel('chatwork');
 
     expect($driver)->toBeInstanceOf(ChatworkChannel::class);

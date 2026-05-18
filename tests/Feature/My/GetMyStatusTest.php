@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /my/status without query', function () {
+it('クエリなしで GET /my/status を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/my/status' => Http::response(
             fixtureJson('my/get-my-status-200.json'),
@@ -31,7 +31,7 @@ it('GETs /my/status without query', function () {
         && $r->data() === []);
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続で x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/my/status' => Http::response(
             fixtureJson('my/get-my-status-200.json'),
@@ -45,7 +45,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns a MyStatusData DTO in asDto mode', function () {
+it('asDto モードで MyStatusData の DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/my/status' => Http::response(
             fixtureJson('my/get-my-status-200.json'),
@@ -64,7 +64,7 @@ it('returns a MyStatusData DTO in asDto mode', function () {
         ->and($status->mytaskNum)->toBe(7);
 });
 
-it('returns raw array in asArray mode', function () {
+it('asArray モードで生の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/my/status' => Http::response(
             fixtureJson('my/get-my-status-200.json'),
@@ -78,7 +78,7 @@ it('returns raw array in asArray mode', function () {
         ->and($result['unread_num'])->toBe(12);
 });
 
-it('returns a successful Result in asResult mode', function () {
+it('asResult モードで成功の Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/my/status' => Http::response(
             fixtureJson('my/get-my-status-200.json'),
@@ -93,7 +93,7 @@ it('returns a successful Result in asResult mode', function () {
         ->and($result->status())->toBe(200);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() 付きで ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/my/status' => Http::response(
             fixtureJson('my/get-my-status-400.json'),
@@ -112,7 +112,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['Invalid request']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/my/status' => Http::response(
             fixtureJson('my/get-my-status-429.json'),

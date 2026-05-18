@@ -15,7 +15,7 @@ beforeEach(function () {
     ]);
 });
 
-it('DELETEs /rooms/{room_id} with action_type=leave in a form body', function () {
+it('フォームボディに action_type=leave を含めて /rooms/{room_id} を DELETE する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             fixtureJson('rooms/leave-room-204.json'),
@@ -35,7 +35,7 @@ it('DELETEs /rooms/{room_id} with action_type=leave in a form body', function ()
     });
 });
 
-it('returns NoContentData in asDto mode', function () {
+it('asDto モードで NoContentData を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             fixtureJson('rooms/leave-room-204.json'),
@@ -48,7 +48,7 @@ it('returns NoContentData in asDto mode', function () {
     expect($result)->toBeInstanceOf(NoContentData::class);
 });
 
-it('throws ChatworkRequestException on 403', function () {
+it('403 時に ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             ['errors' => ['forbidden']],

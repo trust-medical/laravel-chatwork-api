@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomLinkData;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(RoomLinkData::class)->toBeReadonly();
 });
 
-it('hydrates RoomLinkData via fromArray', function () {
+it('fromArray で RoomLinkData をハイドレートする', function () {
     $data = fixtureJson('links/get-room-link-200.json');
 
     $link = RoomLinkData::fromArray($data);
@@ -19,7 +19,7 @@ it('hydrates RoomLinkData via fromArray', function () {
     expect($link->description)->toBe('Join our project room');
 });
 
-it('casts public and need_acceptance to bool', function () {
+it('public と need_acceptance を bool にキャストする', function () {
     $link = RoomLinkData::fromArray([
         'public' => 1,
         'need_acceptance' => 0,
@@ -29,7 +29,7 @@ it('casts public and need_acceptance to bool', function () {
     expect($link->needAcceptance)->toBeFalse();
 });
 
-it('defaults missing optional fields', function () {
+it('省略されたオプションフィールドをデフォルト値にする', function () {
     $link = RoomLinkData::fromArray(['public' => false]);
 
     expect($link->public)->toBeFalse();

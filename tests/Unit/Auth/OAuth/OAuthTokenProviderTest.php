@@ -36,7 +36,7 @@ function provider(InMemoryTokenRepository $repo, int $leeway = 60): OAuthTokenPr
     );
 }
 
-it('returns BearerTokenCredentials when a fresh token is stored', function () {
+it('有効期限内のトークンが保存済みの場合は BearerTokenCredentials を返す', function () {
     $repo = new InMemoryTokenRepository();
     $repo->save(new TokenSet(
         accessToken: 'fresh-access',
@@ -51,7 +51,7 @@ it('returns BearerTokenCredentials when a fresh token is stored', function () {
     expect($credentials->token)->toBe('fresh-access');
 });
 
-it('refreshes when stored token is past expiresAt', function () {
+it('保存済みトークンが expiresAt を過ぎている場合はリフレッシュする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -71,7 +71,7 @@ it('refreshes when stored token is past expiresAt', function () {
     Http::assertSent(fn ($r) => $r['grant_type'] === 'refresh_token');
 });
 
-it('refreshes when stored token is within the leeway window', function () {
+it('保存済みトークンが leeway ウィンドウ内にある場合もリフレッシュする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -88,7 +88,7 @@ it('refreshes when stored token is within the leeway window', function () {
     Http::assertSent(fn ($r) => $r['grant_type'] === 'refresh_token');
 });
 
-it('persists refreshed TokenSet back to the repository', function () {
+it('リフレッシュ後の TokenSet をリポジトリに永続化する', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -106,7 +106,7 @@ it('persists refreshed TokenSet back to the repository', function () {
     expect($saved?->accessToken)->toBe('sample-access-token');
 });
 
-it('throws ChatworkAuthenticationException when no token is stored', function () {
+it('トークンが未保存の場合は ChatworkAuthenticationException をスローする', function () {
     $repo = new InMemoryTokenRepository();
 
     $caught = null;
@@ -119,7 +119,7 @@ it('throws ChatworkAuthenticationException when no token is stored', function ()
     expect($caught)->toBeInstanceOf(ChatworkAuthenticationException::class);
 });
 
-it('throws ChatworkAuthenticationException when refresh fails', function () {
+it('リフレッシュが失敗した場合は ChatworkAuthenticationException をスローする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-400.json'), 400),
     ]);
@@ -141,7 +141,7 @@ it('throws ChatworkAuthenticationException when refresh fails', function () {
     expect($caught)->toBeInstanceOf(ChatworkAuthenticationException::class);
 });
 
-it('uses Cache::lock to coalesce concurrent refreshes', function () {
+it('Cache::lock で同時リフレッシュを一本化する', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::sequence()
             ->push(fixtureJson('oauth/token-200.json'), 200),

@@ -17,7 +17,7 @@ beforeEach(function () {
     ]);
 });
 
-it('asDto returns CreatedMessage DTO on 201 (P2-T10)', function () {
+it('asDto は 201 で CreatedMessage DTO を返す (P2-T10)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-201.json'),
@@ -31,7 +31,7 @@ it('asDto returns CreatedMessage DTO on 201 (P2-T10)', function () {
         ->and($result->messageId)->toBe('1024');
 });
 
-it('asDto throws ChatworkRequestException with errors() on 400 (P2-T11)', function () {
+it('asDto は 400 で errors() を持つ ChatworkRequestException をスローする (P2-T11)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-400.json'),
@@ -52,7 +52,7 @@ it('asDto throws ChatworkRequestException with errors() on 400 (P2-T11)', functi
         ->and($exception?->errors())->toBe(['body is required']);
 });
 
-it('asDto returns rateLimit array on 429 (P2-T12)', function () {
+it('asDto は 429 で rateLimit 配列を返す (P2-T12)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-429.json'),
@@ -81,7 +81,7 @@ it('asDto returns rateLimit array on 429 (P2-T12)', function () {
         ]);
 });
 
-it('asResponse does not throw on 400 and returns an Illuminate Response (P2-T13)', function () {
+it('asResponse は 400 でもスローせず Illuminate Response を返す (P2-T13)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-400.json'),
@@ -95,7 +95,7 @@ it('asResponse does not throw on 400 and returns an Illuminate Response (P2-T13)
         ->and($response->status())->toBe(400);
 });
 
-it('asResult returns a failed Result on 4xx without throwing (P2-T14)', function () {
+it('asResult は 4xx でスローせず失敗した Result を返す (P2-T14)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-400.json'),
@@ -111,7 +111,7 @@ it('asResult returns a failed Result on 4xx without throwing (P2-T14)', function
         ->and($result->errors())->toBe(['body is required']);
 });
 
-it('asArray returns the decoded JSON array on 201 (P2-T15)', function () {
+it('asArray は 201 でデコードした JSON 配列を返す (P2-T15)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-201.json'),
@@ -124,7 +124,7 @@ it('asArray returns the decoded JSON array on 201 (P2-T15)', function () {
     expect($result)->toBe(['message_id' => '1024']);
 });
 
-it('asPsrResponse returns a PSR-7 ResponseInterface on 201', function () {
+it('asPsrResponse は 201 で PSR-7 ResponseInterface を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-201.json'),

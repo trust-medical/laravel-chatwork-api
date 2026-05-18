@@ -8,7 +8,7 @@ use TrustMedical\LaravelChatworkApi\Connection;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
 use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
 
-it('Connection::make builds a value object with defaults', function () {
+it('Connection::make はデフォルト値を持つ値オブジェクトを生成する', function () {
     $conn = Connection::make('tenant-1', new ApiTokenCredentials('t'));
 
     expect($conn)->toBeInstanceOf(Connection::class)
@@ -18,7 +18,7 @@ it('Connection::make builds a value object with defaults', function () {
         ->and($conn->timeout)->toBe(10);
 });
 
-it('Connection::make accepts custom baseUri and timeout', function () {
+it('Connection::make はカスタムの baseUri と timeout を受け付ける', function () {
     $conn = Connection::make(
         'tenant-2',
         new BearerTokenCredentials('t'),
@@ -30,7 +30,7 @@ it('Connection::make accepts custom baseUri and timeout', function () {
         ->and($conn->timeout)->toBe(30);
 });
 
-it('resolves the default connection from config (P1-T04)', function () {
+it('config からデフォルト接続を解決する (P1-T04)', function () {
     config()->set('chatwork.connections.default', [
         'auth' => 'api_token',
         'token' => 'default-token',
@@ -47,7 +47,7 @@ it('resolves the default connection from config (P1-T04)', function () {
     expect($creds->token)->toBe('default-token');
 });
 
-it('resolves a named bearer connection from config (P1-T05)', function () {
+it('config から名前付き bearer 接続を解決する (P1-T05)', function () {
     config()->set('chatwork.connections.sales', [
         'auth' => 'bearer',
         'token' => 'sales-bearer',
@@ -63,7 +63,7 @@ it('resolves a named bearer connection from config (P1-T05)', function () {
     expect($creds->token)->toBe('sales-bearer');
 });
 
-it('accepts a Connection value object via forConnection (P1-T06)', function () {
+it('forConnection 経由で Connection 値オブジェクトを受け付ける (P1-T06)', function () {
     $custom = Connection::make(
         'dynamic-tenant',
         new BearerTokenCredentials('runtime-bearer'),
@@ -77,11 +77,11 @@ it('accepts a Connection value object via forConnection (P1-T06)', function () {
         ->and($conn->timeout)->toBe(15);
 });
 
-it('throws ChatworkAuthenticationException for an unknown connection', function () {
+it('存在しない接続名に対して ChatworkAuthenticationException をスローする', function () {
     Chatwork::connection('does-not-exist');
 })->throws(ChatworkAuthenticationException::class);
 
-it('throws when the auth driver is unrecognised', function () {
+it('認識できない auth ドライバーに対して例外をスローする', function () {
     config()->set('chatwork.connections.broken', [
         'auth' => 'magic',
         'token' => 't',

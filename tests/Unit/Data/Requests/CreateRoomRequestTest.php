@@ -6,7 +6,7 @@ use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomRequest;
 use TrustMedical\LaravelChatworkApi\Enums\IconPreset;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
-it('rejects an empty name', function () {
+it('空の name を拒否する', function () {
     $caught = null;
     try {
         new CreateRoomRequest(name: '', membersAdminIds: [1]);
@@ -17,7 +17,7 @@ it('rejects an empty name', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects a name longer than 255 characters', function () {
+it('255 文字を超える name を拒否する', function () {
     $caught = null;
     try {
         new CreateRoomRequest(name: str_repeat('a', 256), membersAdminIds: [1]);
@@ -28,7 +28,7 @@ it('rejects a name longer than 255 characters', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects zero or negative account ids in membersAdminIds', function () {
+it('membersAdminIds に 0 以下のアカウント ID が含まれる場合に拒否する', function () {
     $caught = null;
     try {
         new CreateRoomRequest(name: 'Team', membersAdminIds: [1, 0, 3]);
@@ -39,7 +39,7 @@ it('rejects zero or negative account ids in membersAdminIds', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects empty membersAdminIds', function () {
+it('空の membersAdminIds を拒否する', function () {
     $caught = null;
     try {
         new CreateRoomRequest(name: 'Team', membersAdminIds: []);
@@ -50,13 +50,13 @@ it('rejects empty membersAdminIds', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('serializes membersAdminIds as a CSV string', function () {
+it('membersAdminIds を CSV 文字列にシリアライズする', function () {
     $request = new CreateRoomRequest(name: 'Team', membersAdminIds: [1, 2, 3]);
 
     expect($request->toArray()['members_admin_ids'])->toBe('1,2,3');
 });
 
-it('serializes IconPreset enum to its string value', function () {
+it('IconPreset enum をその文字列値にシリアライズする', function () {
     $request = new CreateRoomRequest(
         name: 'Team',
         membersAdminIds: [1],
@@ -66,7 +66,7 @@ it('serializes IconPreset enum to its string value', function () {
     expect($request->toArray()['icon_preset'])->toBe('business');
 });
 
-it('converts link and link_need_acceptance bool to 0/1', function () {
+it('link と link_need_acceptance の bool 値を 0/1 に変換する', function () {
     $request = new CreateRoomRequest(
         name: 'Team',
         membersAdminIds: [1],
@@ -80,7 +80,7 @@ it('converts link and link_need_acceptance bool to 0/1', function () {
     expect($payload['link_need_acceptance'])->toBe(0);
 });
 
-it('omits optional fields when null', function () {
+it('null のオプションフィールドを省略する', function () {
     $request = new CreateRoomRequest(name: 'Team', membersAdminIds: [1]);
 
     $payload = $request->toArray();
@@ -93,7 +93,7 @@ it('omits optional fields when null', function () {
     expect($payload)->not->toHaveKey('members_readonly_ids');
 });
 
-it('serializes members_member_ids and members_readonly_ids as CSV', function () {
+it('members_member_ids と members_readonly_ids を CSV にシリアライズする', function () {
     $request = new CreateRoomRequest(
         name: 'Team',
         membersAdminIds: [1, 2],

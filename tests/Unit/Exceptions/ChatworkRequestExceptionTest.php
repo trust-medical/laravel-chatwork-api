@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Http;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
-it('exposes status, method, path, operationId', function () {
+it('status・method・path・operationId を公開する', function () {
     $exception = new ChatworkRequestException(
         status: 400,
         method: 'POST',
@@ -20,7 +20,7 @@ it('exposes status, method, path, operationId', function () {
         ->and($exception->operationId())->toBe('createRoomMessage');
 });
 
-it('parses Chatwork errors[] from body', function () {
+it('ボディから Chatwork の errors[] をパースする', function () {
     $exception = new ChatworkRequestException(
         status: 400,
         method: 'POST',
@@ -34,7 +34,7 @@ it('parses Chatwork errors[] from body', function () {
         ->and($exception->errorDescription())->toBeNull();
 });
 
-it('parses OAuth error / error_description from body', function () {
+it('ボディから OAuth の error / error_description をパースする', function () {
     $exception = new ChatworkRequestException(
         status: 400,
         method: 'POST',
@@ -48,7 +48,7 @@ it('parses OAuth error / error_description from body', function () {
         ->and($exception->errors())->toBe([]);
 });
 
-it('exposes rateLimit array when provided', function () {
+it('rateLimit が指定された場合に rateLimit 配列を公開する', function () {
     $exception = new ChatworkRequestException(
         status: 429,
         method: 'POST',
@@ -65,7 +65,7 @@ it('exposes rateLimit array when provided', function () {
     ]);
 });
 
-it('returns null rateLimit when not provided', function () {
+it('rateLimit が指定されていない場合に null を返す', function () {
     $exception = new ChatworkRequestException(
         status: 400,
         method: 'POST',
@@ -77,7 +77,7 @@ it('returns null rateLimit when not provided', function () {
     expect($exception->rateLimit())->toBeNull();
 });
 
-it('redacts access_token / refresh_token / client_secret from body', function () {
+it('ボディから access_token / refresh_token / client_secret をマスクする', function () {
     $exception = new ChatworkRequestException(
         status: 200,
         method: 'POST',
@@ -99,7 +99,7 @@ it('redacts access_token / refresh_token / client_secret from body', function ()
     expect(str_contains($body, 'cs-secret'))->toBeFalse();
 });
 
-it('builds from an Illuminate Response and extracts rate-limit headers', function () {
+it('fromResponse() で Illuminate Response からインスタンスを構築しレートリミットヘッダーを取り出す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             ['errors' => ['rate limit exceeded']],

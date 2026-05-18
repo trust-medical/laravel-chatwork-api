@@ -18,7 +18,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /rooms/{room_id}/files without query when no accountId given', function () {
+it('accountId 未指定時はクエリなしで GET /rooms/{room_id}/files を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-200.json'),
@@ -33,7 +33,7 @@ it('GETs /rooms/{room_id}/files without query when no accountId given', function
         && $r->data() === []);
 });
 
-it('serializes accountId as a query parameter', function () {
+it('accountId をクエリパラメータとしてシリアライズする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files*' => Http::response(
             fixtureJson('files/list-room-files-200.json'),
@@ -46,7 +46,7 @@ it('serializes accountId as a query parameter', function () {
     Http::assertSent(fn (Request $r) => $r['account_id'] === 456);
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続時に x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-200.json'),
@@ -60,7 +60,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns array of RoomFileData in asDto mode', function () {
+it('asDto モードで RoomFileData の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-200.json'),
@@ -78,7 +78,7 @@ it('returns array of RoomFileData in asDto mode', function () {
     expect($result[0]->downloadUrl)->toBeNull();
 });
 
-it('returns Collection of RoomFileData in asCollection mode', function () {
+it('asCollection モードで RoomFileData の Collection を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-200.json'),
@@ -87,13 +87,13 @@ it('returns Collection of RoomFileData in asCollection mode', function () {
     ]);
 
     $result = Chatwork::asCollection()->rooms()->files()->list(123);
-
+    /** @var Collection<int, RoomFileData> $result */
     expect($result)->toBeInstanceOf(Collection::class);
     expect($result)->toHaveCount(2);
     expect($result->first())->toBeInstanceOf(RoomFileData::class);
 });
 
-it('returns raw array in asArray mode', function () {
+it('asArray モードで生の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-200.json'),
@@ -102,12 +102,12 @@ it('returns raw array in asArray mode', function () {
     ]);
 
     $result = Chatwork::asArray()->rooms()->files()->list(123);
-
+    /** @var array<int, array<string, mixed>> $result */
     expect($result)->toBeArray();
     expect($result[0]['file_id'])->toBe(101);
 });
 
-it('returns an empty array in asDto mode on 204 No Content', function () {
+it('204 No Content 時に asDto モードで空配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response('', 204),
     ]);
@@ -117,18 +117,18 @@ it('returns an empty array in asDto mode on 204 No Content', function () {
     expect($result)->toBe([]);
 });
 
-it('returns an empty Collection in asCollection mode on 204 No Content', function () {
+it('204 No Content 時に asCollection モードで空の Collection を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response('', 204),
     ]);
 
     $result = Chatwork::asCollection()->rooms()->files()->list(123);
-
+    /** @var Collection<int, RoomFileData> $result */
     expect($result)->toBeInstanceOf(Collection::class)
         ->and($result->isEmpty())->toBeTrue();
 });
 
-it('returns a successful Result in asResult mode', function () {
+it('asResult モードで成功した Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-200.json'),
@@ -137,13 +137,13 @@ it('returns a successful Result in asResult mode', function () {
     ]);
 
     $result = Chatwork::asResult()->rooms()->files()->list(123);
-
+    /** @var Result $result */
     expect($result)->toBeInstanceOf(Result::class)
         ->and($result->failed())->toBeFalse()
         ->and($result->status())->toBe(200);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-400.json'),
@@ -162,7 +162,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['room_id is invalid']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/list-room-files-429.json'),

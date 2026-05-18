@@ -15,7 +15,7 @@ beforeEach(function () {
     ]);
 });
 
-it('DELETEs /rooms/{room_id}/link without a request body', function () {
+it('リクエストボディなしで DELETE /rooms/{room_id}/link を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/delete-room-link-200.json'),
@@ -30,7 +30,7 @@ it('DELETEs /rooms/{room_id}/link without a request body', function () {
         && $r->body() === '');
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続時に x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/delete-room-link-200.json'),
@@ -44,7 +44,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns the resulting RoomLinkData DTO in asDto mode', function () {
+it('asDto モードで削除結果の RoomLinkData DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/delete-room-link-200.json'),
@@ -58,7 +58,7 @@ it('returns the resulting RoomLinkData DTO in asDto mode', function () {
         ->and($link->public)->toBeFalse();
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/delete-room-link-400.json'),
@@ -77,7 +77,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['room_id is invalid']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/link' => Http::response(
             fixtureJson('links/delete-room-link-429.json'),

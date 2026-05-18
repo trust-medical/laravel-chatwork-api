@@ -31,7 +31,7 @@ function withChatworkUserHavingRoom(int|string $roomId): object
     };
 }
 
-it('throws ChatworkRoutingException when toRoom() conflicts with routeNotificationForChatwork()', function () {
+it('toRoom() と routeNotificationForChatwork() が競合する場合は ChatworkRoutingException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);
@@ -51,7 +51,7 @@ it('throws ChatworkRoutingException when toRoom() conflicts with routeNotificati
     Http::assertNothingSent();
 });
 
-it('sends all rooms when routeNotificationForChatwork returns an array of int', function () {
+it('routeNotificationForChatwork が int の配列を返す場合、すべてのルームに送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);
@@ -74,7 +74,7 @@ it('sends all rooms when routeNotificationForChatwork returns an array of int', 
     Http::assertSentCount(2);
 });
 
-it('sends to each ChatworkRoute when an array of routes is returned', function () {
+it('ChatworkRoute の配列が返された場合、各 ChatworkRoute に送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);
@@ -100,7 +100,7 @@ it('sends to each ChatworkRoute when an array of routes is returned', function (
     Http::assertSentCount(2);
 });
 
-it('throws ChatworkRoutingException for unsupported route types', function () {
+it('サポートされていないルート型に対して ChatworkRoutingException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);
@@ -115,7 +115,7 @@ it('throws ChatworkRoutingException for unsupported route types', function () {
     expect($caught)->toBeInstanceOf(ChatworkRoutingException::class);
 });
 
-it('prefers toRoom() when no notifiable route is provided', function () {
+it('notifiable のルートが未指定の場合は toRoom() を優先する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);

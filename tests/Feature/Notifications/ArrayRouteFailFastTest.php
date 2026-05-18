@@ -40,7 +40,7 @@ function userWithRoomArray(array $rooms): object
     };
 }
 
-it('sends to all rooms in order when all succeed', function () {
+it('すべて成功した場合、すべてのルームに順番どおりに送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/*/messages' => Http::response(['message_id' => '1'], 201),
     ]);
@@ -57,7 +57,7 @@ it('sends to all rooms in order when all succeed', function () {
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/33/messages');
 });
 
-it('stops at the first failure (4xx) and does not send to later rooms', function () {
+it('最初の失敗 (4xx) で停止し、以降のルームには送信しない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/11/messages' => Http::response(['message_id' => '1'], 201),
         'https://api.chatwork.com/v2/rooms/22/messages' => Http::response(['errors' => ['nope']], 400),
@@ -83,7 +83,7 @@ it('stops at the first failure (4xx) and does not send to later rooms', function
     Http::assertNotSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms/33/messages');
 });
 
-it('also stops at the first 5xx failure and does not send to later rooms', function () {
+it('5xx の最初の失敗でも停止し、以降のルームには送信しない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/11/messages' => Http::response(['message_id' => '1'], 201),
         'https://api.chatwork.com/v2/rooms/22/messages' => Http::response('', 503),

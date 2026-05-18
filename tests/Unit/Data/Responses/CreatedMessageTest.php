@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedMessage;
 
-it('maps message_id from array', function () {
+it('配列から message_id をマッピングする', function () {
     $dto = CreatedMessage::fromArray(['message_id' => '1024']);
 
     expect($dto->messageId)->toBe('1024');
 });
 
-it('coerces numeric message_id to string', function () {
+it('数値の message_id を string に変換する', function () {
     $dto = CreatedMessage::fromArray(['message_id' => 1024]);
 
     expect($dto->messageId)->toBe('1024');
 });
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(CreatedMessage::class)->toBeReadonly();
 });

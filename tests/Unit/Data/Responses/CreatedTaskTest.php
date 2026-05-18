@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedTask;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(CreatedTask::class)->toBeReadonly();
 });
 
-it('hydrates task ids via fromArray', function () {
+it('fromArray でタスク ID 一覧をハイドレートする', function () {
     $data = fixtureJson('tasks/create-room-task-200.json');
 
     $created = CreatedTask::fromArray($data);
@@ -16,13 +16,13 @@ it('hydrates task ids via fromArray', function () {
     expect($created->taskIds)->toBe([123, 124]);
 });
 
-it('casts numeric ids to int and reindexes', function () {
+it('数値 ID を int にキャストし再インデックスする', function () {
     $created = CreatedTask::fromArray(['task_ids' => ['7', '8']]);
 
     expect($created->taskIds)->toBe([7, 8]);
 });
 
-it('defaults to an empty array when task_ids is missing', function () {
+it('task_ids が欠けている場合は空配列をデフォルトにする', function () {
     $created = CreatedTask::fromArray([]);
 
     expect($created->taskIds)->toBe([]);

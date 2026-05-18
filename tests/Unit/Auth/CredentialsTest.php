@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 use TrustMedical\LaravelChatworkApi\Auth\ApiTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Auth\BearerTokenCredentials;
 
-it('ApiTokenCredentials adds x-chatworktoken header', function () {
+it('ApiTokenCredentials は x-chatworktoken ヘッダーを付与する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);
@@ -20,7 +20,7 @@ it('ApiTokenCredentials adds x-chatworktoken header', function () {
     Http::assertSent(fn (Request $r) => $r->hasHeader('x-chatworktoken', 'my-token'));
 });
 
-it('ApiTokenCredentials does not add Authorization header', function () {
+it('ApiTokenCredentials は Authorization ヘッダーを付与しない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);
@@ -32,7 +32,7 @@ it('ApiTokenCredentials does not add Authorization header', function () {
     Http::assertSent(fn (Request $r) => ! $r->hasHeader('Authorization'));
 });
 
-it('BearerTokenCredentials adds Authorization Bearer header', function () {
+it('BearerTokenCredentials は Authorization Bearer ヘッダーを付与する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);
@@ -44,7 +44,7 @@ it('BearerTokenCredentials adds Authorization Bearer header', function () {
     Http::assertSent(fn (Request $r) => $r->hasHeader('Authorization', 'Bearer oauth-token'));
 });
 
-it('BearerTokenCredentials does not add x-chatworktoken header', function () {
+it('BearerTokenCredentials は x-chatworktoken ヘッダーを付与しない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);

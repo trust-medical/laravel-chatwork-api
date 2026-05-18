@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('DELETEs /incoming_requests/{request_id} without a body', function () {
+it('ボディなしで DELETE /incoming_requests/{request_id} を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response('', 204),
     ]);
@@ -33,7 +33,7 @@ it('DELETEs /incoming_requests/{request_id} without a body', function () {
     });
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続で x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response('', 204),
     ]);
@@ -44,7 +44,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns NoContentData in asDto mode', function () {
+it('asDto モードで NoContentData を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response('', 204),
     ]);
@@ -54,7 +54,7 @@ it('returns NoContentData in asDto mode', function () {
     expect($result)->toBeInstanceOf(NoContentData::class);
 });
 
-it('returns a successful Result with status 204 in asResult mode', function () {
+it('asResult モードでステータス 204 の成功 Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response('', 204),
     ]);
@@ -66,7 +66,7 @@ it('returns a successful Result with status 204 in asResult mode', function () {
         ->and($result->status())->toBe(204);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() 付きで ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/decline-incoming-request-400.json'),
@@ -85,7 +85,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['Invalid request']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/decline-incoming-request-429.json'),

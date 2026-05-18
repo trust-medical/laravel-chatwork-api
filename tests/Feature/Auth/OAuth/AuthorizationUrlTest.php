@@ -14,7 +14,7 @@ beforeEach(function () {
     Config::set('chatwork.oauth.authorization_url', 'https://www.chatwork.com/packages/oauth2/login.php');
 });
 
-it('builds authorization URL with required query parameters', function () {
+it('必須クエリパラメータを含む認可URLを組み立てる', function () {
     $client = new OAuthClient(
         new CacheStateStore(Cache::store()),
         config('chatwork.oauth'),
@@ -33,7 +33,7 @@ it('builds authorization URL with required query parameters', function () {
     expect($query['response_type'])->toBe('code');
 });
 
-it('includes scope when scopes are provided', function () {
+it('スコープが指定された場合はscopeを含む', function () {
     $client = new OAuthClient(
         new CacheStateStore(Cache::store()),
         config('chatwork.oauth'),
@@ -48,7 +48,7 @@ it('includes scope when scopes are provided', function () {
     expect($query['scope'])->toBe('rooms.all:read_write users.profile.me:read');
 });
 
-it('persists state into StateStore with the expected payload', function () {
+it('期待するペイロードとともにstateをStateStoreへ保存する', function () {
     $store = new CacheStateStore(Cache::store());
     $client = new OAuthClient($store, config('chatwork.oauth'));
 
@@ -63,7 +63,7 @@ it('persists state into StateStore with the expected payload', function () {
     expect($payload['context'])->toBe(['return_to' => 'dashboard']);
 });
 
-it('generates a cryptographically random state of 48 hex characters', function () {
+it('48文字の16進数で暗号学的にランダムなstateを生成する', function () {
     $client = new OAuthClient(
         new CacheStateStore(Cache::store()),
         config('chatwork.oauth'),

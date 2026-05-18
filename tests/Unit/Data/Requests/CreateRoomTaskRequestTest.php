@@ -6,7 +6,7 @@ use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomTaskRequest;
 use TrustMedical\LaravelChatworkApi\Enums\LimitType;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
-it('rejects an empty body', function () {
+it('空の body を拒否する', function () {
     $caught = null;
     try {
         new CreateRoomTaskRequest(body: '', toIds: [1]);
@@ -17,7 +17,7 @@ it('rejects an empty body', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects a body longer than 65535 characters', function () {
+it('65535 文字を超える body を拒否する', function () {
     $caught = null;
     try {
         new CreateRoomTaskRequest(body: str_repeat('a', 65536), toIds: [1]);
@@ -28,7 +28,7 @@ it('rejects a body longer than 65535 characters', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects empty toIds', function () {
+it('空の toIds を拒否する', function () {
     $caught = null;
     try {
         new CreateRoomTaskRequest(body: 'Buy milk', toIds: []);
@@ -39,7 +39,7 @@ it('rejects empty toIds', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects zero or negative account ids in toIds', function () {
+it('toIds に 0 以下のアカウント ID が含まれる場合に拒否する', function () {
     $caught = null;
     try {
         new CreateRoomTaskRequest(body: 'Buy milk', toIds: [1, 0, 3]);
@@ -50,7 +50,7 @@ it('rejects zero or negative account ids in toIds', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects a non-positive limit timestamp', function () {
+it('0 以下の limit タイムスタンプを拒否する', function () {
     $caught = null;
     try {
         new CreateRoomTaskRequest(body: 'Buy milk', toIds: [1], limit: 0);
@@ -61,7 +61,7 @@ it('rejects a non-positive limit timestamp', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects a negative limit timestamp', function () {
+it('負の limit タイムスタンプを拒否する', function () {
     $caught = null;
     try {
         new CreateRoomTaskRequest(body: 'Buy milk', toIds: [1], limit: -1);
@@ -72,7 +72,7 @@ it('rejects a negative limit timestamp', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('serializes body and toIds as CSV', function () {
+it('body と toIds を CSV にシリアライズする', function () {
     $request = new CreateRoomTaskRequest(body: 'Buy milk', toIds: [1, 2, 3]);
 
     $payload = $request->toArray();
@@ -81,7 +81,7 @@ it('serializes body and toIds as CSV', function () {
     expect($payload['to_ids'])->toBe('1,2,3');
 });
 
-it('omits optional fields when null', function () {
+it('null のオプションフィールドを省略する', function () {
     $request = new CreateRoomTaskRequest(body: 'Buy milk', toIds: [1]);
 
     $payload = $request->toArray();
@@ -91,7 +91,7 @@ it('omits optional fields when null', function () {
     expect($payload)->not->toHaveKey('limit_type');
 });
 
-it('serializes limit and limit_type when provided', function () {
+it('指定された場合に limit と limit_type をシリアライズする', function () {
     $request = new CreateRoomTaskRequest(
         body: 'Buy milk',
         toIds: [1],

@@ -18,7 +18,7 @@ beforeEach(function () {
     ]);
 });
 
-it('POSTs /rooms/{room_id}/tasks with form-encoded body', function () {
+it('フォームエンコードボディで POST /rooms/{room_id}/tasks を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks' => Http::response(
             fixtureJson('tasks/create-room-task-200.json'),
@@ -42,7 +42,7 @@ it('POSTs /rooms/{room_id}/tasks with form-encoded body', function () {
     });
 });
 
-it('omits optional fields when not provided', function () {
+it('省略可能なフィールドが指定されない場合は送信しない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks' => Http::response(
             fixtureJson('tasks/create-room-task-200.json'),
@@ -59,7 +59,7 @@ it('omits optional fields when not provided', function () {
         && ! isset($r->data()['limit_type']));
 });
 
-it('serializes limit and limit_type when provided', function () {
+it('limit と limit_type が指定された場合にシリアライズする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks' => Http::response(
             fixtureJson('tasks/create-room-task-200.json'),
@@ -78,7 +78,7 @@ it('serializes limit and limit_type when provided', function () {
         && $r['limit_type'] === 'time');
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続で x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks' => Http::response(
             fixtureJson('tasks/create-room-task-200.json'),
@@ -95,7 +95,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns CreatedTask DTO in asDto mode', function () {
+it('asDto モードで CreatedTask DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks' => Http::response(
             fixtureJson('tasks/create-room-task-200.json'),
@@ -112,7 +112,7 @@ it('returns CreatedTask DTO in asDto mode', function () {
         ->and($result->taskIds)->toBe([123, 124]);
 });
 
-it('throws ChatworkValidationException for empty body without sending HTTP', function () {
+it('body が空の場合は HTTP を送信せず ChatworkValidationException をスローする', function () {
     Http::fake();
 
     $caught = null;
@@ -129,7 +129,7 @@ it('throws ChatworkValidationException for empty body without sending HTTP', fun
     Http::assertNothingSent();
 });
 
-it('throws ChatworkValidationException for empty toIds', function () {
+it('toIds が空の場合に ChatworkValidationException をスローする', function () {
     $caught = null;
     try {
         new CreateRoomTaskRequest(body: 'Buy milk', toIds: []);
@@ -140,7 +140,7 @@ it('throws ChatworkValidationException for empty toIds', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks' => Http::response(
             fixtureJson('tasks/create-room-task-400.json'),
@@ -162,7 +162,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['body is required']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks' => Http::response(
             fixtureJson('tasks/create-room-task-429.json'),

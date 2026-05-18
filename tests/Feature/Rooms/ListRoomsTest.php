@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /rooms', function () {
+it('/rooms を GET する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response(
             fixtureJson('rooms/list-rooms-200.json'),
@@ -30,7 +30,7 @@ it('GETs /rooms', function () {
         && $r->url() === 'https://api.chatwork.com/v2/rooms');
 });
 
-it('returns array of RoomData in asDto mode', function () {
+it('asDto モードで RoomData の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response(
             fixtureJson('rooms/list-rooms-200.json'),
@@ -47,7 +47,7 @@ it('returns array of RoomData in asDto mode', function () {
     expect($result[1]->roomId)->toBe(456);
 });
 
-it('returns Collection of RoomData in asCollection mode', function () {
+it('asCollection モードで RoomData の Collection を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response(
             fixtureJson('rooms/list-rooms-200.json'),
@@ -56,13 +56,13 @@ it('returns Collection of RoomData in asCollection mode', function () {
     ]);
 
     $result = Chatwork::asCollection()->rooms()->list();
-
+    /** @var Collection<int, RoomData> $result */
     expect($result)->toBeInstanceOf(Collection::class);
     expect($result)->toHaveCount(2);
     expect($result->first())->toBeInstanceOf(RoomData::class);
 });
 
-it('returns raw array in asArray mode', function () {
+it('asArray モードで生の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response(
             fixtureJson('rooms/list-rooms-200.json'),
@@ -71,12 +71,12 @@ it('returns raw array in asArray mode', function () {
     ]);
 
     $result = Chatwork::asArray()->rooms()->list();
-
+    /** @var array<int, array<string, mixed>> $result */
     expect($result)->toBeArray();
     expect($result[0]['room_id'])->toBe(123);
 });
 
-it('throws ChatworkRequestException on 401', function () {
+it('401 時に ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response(
             ['errors' => ['unauthorized']],

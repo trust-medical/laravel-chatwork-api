@@ -9,9 +9,10 @@ uses(TestCase::class)->in('Feature', 'Unit');
 
 expect()->extend('toBeReadonly', function () {
     /** @var Expectation $this */
-    $reflection = new ReflectionClass($this->value);
+    $value = $this->value;
+    $reflection = new ReflectionClass(is_object($value) ? $value : (string) $value);
 
     return expect($reflection->isReadOnly())->toBeTrue(
-        "Expected {$reflection->getName()} to be a readonly class."
+        "{$reflection->getName()} は readonly クラスであるべきです。"
     );
 });

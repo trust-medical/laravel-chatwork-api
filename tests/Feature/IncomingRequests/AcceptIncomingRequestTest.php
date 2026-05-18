@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('PUTs /incoming_requests/{request_id} with no body', function () {
+it('ボディなしで PUT /incoming_requests/{request_id} を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/accept-incoming-request-200.json'),
@@ -31,7 +31,7 @@ it('PUTs /incoming_requests/{request_id} with no body', function () {
         && $r->data() === []);
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続で x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/accept-incoming-request-200.json'),
@@ -45,7 +45,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns a ContactData DTO in asDto mode', function () {
+it('asDto モードで ContactData の DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/accept-incoming-request-200.json'),
@@ -66,7 +66,7 @@ it('returns a ContactData DTO in asDto mode', function () {
         ->and($contact->avatarImageUrl)->toBe('https://example.com/avatar/363.png');
 });
 
-it('returns raw array in asArray mode', function () {
+it('asArray モードで生の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/accept-incoming-request-200.json'),
@@ -80,7 +80,7 @@ it('returns raw array in asArray mode', function () {
         ->and($result['account_id'])->toBe(363);
 });
 
-it('returns a successful Result in asResult mode', function () {
+it('asResult モードで成功の Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/accept-incoming-request-200.json'),
@@ -95,7 +95,7 @@ it('returns a successful Result in asResult mode', function () {
         ->and($result->status())->toBe(200);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() 付きで ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/accept-incoming-request-400.json'),
@@ -114,7 +114,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['Invalid request']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/incoming_requests/123' => Http::response(
             fixtureJson('incoming-requests/accept-incoming-request-429.json'),

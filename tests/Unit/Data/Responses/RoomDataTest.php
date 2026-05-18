@@ -6,13 +6,13 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedRoom;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedRoom;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(RoomData::class)->toBeReadonly();
     expect(CreatedRoom::class)->toBeReadonly();
     expect(UpdatedRoom::class)->toBeReadonly();
 });
 
-it('hydrates all fields including description from getRoom fixture', function () {
+it('getRoom フィクスチャから description を含む全フィールドをハイドレートする', function () {
     $room = RoomData::fromArray(fixtureJson('rooms/get-room-200.json'));
 
     expect($room->roomId)->toBe(123);
@@ -31,7 +31,7 @@ it('hydrates all fields including description from getRoom fixture', function ()
     expect($room->description)->toBe('Group description text');
 });
 
-it('treats description as null when omitted from list payload', function () {
+it('一覧ペイロードで description が省略された場合に null として扱う', function () {
     $rooms = fixtureJson('rooms/list-rooms-200.json');
 
     $first = RoomData::fromArray($rooms[0]);
@@ -39,7 +39,7 @@ it('treats description as null when omitted from list payload', function () {
     expect($first->description)->toBeNull();
 });
 
-it('hydrates CreatedRoom and UpdatedRoom with room_id only', function () {
+it('CreatedRoom と UpdatedRoom を room_id のみでハイドレートする', function () {
     $created = CreatedRoom::fromArray(fixtureJson('rooms/create-room-200.json'));
     $updated = UpdatedRoom::fromArray(fixtureJson('rooms/update-room-200.json'));
 

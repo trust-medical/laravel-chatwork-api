@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('PUTs /rooms/{room_id}/messages/unread with message_id in form body', function () {
+it('message_id をフォームボディに含めて /rooms/{room_id}/messages/unread を PUT する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/unread' => Http::response(
             fixtureJson('messages/mark-unread-200.json'),
@@ -36,7 +36,7 @@ it('PUTs /rooms/{room_id}/messages/unread with message_id in form body', functio
     });
 });
 
-it('throws ChatworkValidationException without HTTP call when message_id is empty', function () {
+it('message_id が空のとき HTTP を呼ばず ChatworkValidationException をスローする', function () {
     Http::fake();
 
     $caught = null;
@@ -50,7 +50,7 @@ it('throws ChatworkValidationException without HTTP call when message_id is empt
     Http::assertNothingSent();
 });
 
-it('returns MarkUnreadResult DTO in asDto mode', function () {
+it('asDto モードで MarkUnreadResult DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/unread' => Http::response(
             fixtureJson('messages/mark-unread-200.json'),
@@ -65,7 +65,7 @@ it('returns MarkUnreadResult DTO in asDto mode', function () {
     expect($result->mentionNum)->toBe(1);
 });
 
-it('throws ChatworkRequestException on 404', function () {
+it('404 で ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/unread' => Http::response(
             ['errors' => ['not found']],

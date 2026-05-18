@@ -17,7 +17,7 @@ beforeEach(function () {
     ]);
 });
 
-it('PUTs /rooms/{room_id} with form-encoded body', function () {
+it('フォームエンコードボディで /rooms/{room_id} を PUT する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             fixtureJson('rooms/update-room-200.json'),
@@ -41,7 +41,7 @@ it('PUTs /rooms/{room_id} with form-encoded body', function () {
     });
 });
 
-it('returns UpdatedRoom DTO in asDto mode', function () {
+it('asDto モードで UpdatedRoom DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             fixtureJson('rooms/update-room-200.json'),
@@ -55,7 +55,7 @@ it('returns UpdatedRoom DTO in asDto mode', function () {
     expect($result->roomId)->toBe(123);
 });
 
-it('throws ChatworkRequestException on 400', function () {
+it('400 時に ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123' => Http::response(
             ['errors' => ['invalid']],

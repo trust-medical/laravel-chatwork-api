@@ -6,7 +6,7 @@ use TrustMedical\LaravelChatworkApi\Auth\ApiTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Connection;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkRoute;
 
-it('exposes roomId via room()', function () {
+it('room() で roomId を公開する', function () {
     $route = ChatworkRoute::room(123);
 
     expect($route->roomId())->toBe(123)
@@ -14,20 +14,20 @@ it('exposes roomId via room()', function () {
         ->and($route->getConnection())->toBeNull();
 });
 
-it('accepts a string roomId', function () {
+it('文字列の roomId を受け入れる', function () {
     $route = ChatworkRoute::room('456');
 
     expect($route->roomId())->toBe('456');
 });
 
-it('attaches a named connection via connection()', function () {
+it('connection() で名前付きコネクションを紐付ける', function () {
     $route = ChatworkRoute::room(123)->connection('sales');
 
     expect($route->connectionName())->toBe('sales')
         ->and($route->getConnection())->toBeNull();
 });
 
-it('attaches a Connection value object via using()', function () {
+it('using() で Connection 値オブジェクトを紐付ける', function () {
     $connection = Connection::make('tenant-1', new ApiTokenCredentials('t'));
     $route = ChatworkRoute::room(123)->using($connection);
 
@@ -35,7 +35,7 @@ it('attaches a Connection value object via using()', function () {
         ->and($route->connectionName())->toBeNull();
 });
 
-it('uses last-wins semantics across connection() and using()', function () {
+it('connection() と using() で後勝ちセマンティクスを使用する', function () {
     $connection = Connection::make('tenant-2', new ApiTokenCredentials('t'));
 
     $afterConnection = ChatworkRoute::room(123)->connection('sales')->using($connection);
@@ -47,7 +47,7 @@ it('uses last-wins semantics across connection() and using()', function () {
         ->and($afterUsing->getConnection())->toBeNull();
 });
 
-it('is immutable across modifier calls', function () {
+it('修飾メソッドの呼び出しをまたいでイミュータブルである', function () {
     $original = ChatworkRoute::room(123);
     $modified = $original->connection('sales');
 

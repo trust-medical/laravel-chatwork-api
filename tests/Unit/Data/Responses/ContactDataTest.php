@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\ContactData;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(ContactData::class)->toBeReadonly();
 });
 
-it('hydrates ContactData via fromArray', function () {
+it('fromArray で ContactData をハイドレートする', function () {
     $data = fixtureJson('contacts/list-contacts-200.json');
 
     $contact = ContactData::fromArray($data[0]);
@@ -23,7 +23,7 @@ it('hydrates ContactData via fromArray', function () {
     expect($contact->avatarImageUrl)->toBe('https://example.com/avatar/123.png');
 });
 
-it('casts numeric id strings to int', function () {
+it('数値文字列の id を int にキャストする', function () {
     $contact = ContactData::fromArray([
         'account_id' => '42',
         'room_id' => '99',
@@ -35,7 +35,7 @@ it('casts numeric id strings to int', function () {
     expect($contact->organizationId)->toBe(7);
 });
 
-it('falls back to defaults for missing fields without throwing', function () {
+it('フィールドが欠けていても例外を投げずにデフォルト値を返す', function () {
     $contact = ContactData::fromArray([]);
 
     expect($contact->accountId)->toBe(0);

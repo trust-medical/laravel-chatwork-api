@@ -24,7 +24,7 @@ function refreshClient(): OAuthClient
     return new OAuthClient(new CacheStateStore(Cache::store()), config('chatwork.oauth'));
 }
 
-it('POSTs to /token with refresh_token grant', function () {
+it('refresh_token grantで/tokenへPOSTする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -41,7 +41,7 @@ it('POSTs to /token with refresh_token grant', function () {
     });
 });
 
-it('returns a TokenSet on success', function () {
+it('成功時にTokenSetを返す', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -52,7 +52,7 @@ it('returns a TokenSet on success', function () {
     expect($tokenSet->accessToken)->toBe('sample-access-token');
 });
 
-it('throws ChatworkAuthenticationException on invalid_grant', function () {
+it('invalid_grantのときChatworkAuthenticationExceptionをスローする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-400.json'), 400),
     ]);
@@ -68,7 +68,7 @@ it('throws ChatworkAuthenticationException on invalid_grant', function () {
         ->and($caught?->getPrevious())->toBeInstanceOf(ChatworkRequestException::class);
 });
 
-it('redacts refresh_token in exception body', function () {
+it('例外ボディのrefresh_tokenをマスクする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(
             '{"error":"invalid_grant","refresh_token":"leaky-refresh"}',

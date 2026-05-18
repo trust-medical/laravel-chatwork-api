@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Enums\LimitType;
 
-it('is a string-backed enum with the three Chatwork limit types', function () {
+it('Chatwork の 3 種類のリミットタイプを持つ文字列バック enum である', function () {
     expect(LimitType::None->value)->toBe('none');
     expect(LimitType::Date->value)->toBe('date');
     expect(LimitType::Time->value)->toBe('time');
 });
 
-it('resolves a known limit type with from()', function () {
+it('from() で既知のリミットタイプを解決できる', function () {
     expect(LimitType::from('time'))->toBe(LimitType::Time);
 });
 
-it('returns null from tryFrom() for an unknown limit type', function () {
+it('未知のリミットタイプに対して tryFrom() が null を返す', function () {
     expect(LimitType::tryFrom('week'))->toBeNull();
 });

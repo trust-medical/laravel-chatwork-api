@@ -22,7 +22,7 @@ function fakeChatworkResponse(int $status, array|string $body = []): IlluminateR
     return Http::get('https://api.chatwork.com/v2/probe');
 }
 
-it('routes Array mode to the decoded JSON array', function () {
+it('Array モードをデコード済みの JSON 配列にルーティングする', function () {
     $mapper = new ResponseMapper();
     $response = fakeChatworkResponse(200, ['message_id' => '5']);
 
@@ -30,7 +30,7 @@ it('routes Array mode to the decoded JSON array', function () {
         ->toBe(['message_id' => '5']);
 });
 
-it('routes Response mode to the Illuminate Response unchanged', function () {
+it('Response モードを Illuminate Response にそのままルーティングする', function () {
     $mapper = new ResponseMapper();
     $response = fakeChatworkResponse(200, ['ok' => true]);
 
@@ -38,35 +38,35 @@ it('routes Response mode to the Illuminate Response unchanged', function () {
         ->toBe($response);
 });
 
-it('routes PsrResponse mode to a PSR-7 ResponseInterface', function () {
+it('PsrResponse モードを PSR-7 ResponseInterface にルーティングする', function () {
     $mapper = new ResponseMapper();
     $response = fakeChatworkResponse(200, ['ok' => true]);
 
     $psr = $mapper->map($response, ResponseMode::PsrResponse, null, 'GET', '/probe', 'probe');
-
+    /** @var ResponseInterface $psr */
     expect($psr)->toBeInstanceOf(ResponseInterface::class)
         ->and($psr->getStatusCode())->toBe(200);
 });
 
-it('routes Result mode to a Result value object even on 4xx', function () {
+it('Result モードは 4xx でも Result 値オブジェクトにルーティングする', function () {
     $mapper = new ResponseMapper();
     $response = fakeChatworkResponse(400, ['errors' => ['nope']]);
 
     $result = $mapper->map($response, ResponseMode::Result, null, 'POST', '/probe', 'probe');
-
+    /** @var Result $result */
     expect($result)->toBeInstanceOf(Result::class)
         ->and($result->failed())->toBeTrue()
         ->and($result->status())->toBe(400);
 });
 
-it('throws ChatworkRequestException for Array mode on 4xx', function () {
+it('Array モードで 4xx の場合は ChatworkRequestException をスローする', function () {
     $mapper = new ResponseMapper();
     $response = fakeChatworkResponse(400, ['errors' => ['nope']]);
 
     $mapper->map($response, ResponseMode::Array, null, 'POST', '/probe', 'probe');
 })->throws(ChatworkRequestException::class);
 
-it('does not throw for Response mode on 5xx', function () {
+it('Response モードで 5xx の場合はスローしない', function () {
     $mapper = new ResponseMapper();
     $response = fakeChatworkResponse(500, 'Internal Server Error');
 

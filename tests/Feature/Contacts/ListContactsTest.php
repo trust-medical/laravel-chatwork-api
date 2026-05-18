@@ -17,7 +17,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /contacts without query', function () {
+it('クエリなしで GET /contacts を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-200.json'),
@@ -32,7 +32,7 @@ it('GETs /contacts without query', function () {
         && $r->data() === []);
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続で x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-200.json'),
@@ -46,7 +46,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns array of ContactData in asDto mode', function () {
+it('asDto モードで ContactData の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-200.json'),
@@ -71,7 +71,7 @@ it('returns array of ContactData in asDto mode', function () {
         ->and($result[1]->roomId)->toBe(654);
 });
 
-it('returns Collection of ContactData in asCollection mode', function () {
+it('asCollection モードで ContactData の Collection を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-200.json'),
@@ -80,13 +80,13 @@ it('returns Collection of ContactData in asCollection mode', function () {
     ]);
 
     $result = Chatwork::asCollection()->contacts()->list();
-
+    /** @var Collection<int, ContactData> $result */
     expect($result)->toBeInstanceOf(Collection::class)
         ->and($result)->toHaveCount(2)
         ->and($result->first())->toBeInstanceOf(ContactData::class);
 });
 
-it('returns raw array in asArray mode', function () {
+it('asArray モードで生の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-200.json'),
@@ -95,12 +95,12 @@ it('returns raw array in asArray mode', function () {
     ]);
 
     $result = Chatwork::asArray()->contacts()->list();
-
+    /** @var array<int, array<string, mixed>> $result */
     expect($result)->toBeArray()
         ->and($result[0]['account_id'])->toBe(123);
 });
 
-it('returns a successful Result in asResult mode without unwrapping to a Collection', function () {
+it('asResult モードで Collection に展開せず成功の Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-200.json'),
@@ -109,13 +109,13 @@ it('returns a successful Result in asResult mode without unwrapping to a Collect
     ]);
 
     $result = Chatwork::asResult()->contacts()->list();
-
+    /** @var Result $result */
     expect($result)->toBeInstanceOf(Result::class)
         ->and($result->failed())->toBeFalse()
         ->and($result->status())->toBe(200);
 });
 
-it('maps a 204 empty body to an empty array in asDto mode', function () {
+it('asDto モードで 204 の空ボディを空配列にマップする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response('', 204),
     ]);
@@ -125,30 +125,30 @@ it('maps a 204 empty body to an empty array in asDto mode', function () {
     expect($result)->toBe([]);
 });
 
-it('maps a 204 empty body to an empty Collection in asCollection mode', function () {
+it('asCollection モードで 204 の空ボディを空の Collection にマップする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response('', 204),
     ]);
 
     $result = Chatwork::asCollection()->contacts()->list();
-
+    /** @var Collection<int, ContactData> $result */
     expect($result)->toBeInstanceOf(Collection::class)
         ->and($result)->toHaveCount(0);
 });
 
-it('returns a successful Result with status 204 in asResult mode', function () {
+it('asResult モードでステータス 204 の成功 Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response('', 204),
     ]);
 
     $result = Chatwork::asResult()->contacts()->list();
-
+    /** @var Result $result */
     expect($result)->toBeInstanceOf(Result::class)
         ->and($result->succeeded())->toBeTrue()
         ->and($result->status())->toBe(204);
 });
 
-it('does not throw on 400 in asResult mode', function () {
+it('asResult モードで 400 時に例外をスローしない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-400.json'),
@@ -157,14 +157,14 @@ it('does not throw on 400 in asResult mode', function () {
     ]);
 
     $result = Chatwork::asResult()->contacts()->list();
-
+    /** @var Result $result */
     expect($result)->toBeInstanceOf(Result::class)
         ->and($result->failed())->toBeTrue()
         ->and($result->status())->toBe(400)
         ->and($result->errors())->toBe(['Invalid request']);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() 付きで ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-400.json'),
@@ -183,7 +183,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['Invalid request']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/contacts' => Http::response(
             fixtureJson('contacts/list-contacts-429.json'),

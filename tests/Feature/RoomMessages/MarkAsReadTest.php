@@ -15,7 +15,7 @@ beforeEach(function () {
     ]);
 });
 
-it('PUTs /rooms/{room_id}/messages/read', function () {
+it('/rooms/{room_id}/messages/read を PUT する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/read' => Http::response(
             fixtureJson('messages/mark-read-200.json'),
@@ -29,7 +29,7 @@ it('PUTs /rooms/{room_id}/messages/read', function () {
         && $r->url() === 'https://api.chatwork.com/v2/rooms/123/messages/read');
 });
 
-it('omits message_id from form body when not provided', function () {
+it('message_id を指定しない場合はフォームボディから省略する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/read' => Http::response(
             fixtureJson('messages/mark-read-200.json'),
@@ -42,7 +42,7 @@ it('omits message_id from form body when not provided', function () {
     Http::assertSent(fn (Request $r) => ! isset($r->data()['message_id']));
 });
 
-it('sends message_id in form body when provided', function () {
+it('message_id を指定した場合はフォームボディに含めて送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/read' => Http::response(
             fixtureJson('messages/mark-read-200.json'),
@@ -55,7 +55,7 @@ it('sends message_id in form body when provided', function () {
     Http::assertSent(fn (Request $r) => ($r->data()['message_id'] ?? null) === '42');
 });
 
-it('returns MarkReadResult DTO in asDto mode', function () {
+it('asDto モードで MarkReadResult DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/read' => Http::response(
             fixtureJson('messages/mark-read-200.json'),
@@ -70,7 +70,7 @@ it('returns MarkReadResult DTO in asDto mode', function () {
     expect($result->mentionNum)->toBe(0);
 });
 
-it('throws ChatworkRequestException on 400', function () {
+it('400 で ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/read' => Http::response(
             ['errors' => ['invalid']],

@@ -17,7 +17,7 @@ beforeEach(function () {
     ]);
 });
 
-it('PUTs /rooms/{room_id}/members with form-encoded body', function () {
+it('フォームエンコードボディで PUT /rooms/{room_id}/members を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
             fixtureJson('members/replace-room-members-200.json'),
@@ -39,7 +39,7 @@ it('PUTs /rooms/{room_id}/members with form-encoded body', function () {
     });
 });
 
-it('omits optional id lists when not provided', function () {
+it('省略可能な ID リストが指定されない場合は送信しない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
             fixtureJson('members/replace-room-members-200.json'),
@@ -55,7 +55,7 @@ it('omits optional id lists when not provided', function () {
         && ! isset($r->data()['members_readonly_ids']));
 });
 
-it('serializes member and readonly id lists as CSV when provided', function () {
+it('メンバー ID と読み取り専用 ID リストが指定された場合に CSV でシリアライズする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
             fixtureJson('members/replace-room-members-200.json'),
@@ -74,7 +74,7 @@ it('serializes member and readonly id lists as CSV when provided', function () {
         && $r['members_readonly_ids'] === '5');
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続で x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
             fixtureJson('members/replace-room-members-200.json'),
@@ -90,7 +90,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns ReplacedRoomMembers DTO in asDto mode', function () {
+it('asDto モードで ReplacedRoomMembers DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
             fixtureJson('members/replace-room-members-200.json'),
@@ -110,7 +110,7 @@ it('returns ReplacedRoomMembers DTO in asDto mode', function () {
         ->and($result->readonly)->toBe([1011]);
 });
 
-it('throws ChatworkValidationException for empty membersAdminIds without sending HTTP', function () {
+it('membersAdminIds が空の場合は HTTP を送信せず ChatworkValidationException をスローする', function () {
     Http::fake();
 
     $caught = null;
@@ -126,7 +126,7 @@ it('throws ChatworkValidationException for empty membersAdminIds without sending
     Http::assertNothingSent();
 });
 
-it('throws ChatworkValidationException for non-positive account ids', function () {
+it('正でないアカウント ID に対して ChatworkValidationException をスローする', function () {
     $caught = null;
     try {
         new ReplaceRoomMembersRequest(membersAdminIds: [1, 0, 3]);
@@ -137,7 +137,7 @@ it('throws ChatworkValidationException for non-positive account ids', function (
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
             fixtureJson('members/replace-room-members-400.json'),
@@ -158,7 +158,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['members_admin_ids is required']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/members' => Http::response(
             fixtureJson('members/replace-room-members-429.json'),

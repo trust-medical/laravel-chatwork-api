@@ -5,7 +5,7 @@ declare(strict_types=1);
 use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateMessageRequest;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
-it('rejects an empty body', function () {
+it('空の body を拒否する', function () {
     $caught = null;
     try {
         new UpdateMessageRequest('');
@@ -16,7 +16,7 @@ it('rejects an empty body', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects a body longer than 65535 characters', function () {
+it('65535 文字を超える body を拒否する', function () {
     $body = str_repeat('a', 65536);
 
     $caught = null;
@@ -29,13 +29,13 @@ it('rejects a body longer than 65535 characters', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('accepts a valid body', function () {
+it('有効な body を受け入れる', function () {
     $request = new UpdateMessageRequest('hello');
 
     expect($request->body)->toBe('hello');
 });
 
-it('exposes body via toArray for form-encoded submission', function () {
+it('フォームエンコード送信のために body を toArray で公開する', function () {
     $request = new UpdateMessageRequest('updated body');
 
     expect($request->toArray())->toBe(['body' => 'updated body']);

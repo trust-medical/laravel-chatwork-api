@@ -21,7 +21,7 @@ function makeResult(int $status, array|string $body = [], array $headers = []): 
     return new Result($response, 'GET', '/probe', 'probe');
 }
 
-it('reports succeeded for 2xx', function () {
+it('2xx に対して succeeded を報告する', function () {
     $result = makeResult(200, ['message_id' => '1']);
 
     expect($result->succeeded())->toBeTrue()
@@ -32,7 +32,7 @@ it('reports succeeded for 2xx', function () {
         ->and($result->rateLimit())->toBeNull();
 });
 
-it('reports failed for 4xx', function () {
+it('4xx に対して failed を報告する', function () {
     $result = makeResult(400, ['errors' => ['body is required']]);
 
     expect($result->succeeded())->toBeFalse()
@@ -41,13 +41,13 @@ it('reports failed for 4xx', function () {
         ->and($result->errors())->toBe(['body is required']);
 });
 
-it('reports failed for 5xx', function () {
+it('5xx に対して failed を報告する', function () {
     $result = makeResult(503, ['errors' => ['service unavailable']]);
 
     expect($result->failed())->toBeTrue();
 });
 
-it('exposes rateLimit array when x-ratelimit headers present', function () {
+it('x-ratelimit-limit / x-ratelimit-remaining / x-ratelimit-reset ヘッダーが存在する場合に rateLimit 配列を公開する', function () {
     $result = makeResult(
         429,
         ['errors' => ['rate limit exceeded']],
@@ -65,7 +65,7 @@ it('exposes rateLimit array when x-ratelimit headers present', function () {
     ]);
 });
 
-it('builds a ChatworkRequestException via toException', function () {
+it('toException で ChatworkRequestException を構築する', function () {
     $result = makeResult(400, ['errors' => ['body is required']]);
 
     $exception = $result->toException();

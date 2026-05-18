@@ -5,11 +5,11 @@ declare(strict_types=1);
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomFileData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\SimpleAccount;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(RoomFileData::class)->toBeReadonly();
 });
 
-it('hydrates RoomFileData with nested SimpleAccount and download url via fromArray', function () {
+it('fromArray で RoomFileData をネストした SimpleAccount とダウンロード URL 付きでハイドレートする', function () {
     $data = fixtureJson('files/get-room-file-200.json');
 
     $file = RoomFileData::fromArray($data);
@@ -24,7 +24,7 @@ it('hydrates RoomFileData with nested SimpleAccount and download url via fromArr
     expect($file->downloadUrl)->toBe('https://download.chatwork.com/files/99?token=abc');
 });
 
-it('returns null downloadUrl when download_url is absent', function () {
+it('download_url が存在しない場合に downloadUrl を null で返す', function () {
     $file = RoomFileData::fromArray([
         'file_id' => 5,
         'account' => ['account_id' => 1, 'name' => 'X', 'avatar_image_url' => ''],
@@ -37,7 +37,7 @@ it('returns null downloadUrl when download_url is absent', function () {
     expect($file->downloadUrl)->toBeNull();
 });
 
-it('casts numeric file_id and filesize to int', function () {
+it('数値の file_id と filesize を int にキャストする', function () {
     $file = RoomFileData::fromArray([
         'file_id' => '42',
         'filesize' => '1024',

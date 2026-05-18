@@ -38,7 +38,7 @@ function callbackRequest(string $queryString): Request
     return Request::create('/chatwork/oauth/callback?' . $queryString, 'GET');
 }
 
-it('redirects to the configured path on successful exchange', function () {
+it('交換成功時に設定済みパスへリダイレクトする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -57,7 +57,7 @@ it('redirects to the configured path on successful exchange', function () {
     expect($response->getTargetUrl())->toEndWith('/dashboard');
 });
 
-it('saves the resulting TokenSet to the repository', function () {
+it('取得したTokenSetをリポジトリへ保存する', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -75,7 +75,7 @@ it('saves the resulting TokenSet to the repository', function () {
     expect($saved?->accessToken)->toBe('sample-access-token');
 });
 
-it('returns 400 when state is missing and never calls the token endpoint', function () {
+it('stateが欠落している場合は400を返しtokenエンドポイントを呼ばない', function () {
     Http::fake();
 
     $store = new CacheStateStore(Cache::store());
@@ -88,7 +88,7 @@ it('returns 400 when state is missing and never calls the token endpoint', funct
     Http::assertNothingSent();
 });
 
-it('returns 400 when state cannot be resolved (replay or expired)', function () {
+it('stateが解決できない場合（リプレイまたは期限切れ）は400を返す', function () {
     Http::fake();
 
     $store = new CacheStateStore(Cache::store());
@@ -101,7 +101,7 @@ it('returns 400 when state cannot be resolved (replay or expired)', function () 
     Http::assertNothingSent();
 });
 
-it('returns 400 when provider includes an error parameter and never calls the token endpoint', function () {
+it('プロバイダがerrorパラメータを含む場合は400を返しtokenエンドポイントを呼ばない', function () {
     Http::fake();
 
     $store = new CacheStateStore(Cache::store());
@@ -116,7 +116,7 @@ it('returns 400 when provider includes an error parameter and never calls the to
     Http::assertNothingSent();
 });
 
-it('falls back to root path when redirect_after_callback is null', function () {
+it('redirect_after_callbackがnullの場合はルートパスにフォールバックする', function () {
     Config::set('chatwork.oauth.redirect_after_callback', null);
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
@@ -138,7 +138,7 @@ it('falls back to root path when redirect_after_callback is null', function () {
     expect($path)->toBe('/');
 });
 
-it('falls back to root path when redirect_after_callback is a scheme-relative URL', function () {
+it('redirect_after_callbackがスキーム相対URLの場合はルートパスにフォールバックする', function () {
     Config::set('chatwork.oauth.redirect_after_callback', '//evil.example.com/path');
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
@@ -160,7 +160,7 @@ it('falls back to root path when redirect_after_callback is a scheme-relative UR
     expect($path)->toBe('/');
 });
 
-it('rejects code values longer than the safety limit and skips the token endpoint', function () {
+it('安全制限を超える長さのcodeを拒否しtokenエンドポイントをスキップする', function () {
     Http::fake();
 
     $store = new CacheStateStore(Cache::store());
@@ -176,7 +176,7 @@ it('rejects code values longer than the safety limit and skips the token endpoin
     Http::assertNothingSent();
 });
 
-it('returns a Response (Symfony) regardless of branch', function () {
+it('どの分岐でもResponse (Symfony) を返す', function () {
     Http::fake();
 
     $store = new CacheStateStore(Cache::store());

@@ -13,11 +13,11 @@ afterEach(function () {
     Carbon::setTestNow();
 });
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(TokenSet::class)->toBeReadonly();
 });
 
-it('returns false from isExpired when expiresAt is in the future', function () {
+it('expiresAt が未来の場合 isExpired() は false を返す', function () {
     $tokenSet = new TokenSet(
         accessToken: 'a',
         refreshToken: 'r',
@@ -27,7 +27,7 @@ it('returns false from isExpired when expiresAt is in the future', function () {
     expect($tokenSet->isExpired())->toBeFalse();
 });
 
-it('returns true from isExpired after expiresAt', function () {
+it('expiresAt を過ぎた後は isExpired() が true を返す', function () {
     $tokenSet = new TokenSet(
         accessToken: 'a',
         refreshToken: 'r',
@@ -37,7 +37,7 @@ it('returns true from isExpired after expiresAt', function () {
     expect($tokenSet->isExpired())->toBeTrue();
 });
 
-it('returns true from isExpired when within leeway window', function () {
+it('leeway ウィンドウ内にある場合も isExpired() は true を返す', function () {
     $tokenSet = new TokenSet(
         accessToken: 'a',
         refreshToken: 'r',
@@ -48,7 +48,7 @@ it('returns true from isExpired when within leeway window', function () {
     expect($tokenSet->isExpired(leewaySeconds: 0))->toBeFalse();
 });
 
-it('builds from API response payload via fromArray', function () {
+it('fromArray() で API レスポンスのペイロードから生成できる', function () {
     $tokenSet = TokenSet::fromArray([
         'access_token' => 'sample-access-token',
         'refresh_token' => 'sample-refresh-token',
@@ -63,7 +63,7 @@ it('builds from API response payload via fromArray', function () {
         ->toBe(Carbon::now()->addSeconds(86400)->format('Y-m-d H:i:s'));
 });
 
-it('round-trips through toArray and fromArray', function () {
+it('toArray() と fromArray() で相互変換できる', function () {
     $original = new TokenSet(
         accessToken: 'a',
         refreshToken: 'r',
@@ -83,7 +83,7 @@ it('round-trips through toArray and fromArray', function () {
     expect($restored->expiresAt->getTimestamp())->toBe($original->expiresAt->getTimestamp());
 });
 
-it('throws InvalidArgumentException when fromArray receives incomplete data', function () {
+it('fromArray() に不完全なデータを渡すと InvalidArgumentException をスローする', function () {
     $caught = null;
     try {
         TokenSet::fromArray(['access_token' => 'a']);

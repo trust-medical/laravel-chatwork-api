@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('DELETEs /rooms/{room_id}/messages/{message_id}', function () {
+it('/rooms/{room_id}/messages/{message_id} を DELETE する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/5' => Http::response(
             fixtureJson('messages/delete-message-200.json'),
@@ -30,7 +30,7 @@ it('DELETEs /rooms/{room_id}/messages/{message_id}', function () {
         && $r->url() === 'https://api.chatwork.com/v2/rooms/123/messages/5');
 });
 
-it('returns DeletedMessage DTO in asDto mode', function () {
+it('asDto モードで DeletedMessage DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/5' => Http::response(
             fixtureJson('messages/delete-message-200.json'),
@@ -44,7 +44,7 @@ it('returns DeletedMessage DTO in asDto mode', function () {
     expect($result->messageId)->toBe('5');
 });
 
-it('throws ChatworkRequestException on 404', function () {
+it('404 で ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/9999' => Http::response(
             ['errors' => ['not found']],
@@ -62,7 +62,7 @@ it('throws ChatworkRequestException on 404', function () {
     expect($caught?->status())->toBe(404);
 });
 
-it('returns Result in asResult mode without throwing', function () {
+it('asResult モードでスローせず Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/9999' => Http::response(
             ['errors' => ['not found']],

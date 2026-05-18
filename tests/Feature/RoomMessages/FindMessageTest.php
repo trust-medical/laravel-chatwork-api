@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /rooms/{room_id}/messages/{message_id}', function () {
+it('/rooms/{room_id}/messages/{message_id} を GET する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/5' => Http::response(
             fixtureJson('messages/get-message-200.json'),
@@ -30,7 +30,7 @@ it('GETs /rooms/{room_id}/messages/{message_id}', function () {
         && $r->url() === 'https://api.chatwork.com/v2/rooms/123/messages/5');
 });
 
-it('returns MessageData in asDto mode', function () {
+it('asDto モードで MessageData を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/5' => Http::response(
             fixtureJson('messages/get-message-200.json'),
@@ -45,7 +45,7 @@ it('returns MessageData in asDto mode', function () {
     expect($result->account->name)->toBe('Bob');
 });
 
-it('throws ChatworkRequestException on 404', function () {
+it('404 で ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/9999' => Http::response(
             ['errors' => ['message not found']],
@@ -63,7 +63,7 @@ it('throws ChatworkRequestException on 404', function () {
     expect($caught?->status())->toBe(404);
 });
 
-it('returns Result with failed status in asResult mode', function () {
+it('asResult モードで失敗ステータスの Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages/9999' => Http::response(
             ['errors' => ['message not found']],

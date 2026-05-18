@@ -5,11 +5,11 @@ declare(strict_types=1);
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomMemberData;
 use TrustMedical\LaravelChatworkApi\Enums\RoomRole;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(RoomMemberData::class)->toBeReadonly();
 });
 
-it('hydrates RoomMemberData via fromArray', function () {
+it('fromArray で RoomMemberData をハイドレートする', function () {
     $data = fixtureJson('members/list-room-members-200.json');
 
     $member = RoomMemberData::fromArray($data[0]);
@@ -24,7 +24,7 @@ it('hydrates RoomMemberData via fromArray', function () {
     expect($member->avatarImageUrl)->toBe('https://example.com/avatar/123.png');
 });
 
-it('maps each role string to the RoomRole enum', function () {
+it('各 role 文字列を RoomRole enum にマッピングする', function () {
     $data = fixtureJson('members/list-room-members-200.json');
 
     expect(RoomMemberData::fromArray($data[0])->role)->toBe(RoomRole::Admin);
@@ -32,7 +32,7 @@ it('maps each role string to the RoomRole enum', function () {
     expect(RoomMemberData::fromArray($data[2])->role)->toBe(RoomRole::Readonly);
 });
 
-it('falls back to RoomRole::Member for an unknown role without throwing', function () {
+it('不明な role の場合に例外なく RoomRole::Member にフォールバックする', function () {
     $member = RoomMemberData::fromArray([
         'account_id' => 1,
         'role' => 'unexpected',
@@ -42,7 +42,7 @@ it('falls back to RoomRole::Member for an unknown role without throwing', functi
     expect($member->role)->toBe(RoomRole::Member);
 });
 
-it('casts numeric account_id to int', function () {
+it('数値の account_id を int にキャストする', function () {
     $member = RoomMemberData::fromArray([
         'account_id' => '42',
         'role' => 'member',

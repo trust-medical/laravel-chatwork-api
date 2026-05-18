@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\MyAccountData;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(MyAccountData::class)->toBeReadonly();
 });
 
-it('hydrates MyAccountData via fromArray', function () {
+it('fromArray で MyAccountData をハイドレートする', function () {
     $me = MyAccountData::fromArray(fixtureJson('me/get-me-200.json'));
 
     expect($me->accountId)->toBe(123);
@@ -32,7 +32,7 @@ it('hydrates MyAccountData via fromArray', function () {
     expect($me->loginMail)->toBe('login@example.com');
 });
 
-it('casts numeric id strings to int', function () {
+it('数値文字列の id を int にキャストする', function () {
     $me = MyAccountData::fromArray([
         'account_id' => '42',
         'room_id' => '7',
@@ -44,7 +44,7 @@ it('casts numeric id strings to int', function () {
     expect($me->organizationId)->toBe(9);
 });
 
-it('defaults login_mail to an empty string when absent without throwing', function () {
+it('login_mail が欠けていても例外を投げずに空文字をデフォルトにする', function () {
     $me = MyAccountData::fromArray([
         'account_id' => 1,
         'name' => 'No Login Mail',

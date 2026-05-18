@@ -22,31 +22,31 @@ function fakeDtoResponse(int $status, array|string $body = []): IlluminateRespon
     return Http::get('https://api.chatwork.com/v2/dto-probe');
 }
 
-it('Dto mode maps to a single DTO via fromArray', function () {
+it('Dto モードは fromArray を経由して単一の DTO にマップする', function () {
     $mapper = new ResponseMapper();
     $response = fakeDtoResponse(201, ['message_id' => '1024']);
 
     $dto = $mapper->map($response, ResponseMode::Dto, CreatedMessage::class, 'POST', '/dto-probe', 'probe');
-
+    /** @var CreatedMessage $dto */
     expect($dto)->toBeInstanceOf(CreatedMessage::class)
         ->and($dto->messageId)->toBe('1024');
 });
 
-it('Dto mode throws ChatworkRequestException on 4xx', function () {
+it('Dto モードは 4xx 時に ChatworkRequestException をスローする', function () {
     $mapper = new ResponseMapper();
     $response = fakeDtoResponse(400, ['errors' => ['nope']]);
 
     $mapper->map($response, ResponseMode::Dto, CreatedMessage::class, 'POST', '/dto-probe', 'probe');
 })->throws(ChatworkRequestException::class);
 
-it('Dto mode requires a dtoClass and throws LogicException without it', function () {
+it('Dto モードは dtoClass が必須であり、未指定時に LogicException をスローする', function () {
     $mapper = new ResponseMapper();
     $response = fakeDtoResponse(200, ['message_id' => '1']);
 
     $mapper->map($response, ResponseMode::Dto, null, 'POST', '/dto-probe', 'probe');
 })->throws(LogicException::class, 'dtoClass is required');
 
-it('Collection mode maps each item via fromArray and returns a Collection', function () {
+it('Collection モードは各要素を fromArray でマップして Collection を返す', function () {
     $mapper = new ResponseMapper();
     $response = fakeDtoResponse(200, [
         ['message_id' => '1'],
@@ -64,14 +64,14 @@ it('Collection mode maps each item via fromArray and returns a Collection', func
         ->toBe(['1', '2', '3']);
 });
 
-it('Collection mode throws ChatworkRequestException on 4xx', function () {
+it('Collection モードは 4xx 時に ChatworkRequestException をスローする', function () {
     $mapper = new ResponseMapper();
     $response = fakeDtoResponse(401, ['errors' => ['Invalid API token']]);
 
     $mapper->map($response, ResponseMode::Collection, CreatedMessage::class, 'GET', '/dto-probe', 'probe');
 })->throws(ChatworkRequestException::class);
 
-it('Collection mode returns an empty Collection for an empty JSON array', function () {
+it('Collection モードは空の JSON 配列に対して空の Collection を返す', function () {
     $mapper = new ResponseMapper();
     $response = fakeDtoResponse(200, []);
 

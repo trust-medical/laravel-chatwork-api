@@ -5,7 +5,7 @@ declare(strict_types=1);
 use TrustMedical\LaravelChatworkApi\Data\Requests\RoomLinkRequest;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
-it('rejects an empty code string', function () {
+it('空の code 文字列を拒否する', function () {
     $caught = null;
     try {
         new RoomLinkRequest(code: '');
@@ -16,7 +16,7 @@ it('rejects an empty code string', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('rejects a code longer than 50 characters', function () {
+it('50 文字を超える code を拒否する', function () {
     $caught = null;
     try {
         new RoomLinkRequest(code: str_repeat('a', 51));
@@ -27,22 +27,22 @@ it('rejects a code longer than 50 characters', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('accepts a code of exactly 50 characters', function () {
+it('ちょうど 50 文字の code を受け入れる', function () {
     $request = new RoomLinkRequest(code: str_repeat('a', 50));
 
     expect($request->toArray()['code'])->toBe(str_repeat('a', 50));
 });
 
-it('serializes needAcceptance bool to 1 or 0', function () {
+it('needAcceptance の bool 値を 1 または 0 にシリアライズする', function () {
     expect((new RoomLinkRequest(needAcceptance: true))->toArray()['need_acceptance'])->toBe(1);
     expect((new RoomLinkRequest(needAcceptance: false))->toArray()['need_acceptance'])->toBe(0);
 });
 
-it('omits all fields when nothing is provided', function () {
+it('何も指定されない場合にすべてのフィールドを省略する', function () {
     expect((new RoomLinkRequest())->toArray())->toBe([]);
 });
 
-it('omits optional fields that are null', function () {
+it('null のオプションフィールドを省略する', function () {
     $payload = (new RoomLinkRequest(description: 'hello'))->toArray();
 
     expect($payload)->toBe(['description' => 'hello']);

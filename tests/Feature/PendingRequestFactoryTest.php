@@ -14,7 +14,7 @@ function chatworkPendingFactory(): ChatworkPendingRequestFactory
     return app(ChatworkPendingRequestFactory::class);
 }
 
-it('applies base_uri from connection (P1-T10)', function () {
+it('接続の base_uri を適用する (P1-T10)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);
@@ -25,7 +25,7 @@ it('applies base_uri from connection (P1-T10)', function () {
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.chatwork.com/v2/rooms');
 });
 
-it('uses a custom base_uri when the connection overrides it', function () {
+it('接続でオーバーライドされた場合はカスタムの base_uri を使用する', function () {
     Http::fake([
         'https://api.example.com/v3/rooms' => Http::response([], 200),
     ]);
@@ -40,7 +40,7 @@ it('uses a custom base_uri when the connection overrides it', function () {
     Http::assertSent(fn (Request $r) => $r->url() === 'https://api.example.com/v3/rooms');
 });
 
-it('sends Accept: application/json', function () {
+it('Accept: application/json を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);
@@ -51,7 +51,7 @@ it('sends Accept: application/json', function () {
     Http::assertSent(fn (Request $r) => $r->hasHeader('Accept', 'application/json'));
 });
 
-it('sends a User-Agent containing the package name', function () {
+it('パッケージ名を含む User-Agent を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);
@@ -68,7 +68,7 @@ it('sends a User-Agent containing the package name', function () {
     });
 });
 
-it('applies ApiTokenCredentials (x-chatworktoken)', function () {
+it('ApiTokenCredentials を適用する (x-chatworktoken)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);
@@ -79,7 +79,7 @@ it('applies ApiTokenCredentials (x-chatworktoken)', function () {
     Http::assertSent(fn (Request $r) => $r->hasHeader('x-chatworktoken', 'api-token-value'));
 });
 
-it('applies BearerTokenCredentials (Authorization Bearer)', function () {
+it('BearerTokenCredentials を適用する (Authorization Bearer)', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms' => Http::response([], 200),
     ]);

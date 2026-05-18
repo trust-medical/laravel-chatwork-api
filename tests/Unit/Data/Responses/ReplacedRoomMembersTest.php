@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Data\Responses\ReplacedRoomMembers;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(ReplacedRoomMembers::class)->toBeReadonly();
 });
 
-it('hydrates the three id lists via fromArray', function () {
+it('fromArray で3つの id リストをハイドレートする', function () {
     $data = fixtureJson('members/replace-room-members-200.json');
 
     $result = ReplacedRoomMembers::fromArray($data);
@@ -18,7 +18,7 @@ it('hydrates the three id lists via fromArray', function () {
     expect($result->readonly)->toBe([1011]);
 });
 
-it('casts numeric ids to int and reindexes', function () {
+it('数値 id を int にキャストして再インデックスする', function () {
     $result = ReplacedRoomMembers::fromArray([
         'admin' => ['1', '2'],
         'member' => [],
@@ -30,7 +30,7 @@ it('casts numeric ids to int and reindexes', function () {
     expect($result->readonly)->toBe([9]);
 });
 
-it('defaults missing keys to empty arrays without throwing', function () {
+it('存在しないキーを例外なく空配列にデフォルトする', function () {
     $result = ReplacedRoomMembers::fromArray([]);
 
     expect($result->admin)->toBe([]);

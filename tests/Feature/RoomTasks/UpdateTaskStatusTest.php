@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('PUTs /rooms/{room_id}/tasks/{task_id}/status with form-encoded body', function () {
+it('フォームエンコードボディで PUT /rooms/{room_id}/tasks/{task_id}/status を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(
             fixtureJson('tasks/update-room-task-status-200.json'),
@@ -36,7 +36,7 @@ it('PUTs /rooms/{room_id}/tasks/{task_id}/status with form-encoded body', functi
     });
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続で x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(
             fixtureJson('tasks/update-room-task-status-200.json'),
@@ -50,7 +50,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns the updated RoomTaskData DTO in asDto mode', function () {
+it('asDto モードで更新後の RoomTaskData DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(
             fixtureJson('tasks/update-room-task-status-200.json'),
@@ -65,7 +65,7 @@ it('returns the updated RoomTaskData DTO in asDto mode', function () {
         ->and($task->status)->toBe(TaskStatus::Done);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(
             fixtureJson('tasks/update-room-task-status-400.json'),
@@ -84,7 +84,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['status is invalid']);
 });
 
-it('throws ChatworkRequestException on 404', function () {
+it('404 時に ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(
             fixtureJson('tasks/update-room-task-status-404.json'),
@@ -103,7 +103,7 @@ it('throws ChatworkRequestException on 404', function () {
         ->and($caught?->errors())->toBe(['task not found']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/tasks/99/status' => Http::response(
             fixtureJson('tasks/update-room-task-status-429.json'),

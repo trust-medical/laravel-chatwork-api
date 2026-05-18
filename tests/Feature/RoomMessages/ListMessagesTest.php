@@ -16,7 +16,7 @@ beforeEach(function () {
     ]);
 });
 
-it('GETs /rooms/{room_id}/messages without query when force is null', function () {
+it('force が null のとき /rooms/{room_id}/messages をクエリなしで GET する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/list-messages-200.json'),
@@ -33,7 +33,7 @@ it('GETs /rooms/{room_id}/messages without query when force is null', function (
     });
 });
 
-it('sends force=1 query when force is true', function () {
+it('force が true のとき force=1 クエリを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages*' => Http::response(
             fixtureJson('messages/list-messages-200.json'),
@@ -46,7 +46,7 @@ it('sends force=1 query when force is true', function () {
     Http::assertSent(fn (Request $r) => ($r->data()['force'] ?? null) === 1);
 });
 
-it('returns array of MessageData in asDto mode', function () {
+it('asDto モードで MessageData の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/list-messages-200.json'),
@@ -63,7 +63,7 @@ it('returns array of MessageData in asDto mode', function () {
     expect($result[1]->messageId)->toBe('6');
 });
 
-it('returns Collection of MessageData in asCollection mode', function () {
+it('asCollection モードで MessageData の Collection を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/list-messages-200.json'),
@@ -72,13 +72,13 @@ it('returns Collection of MessageData in asCollection mode', function () {
     ]);
 
     $result = Chatwork::asCollection()->rooms()->messages()->list(123);
-
+    /** @var Collection<int, MessageData> $result */
     expect($result)->toBeInstanceOf(Collection::class);
     expect($result)->toHaveCount(2);
     expect($result->first())->toBeInstanceOf(MessageData::class);
 });
 
-it('returns array in asArray mode', function () {
+it('asArray モードで配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/list-messages-200.json'),
@@ -87,12 +87,12 @@ it('returns array in asArray mode', function () {
     ]);
 
     $result = Chatwork::asArray()->rooms()->messages()->list(123);
-
+    /** @var array<int, array<string, mixed>> $result */
     expect($result)->toBeArray();
     expect($result[0]['message_id'])->toBe('5');
 });
 
-it('returns an empty array on 204 No Content', function () {
+it('204 No Content のとき空配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/list-messages-204.json'),
@@ -105,7 +105,7 @@ it('returns an empty array on 204 No Content', function () {
     expect($result)->toBe([]);
 });
 
-it('returns an empty Collection on 204 in asCollection mode', function () {
+it('asCollection モードで 204 のとき空の Collection を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/list-messages-204.json'),
@@ -114,12 +114,12 @@ it('returns an empty Collection on 204 in asCollection mode', function () {
     ]);
 
     $result = Chatwork::asCollection()->rooms()->messages()->list(123);
-
+    /** @var Collection<int, MessageData> $result */
     expect($result)->toBeInstanceOf(Collection::class);
     expect($result)->toHaveCount(0);
 });
 
-it('throws ChatworkRequestException on 401', function () {
+it('401 で ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             ['errors' => ['unauthorized']],

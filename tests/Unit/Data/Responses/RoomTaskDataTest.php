@@ -7,11 +7,11 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\SimpleAccount;
 use TrustMedical\LaravelChatworkApi\Enums\LimitType;
 use TrustMedical\LaravelChatworkApi\Enums\TaskStatus;
 
-it('is a readonly class', function () {
+it('readonly クラスである', function () {
     expect(RoomTaskData::class)->toBeReadonly();
 });
 
-it('hydrates RoomTaskData with nested SimpleAccount via fromArray', function () {
+it('fromArray で RoomTaskData をネストした SimpleAccount 付きでハイドレートする', function () {
     $data = fixtureJson('tasks/get-room-task-200.json');
 
     $task = RoomTaskData::fromArray($data);
@@ -28,7 +28,7 @@ it('hydrates RoomTaskData with nested SimpleAccount via fromArray', function () 
     expect($task->limitType)->toBe(LimitType::Time);
 });
 
-it('returns null limitType when limit_type is absent', function () {
+it('limit_type が存在しない場合に limitType を null で返す', function () {
     $task = RoomTaskData::fromArray([
         'task_id' => 5,
         'account' => ['account_id' => 1, 'name' => 'X', 'avatar_image_url' => ''],
@@ -43,7 +43,7 @@ it('returns null limitType when limit_type is absent', function () {
     expect($task->status)->toBe(TaskStatus::Done);
 });
 
-it('falls back to TaskStatus::Open for an unknown status without throwing', function () {
+it('不明な status の場合に例外なく TaskStatus::Open にフォールバックする', function () {
     $task = RoomTaskData::fromArray([
         'task_id' => 1,
         'status' => 'archived',
@@ -52,7 +52,7 @@ it('falls back to TaskStatus::Open for an unknown status without throwing', func
     expect($task->status)->toBe(TaskStatus::Open);
 });
 
-it('casts numeric task_id to int', function () {
+it('数値の task_id を int にキャストする', function () {
     $task = RoomTaskData::fromArray([
         'task_id' => '42',
         'status' => 'open',

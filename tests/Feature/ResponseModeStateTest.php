@@ -5,7 +5,7 @@ declare(strict_types=1);
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
 
-it('returns a cloned manager from asResult (P1-T11)', function () {
+it('asResult はクローンされた manager を返す (P1-T11)', function () {
     $root = Chatwork::getFacadeRoot();
     $asResult = Chatwork::asResult();
 
@@ -14,19 +14,19 @@ it('returns a cloned manager from asResult (P1-T11)', function () {
         ->and($root->getMode())->toBe(ResponseMode::Dto);
 });
 
-it('does not mutate the global manager state when asArray is called', function () {
+it('asArray 呼び出し時にグローバルな manager の状態を変化させない', function () {
     Chatwork::asArray();
 
     expect(Chatwork::getFacadeRoot()->getMode())->toBe(ResponseMode::Dto);
 });
 
-it('chains modes with last-wins semantics', function () {
+it('モードチェーンは最後に指定したものが優先される', function () {
     $manager = Chatwork::asResult()->asArray();
 
     expect($manager->getMode())->toBe(ResponseMode::Array);
 });
 
-it('returns the expected mode for each accessor', function () {
+it('各アクセサーが期待通りのモードを返す', function () {
     expect(Chatwork::asArray()->getMode())->toBe(ResponseMode::Array)
         ->and(Chatwork::asDto()->getMode())->toBe(ResponseMode::Dto)
         ->and(Chatwork::asCollection()->getMode())->toBe(ResponseMode::Collection)
@@ -35,7 +35,7 @@ it('returns the expected mode for each accessor', function () {
         ->and(Chatwork::asResult()->getMode())->toBe(ResponseMode::Result);
 });
 
-it('preserves connection state across mode chain', function () {
+it('モードチェーン全体を通じて接続状態を保持する', function () {
     config()->set('chatwork.connections.sales', [
         'auth' => 'bearer',
         'token' => 'sales-token',

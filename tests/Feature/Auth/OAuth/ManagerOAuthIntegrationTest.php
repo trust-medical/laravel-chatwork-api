@@ -26,7 +26,7 @@ afterEach(function () {
     Carbon::setTestNow();
 });
 
-it('sends Authorization Bearer header from the stored TokenSet', function () {
+it('保存済みTokenSetからAuthorization Bearerヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
             fixtureJson('messages/create-message-201.json'),
@@ -48,7 +48,7 @@ it('sends Authorization Bearer header from the stored TokenSet', function () {
     });
 });
 
-it('refreshes the token before calling the API when expired', function () {
+it('トークンが期限切れの場合はAPI呼び出し前にリフレッシュする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
@@ -75,7 +75,7 @@ it('refreshes the token before calling the API when expired', function () {
     });
 });
 
-it('throws ChatworkAuthenticationException when refresh fails', function () {
+it('リフレッシュに失敗したときChatworkAuthenticationExceptionをスローする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-400.json'), 400),
     ]);

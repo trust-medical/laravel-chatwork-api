@@ -18,7 +18,7 @@ beforeEach(function () {
     ]);
 });
 
-it('POSTs /rooms/{room_id}/files with a multipart body', function () {
+it('multipart ボディで POST /rooms/{room_id}/files を送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-200.json'),
@@ -44,7 +44,7 @@ it('POSTs /rooms/{room_id}/files with a multipart body', function () {
     });
 });
 
-it('uses the basename of the path when no filename override is given', function () {
+it('ファイル名が指定されない場合はパスの basename を使用する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-200.json'),
@@ -59,7 +59,7 @@ it('uses the basename of the path when no filename override is given', function 
     Http::assertSent(fn (Request $r) => $r->hasFile('file', null, basename($path)));
 });
 
-it('sends the message field when provided', function () {
+it('message フィールドが指定された場合は送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-200.json'),
@@ -74,12 +74,12 @@ it('sends the message field when provided', function () {
         message: 'See attached',
     ));
 
-    // Laravel exposes every multipart part (file and non-file) through
-    // hasFile(); non-file parts simply have no filename.
+    // Laravel は multipart の全パート（ファイル・非ファイル問わず）を
+    // hasFile() で公開する。非ファイルパートはファイル名を持たない。
     Http::assertSent(fn (Request $r) => $r->hasFile('message', 'See attached'));
 });
 
-it('omits the message field when not provided', function () {
+it('message フィールドが指定されない場合は送信しない', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-200.json'),
@@ -94,7 +94,7 @@ it('omits the message field when not provided', function () {
     Http::assertSent(fn (Request $r) => ! $r->hasFile('message'));
 });
 
-it('sends x-chatworktoken header for api_token connection', function () {
+it('api_token 接続時に x-chatworktoken ヘッダーを送信する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-200.json'),
@@ -110,7 +110,7 @@ it('sends x-chatworktoken header for api_token connection', function () {
         && ! $r->hasHeader('Authorization'));
 });
 
-it('returns UploadedRoomFile DTO in asDto mode', function () {
+it('asDto モードで UploadedRoomFile DTO を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-200.json'),
@@ -126,7 +126,7 @@ it('returns UploadedRoomFile DTO in asDto mode', function () {
         ->and($result->fileId)->toBe(12345);
 });
 
-it('returns the raw array in asArray mode', function () {
+it('asArray モードで生の配列を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-200.json'),
@@ -141,7 +141,7 @@ it('returns the raw array in asArray mode', function () {
     expect($result)->toBe(['file_id' => 12345]);
 });
 
-it('returns a failed Result on 400 in asResult mode without throwing', function () {
+it('asResult モードで 400 時にスローせず失敗した Result を返す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-400.json'),
@@ -159,7 +159,7 @@ it('returns a failed Result on 400 in asResult mode without throwing', function 
         ->and($result->errors())->toBe(['file is required']);
 });
 
-it('throws ChatworkValidationException for an empty message without sending HTTP', function () {
+it('空の message に対して HTTP を送信せず ChatworkValidationException をスローする', function () {
     Http::fake();
 
     $path = tempUploadFile();
@@ -177,7 +177,7 @@ it('throws ChatworkValidationException for an empty message without sending HTTP
     Http::assertNothingSent();
 });
 
-it('throws ChatworkValidationException for a non-existent path', function () {
+it('存在しないパスに対して ChatworkValidationException をスローする', function () {
     $caught = null;
     try {
         new UploadRoomFileRequest(path: '/no/such/file/at/all.bin');
@@ -188,7 +188,7 @@ it('throws ChatworkValidationException for a non-existent path', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
-it('throws ChatworkRequestException with errors() on 400', function () {
+it('400 時に errors() を持つ ChatworkRequestException をスローする', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-400.json'),
@@ -208,7 +208,7 @@ it('throws ChatworkRequestException with errors() on 400', function () {
         ->and($caught?->errors())->toBe(['file is required']);
 });
 
-it('exposes rateLimit() on 429', function () {
+it('429 時に rateLimit() を公開する', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/files' => Http::response(
             fixtureJson('files/upload-room-file-429.json'),

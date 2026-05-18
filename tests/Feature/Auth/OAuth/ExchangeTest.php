@@ -24,7 +24,7 @@ function makeOAuthClient(): OAuthClient
     return new OAuthClient(new CacheStateStore(Cache::store()), config('chatwork.oauth'));
 }
 
-it('POSTs to /token with authorization_code grant', function () {
+it('authorization_code grantで/tokenへPOSTする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -43,7 +43,7 @@ it('POSTs to /token with authorization_code grant', function () {
     });
 });
 
-it('returns a TokenSet parsed from the response', function () {
+it('レスポンスをパースしたTokenSetを返す', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -55,7 +55,7 @@ it('returns a TokenSet parsed from the response', function () {
     expect($tokenSet->refreshToken)->toBe('sample-refresh-token');
 });
 
-it('throws ChatworkRequestException on 400 invalid_grant', function () {
+it('400 invalid_grantのときChatworkRequestExceptionをスローする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-400.json'), 400),
     ]);
@@ -72,7 +72,7 @@ it('throws ChatworkRequestException on 400 invalid_grant', function () {
         ->and($caught?->error())->toBe('invalid_grant');
 });
 
-it('redacts client_secret in exception body', function () {
+it('例外ボディのclient_secretをマスクする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(
             '{"error":"invalid_request","client_secret":"super-secret"}',

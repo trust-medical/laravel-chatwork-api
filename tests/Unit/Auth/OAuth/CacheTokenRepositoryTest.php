@@ -17,7 +17,7 @@ afterEach(function () {
     Carbon::setTestNow();
 });
 
-it('round-trips TokenSet through cache', function () {
+it('TokenSet をキャッシュ経由で保存・復元できる', function () {
     $repo = new CacheTokenRepository(Cache::store());
     $token = new TokenSet(
         accessToken: 'access',
@@ -35,7 +35,7 @@ it('round-trips TokenSet through cache', function () {
     expect($loaded->expiresAt->getTimestamp())->toBe($token->expiresAt->getTimestamp());
 });
 
-it('returns null when no token has been saved for the connection', function () {
+it('保存されていないコネクション名で find すると null を返す', function () {
     $repo = new CacheTokenRepository(Cache::store());
 
     expect($repo->find('never-saved'))->toBeNull();
