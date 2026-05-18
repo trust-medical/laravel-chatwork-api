@@ -46,7 +46,14 @@ class ChatworkRequestException extends RuntimeException
         string $message = '',
     ) {
         parent::__construct(
-            $message !== '' ? $message : sprintf('Chatwork API request failed: %s %s (%d)', $method, $path, $status),
+            $message !== ''
+                ? $message
+                : sprintf(
+                    'Chatwork API request failed: %s %s (%d)',
+                    $method,
+                    explode('?', $path, 2)[0],
+                    $status,
+                ),
         );
 
         $this->redactedBody = self::redactBody($body);
@@ -162,14 +169,82 @@ class ChatworkRequestException extends RuntimeException
         return $this->rateLimit;
     }
 
+    /**
+     * 値をマスクするキー（大文字小文字を無視して完全一致）。
+     * `error` / `error_description` / `errors` / `scope` / `grant_type` は
+     * デバッグに有用で秘密ではないため意図的に除外する。
+     *
+     * @var list<string>
+     */
+    private const REDACT_KEYS = [
+        'access_token',
+        'refresh_token',
+        'client_secret',
+        'client_id',
+        'code',
+        'token',
+        'authorization',
+        'password',
+    ];
+
     private static function redactBody(string $body): string
     {
-        $redacted = preg_replace(
-            '/"(access_token|refresh_token|client_secret)"\s*:\s*"[^"]*"/',
+        if ($body === '') {
+            return $body;
+        }
+
+        $decoded = json_decode($body, associative: true);
+        if (is_array($decoded)) {
+            $encoded = json_encode(
+                self::redactArray($decoded),
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+            );
+            if ($encoded !== false) {
+                return $encoded;
+            }
+        }
+
+        return self::redactNonJson($body);
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $data
+     * @return array<array-key, mixed>
+     */
+    private static function redactArray(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = self::redactArray($value);
+
+                continue;
+            }
+
+            if (is_string($key) && in_array(strtolower($key), self::REDACT_KEYS, true)) {
+                $data[$key] = '***';
+            }
+        }
+
+        return $data;
+    }
+
+    private static function redactNonJson(string $body): string
+    {
+        $keys = implode('|', array_map(
+            static fn (string $k): string => preg_quote($k, '/'),
+            self::REDACT_KEYS,
+        ));
+
+        $body = preg_replace(
+            '/"(' . $keys . ')"\s*:\s*"[^"]*"/i',
             '"$1":"***"',
             $body,
-        );
+        ) ?? $body;
 
-        return $redacted ?? $body;
+        return preg_replace(
+            '/(^|&)(' . $keys . ')=[^&]*/i',
+            '$1$2=***',
+            $body,
+        ) ?? $body;
     }
 }

@@ -99,6 +99,91 @@ it('ボディから access_token / refresh_token / client_secret をマスクす
     expect(str_contains($body, 'cs-secret'))->toBeFalse();
 });
 
+it('追加のセンシティブ JSON キー (token/authorization/code/client_id/password) をマスクする', function () {
+    $exception = new ChatworkRequestException(
+        status: 400,
+        method: 'POST',
+        path: '/token',
+        operationId: 'issueOAuthToken',
+        body: '{"token":"tk-leak","authorization":"Bearer bl-leak","code":"cd-leak","client_id":"ci-leak","password":"pw-leak","scope":"all"}',
+    );
+
+    $body = $exception->body();
+
+    expect($body)
+        ->toContain('"token":"***"')
+        ->toContain('"authorization":"***"')
+        ->toContain('"code":"***"')
+        ->toContain('"client_id":"***"')
+        ->toContain('"password":"***"')
+        ->toContain('"scope":"all"');
+
+    foreach (['tk-leak', 'bl-leak', 'cd-leak', 'ci-leak', 'pw-leak'] as $secret) {
+        expect(str_contains($body, $secret))->toBeFalse();
+    }
+});
+
+it('ネストしたオブジェクト内のトークンも再帰的にマスクする', function () {
+    $exception = new ChatworkRequestException(
+        status: 400,
+        method: 'POST',
+        path: '/token',
+        operationId: 'issueOAuthToken',
+        body: '{"meta":{"inner":{"access_token":"deep-leak"}},"ok":true}',
+    );
+
+    $body = $exception->body();
+
+    expect($body)->toContain('"access_token":"***"')
+        ->toContain('"ok":true');
+    expect(str_contains($body, 'deep-leak'))->toBeFalse();
+});
+
+it('form-urlencoded ボディの秘密値をマスクし非秘密パラメータは保持する', function () {
+    $exception = new ChatworkRequestException(
+        status: 400,
+        method: 'POST',
+        path: '/token',
+        operationId: 'issueOAuthToken',
+        body: 'grant_type=authorization_code&client_secret=super-secret-form-value&scope=all',
+    );
+
+    $body = $exception->body();
+
+    expect($body)
+        ->toContain('client_secret=***')
+        ->toContain('grant_type=authorization_code')
+        ->toContain('scope=all');
+    expect(str_contains($body, 'super-secret-form-value'))->toBeFalse();
+});
+
+it('JSON 値に含まれる = は form パターンで破壊されない', function () {
+    $exception = new ChatworkRequestException(
+        status: 400,
+        method: 'POST',
+        path: '/rooms/1/messages',
+        operationId: 'createRoomMessage',
+        body: '{"note":"a=b=c","scope":"all"}',
+    );
+
+    expect($exception->body())->toBe('{"note":"a=b=c","scope":"all"}');
+});
+
+it('redaction はエラー本文の生パースに影響しない (errors / error は不変)', function () {
+    $exception = new ChatworkRequestException(
+        status: 400,
+        method: 'POST',
+        path: '/rooms/1/messages',
+        operationId: 'createRoomMessage',
+        body: '{"errors":["body is required"],"access_token":"leak-xyz"}',
+    );
+
+    expect($exception->errors())->toBe(['body is required'])
+        ->and($exception->error())->toBeNull()
+        ->and($exception->body())->toContain('"access_token":"***"');
+    expect(str_contains($exception->body(), 'leak-xyz'))->toBeFalse();
+});
+
 it('fromResponse() で Illuminate Response からインスタンスを構築しレートリミットヘッダーを取り出す', function () {
     Http::fake([
         'https://api.chatwork.com/v2/rooms/123/messages' => Http::response(
