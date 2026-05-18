@@ -12,4 +12,4 @@ namespace TrustMedical\LaravelChatworkApi\Exceptions;
  * またはルートを決定できない場合に送出される。親クラスと同様に送信前の失敗であり、
  * 設定された戻り値モードに関わらず常にスローされる。
  */
-class ChatworkRoutingException extends ChatworkValidationException {}
+final class ChatworkRoutingException extends ChatworkValidationException {}

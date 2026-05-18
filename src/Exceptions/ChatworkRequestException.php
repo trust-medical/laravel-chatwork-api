@@ -19,7 +19,7 @@ use RuntimeException;
  * 保持するボディはアクセストークン・リフレッシュトークン・クライアントシークレットを
  * マスクした状態で保存する。
  */
-class ChatworkRequestException extends RuntimeException
+final class ChatworkRequestException extends RuntimeException
 {
     /** @var list<string> */
     private array $errors = [];
