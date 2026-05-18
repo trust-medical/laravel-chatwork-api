@@ -17,8 +17,8 @@ final class ChatworkRoute
 {
     private function __construct(
         private readonly int|string $roomId,
-        private ?string $connectionName = null,
-        private ?Connection $connection = null,
+        private readonly ?string $connectionName = null,
+        private readonly ?Connection $connection = null,
     ) {}
 
     public static function room(int|string $roomId): self
