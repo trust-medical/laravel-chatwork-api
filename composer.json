@@ -19,7 +19,8 @@
     "homepage": "https://github.com/trust-medical/laravel-chatwork-api",
     "support": {
         "issues": "https://github.com/trust-medical/laravel-chatwork-api/issues",
-        "source": "https://github.com/trust-medical/laravel-chatwork-api"
+        "source": "https://github.com/trust-medical/laravel-chatwork-api",
+        "security": "https://github.com/trust-medical/laravel-chatwork-api/security/policy"
     },
     "require": {
         "php": "^8.3",
