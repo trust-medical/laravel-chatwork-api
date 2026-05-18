@@ -7,6 +7,7 @@ namespace TrustMedical\LaravelChatworkApi\Auth\OAuth;
 use Illuminate\Support\Facades\Http;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
+use TrustMedical\LaravelChatworkApi\Http\UserAgent;
 
 /**
  * OAuth2 認可コードクライアント: 認可 URL の構築、トークンエンドポイントへの
@@ -56,7 +57,7 @@ final class OAuthClient
             $query['scope'] = implode(' ', $scopes);
         }
 
-        return $this->configString('authorization_url') . '?' . http_build_query($query);
+        return $this->configUrl('authorization_url') . '?' . http_build_query($query);
     }
 
     /**
@@ -107,9 +108,10 @@ final class OAuthClient
      */
     private function postToken(array $params): TokenSet
     {
-        $tokenUrl = $this->configString('token_url');
+        $tokenUrl = $this->configUrl('token_url');
 
         $response = Http::asForm()
+            ->withHeaders(['User-Agent' => UserAgent::string()])
             ->timeout($this->timeoutSeconds())
             ->post($tokenUrl, $params);
 
@@ -155,6 +157,23 @@ final class OAuthClient
         $value = $this->config[$key] ?? null;
         if (! is_string($value) || $value === '') {
             throw new \RuntimeException(sprintf('chatwork.oauth.%s is not configured.', $key));
+        }
+
+        return $value;
+    }
+
+    /**
+     * URL 設定値を取得し http(s) スキームを強制する。
+     * 設定経由の file:// / gopher:// 等による SSRF を防ぐ。
+     */
+    private function configUrl(string $key): string
+    {
+        $value = $this->configString($key);
+        $scheme = strtolower((string) parse_url($value, PHP_URL_SCHEME));
+        if ($scheme !== 'http' && $scheme !== 'https') {
+            throw new \RuntimeException(
+                sprintf('chatwork.oauth.%s must use the http or https scheme.', $key),
+            );
         }
 
         return $value;
