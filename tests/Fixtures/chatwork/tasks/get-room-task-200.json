@@ -1,0 +1,18 @@
+{
+    "task_id": 99,
+    "account": {
+        "account_id": 123,
+        "name": "Alice",
+        "avatar_image_url": "https://example.com/avatar/123.png"
+    },
+    "assigned_by_account": {
+        "account_id": 456,
+        "name": "Bob",
+        "avatar_image_url": "https://example.com/avatar/456.png"
+    },
+    "message_id": "13",
+    "body": "Buy milk",
+    "limit_time": 1735707600,
+    "status": "open",
+    "limit_type": "time"
+}
