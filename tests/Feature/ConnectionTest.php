@@ -41,10 +41,6 @@ it('config からデフォルト接続を解決する (P1-T04)', function () {
 
     expect($conn->name)->toBe('default')
         ->and($conn->credentials)->toBeInstanceOf(ApiTokenCredentials::class);
-
-    /** @var ApiTokenCredentials $creds */
-    $creds = $conn->credentials;
-    expect($creds->token)->toBe('default-token');
 });
 
 it('config から名前付き bearer 接続を解決する (P1-T05)', function () {
@@ -57,10 +53,6 @@ it('config から名前付き bearer 接続を解決する (P1-T05)', function (
 
     expect($conn->name)->toBe('sales')
         ->and($conn->credentials)->toBeInstanceOf(BearerTokenCredentials::class);
-
-    /** @var BearerTokenCredentials $creds */
-    $creds = $conn->credentials;
-    expect($creds->token)->toBe('sales-bearer');
 });
 
 it('forConnection 経由で Connection 値オブジェクトを受け付ける (P1-T06)', function () {

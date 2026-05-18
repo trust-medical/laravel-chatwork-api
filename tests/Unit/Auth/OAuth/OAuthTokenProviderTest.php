@@ -37,6 +37,8 @@ function provider(InMemoryTokenRepository $repo, int $leeway = 60): OAuthTokenPr
 }
 
 it('有効期限内のトークンが保存済みの場合は BearerTokenCredentials を返す', function () {
+    Http::fake(['api.chatwork.com/*' => Http::response([], 200)]);
+
     $repo = new InMemoryTokenRepository();
     $repo->save(new TokenSet(
         accessToken: 'fresh-access',
@@ -47,13 +49,15 @@ it('有効期限内のトークンが保存済みの場合は BearerTokenCredent
     $credentials = provider($repo)->credentials();
 
     expect($credentials)->toBeInstanceOf(BearerTokenCredentials::class);
-    /** @var BearerTokenCredentials $credentials */
-    expect($credentials->token)->toBe('fresh-access');
+
+    $credentials->applyTo(Http::baseUrl('https://api.chatwork.com/v2'))->get('/me');
+    Http::assertSent(fn ($r) => $r->hasHeader('Authorization', 'Bearer fresh-access'));
 });
 
 it('保存済みトークンが expiresAt を過ぎている場合はリフレッシュする', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
+        'api.chatwork.com/*' => Http::response([], 200),
     ]);
 
     $repo = new InMemoryTokenRepository();
@@ -66,9 +70,10 @@ it('保存済みトークンが expiresAt を過ぎている場合はリフレ�
     $credentials = provider($repo, leeway: 0)->credentials();
 
     expect($credentials)->toBeInstanceOf(BearerTokenCredentials::class);
-    /** @var BearerTokenCredentials $credentials */
-    expect($credentials->token)->toBe('sample-access-token');
-    Http::assertSent(fn ($r) => $r['grant_type'] === 'refresh_token');
+
+    $credentials->applyTo(Http::baseUrl('https://api.chatwork.com/v2'))->get('/me');
+    Http::assertSent(fn ($r) => $r->hasHeader('Authorization', 'Bearer sample-access-token'));
+    Http::assertSent(fn ($r) => ($r['grant_type'] ?? null) === 'refresh_token');
 });
 
 it('保存済みトークンが leeway ウィンドウ内にある場合もリフレッシュする', function () {

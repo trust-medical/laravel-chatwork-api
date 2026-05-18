@@ -55,3 +55,25 @@ it('BearerTokenCredentials は x-chatworktoken ヘッダーを付与しない', 
 
     Http::assertSent(fn (Request $r) => ! $r->hasHeader('x-chatworktoken'));
 });
+
+it('ApiTokenCredentials は var_dump でトークンを露出しない', function () {
+    $credentials = new ApiTokenCredentials('secret-api-token-value');
+
+    ob_start();
+    var_dump($credentials);
+    $dump = (string) ob_get_clean();
+
+    expect($dump)->not->toContain('secret-api-token-value')
+        ->and($dump)->toContain('***redacted***');
+});
+
+it('BearerTokenCredentials は var_dump でトークンを露出しない', function () {
+    $credentials = new BearerTokenCredentials('secret-bearer-token-value');
+
+    ob_start();
+    var_dump($credentials);
+    $dump = (string) ob_get_clean();
+
+    expect($dump)->not->toContain('secret-bearer-token-value')
+        ->and($dump)->toContain('***redacted***');
+});
