@@ -17,17 +17,18 @@ final class ChatworkChannel
     /**
      * 解決されたすべての Chatwork ルートに通知を送信する。
      *
-     * チャンネルは asResult() モード固定。4xx レスポンスは permanent failure:
-     * Result を ChatworkRequestException に変換して throw し、残りのルート処理を中断する。
-     * 5xx / 429 / ネットワークエラーはここでキャッチしない — queue retry を
-     * Laravel のキューワーカーに委譲するため、そのまま伝播させる。
+     * チャンネルは asResult() モード固定。失敗 Result（4xx / 5xx / 429）はいずれも
+     * ChatworkRequestException に変換して throw し、残りのルート処理を中断する。
+     * この throw 自体が queue retry のトリガー: transient な失敗（5xx / 429 /
+     * ネットワークエラー）は Laravel キューワーカーの retry ポリシーに委譲され、
+     * 4xx は実質 permanent failure として扱われる（再試行しても解消しない）。
      *
      * @param  object  $notifiable  通知対象。routeNotificationFor('chatwork', ...) を公開していてもよい
      * @param  Notification  $notification  toChatwork($notifiable): ChatworkMessage を定義しなければならない
      * @return array<int, Result> ルート順に並んだ、成功した Result の配列
      *
      * @throws ChatworkRoutingException toChatwork() が存在しない/無効な場合、またはルート競合/ルート未設定の場合
-     * @throws ChatworkRequestException 4xx の permanent failure の場合
+     * @throws ChatworkRequestException いずれかのルートが失敗 HTTP（4xx / 5xx / 429）を返した場合
      */
     public function send(object $notifiable, Notification $notification): array
     {
