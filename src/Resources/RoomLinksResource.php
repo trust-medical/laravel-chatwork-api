@@ -47,9 +47,6 @@ final class RoomLinksResource
 
     public function deleteLink(int $roomId): mixed
     {
-        // No request body. ChatworkClient::send's DELETE branch calls
-        // $pending->delete($path) when the payload is empty (no asForm()),
-        // and the response body is mapped to RoomLinkData.
         return $this->client->send(
             'DELETE',
             sprintf('/rooms/%d/link', $roomId),

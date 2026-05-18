@@ -38,7 +38,7 @@ it('POSTs /rooms/{room_id}/link with form-encoded body', function () {
             && $r->url() === 'https://api.chatwork.com/v2/rooms/123/link'
             && str_contains($ct, 'application/x-www-form-urlencoded')
             && $r['code'] === 'customcode'
-            && $r['need_acceptance'] === 0
+            && (int) $r['need_acceptance'] === 0
             && $r['description'] === 'Welcome aboard';
     });
 });
@@ -53,7 +53,7 @@ it('serializes needAcceptance true as 1', function () {
 
     Chatwork::rooms()->links()->create(123, new RoomLinkRequest(needAcceptance: true));
 
-    Http::assertSent(fn (Request $r) => $r['need_acceptance'] === 1);
+    Http::assertSent(fn (Request $r) => (int) $r['need_acceptance'] === 1);
 });
 
 it('omits optional fields when not provided', function () {

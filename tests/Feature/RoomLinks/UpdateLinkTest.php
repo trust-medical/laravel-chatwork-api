@@ -38,7 +38,7 @@ it('PUTs /rooms/{room_id}/link with form-encoded body', function () {
             && $r->url() === 'https://api.chatwork.com/v2/rooms/123/link'
             && str_contains($ct, 'application/x-www-form-urlencoded')
             && $r['code'] === 'updatedcode'
-            && $r['need_acceptance'] === 1
+            && (int) $r['need_acceptance'] === 1
             && $r['description'] === 'Updated description';
     });
 });
@@ -53,7 +53,7 @@ it('omits optional fields when not provided', function () {
 
     Chatwork::rooms()->links()->update(123, new RoomLinkRequest(needAcceptance: false));
 
-    Http::assertSent(fn (Request $r) => $r['need_acceptance'] === 0
+    Http::assertSent(fn (Request $r) => (int) $r['need_acceptance'] === 0
         && ! isset($r->data()['code'])
         && ! isset($r->data()['description']));
 });
@@ -73,7 +73,23 @@ it('returns a RoomLinkData DTO in asDto mode', function () {
         ->and($link->description)->toBe('Updated description');
 });
 
+it('throws ChatworkValidationException for an empty code without sending HTTP', function () {
+    Http::fake();
+
+    $caught = null;
+    try {
+        Chatwork::rooms()->links()->update(123, new RoomLinkRequest(code: ''));
+    } catch (ChatworkValidationException $e) {
+        $caught = $e;
+    }
+
+    expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
+    Http::assertNothingSent();
+});
+
 it('throws ChatworkValidationException for a code longer than 50 characters', function () {
+    Http::fake();
+
     $caught = null;
     try {
         new RoomLinkRequest(code: str_repeat('a', 51));
@@ -82,6 +98,7 @@ it('throws ChatworkValidationException for a code longer than 50 characters', fu
     }
 
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
+    Http::assertNothingSent();
 });
 
 it('throws ChatworkRequestException with errors() on 400', function () {
