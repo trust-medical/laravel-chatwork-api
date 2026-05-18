@@ -1,0 +1,26 @@
+[
+    {
+        "file_id": 101,
+        "account": {
+            "account_id": 123,
+            "name": "Alice",
+            "avatar_image_url": "https://example.com/avatar/123.png"
+        },
+        "message_id": "22",
+        "filename": "report.pdf",
+        "filesize": 2048,
+        "upload_time": 1735707600
+    },
+    {
+        "file_id": 102,
+        "account": {
+            "account_id": 456,
+            "name": "Bob",
+            "avatar_image_url": "https://example.com/avatar/456.png"
+        },
+        "message_id": "23",
+        "filename": "photo.jpg",
+        "filesize": 51200,
+        "upload_time": 1735711200
+    }
+]

@@ -1,0 +1,13 @@
+{
+    "file_id": 99,
+    "account": {
+        "account_id": 123,
+        "name": "Alice",
+        "avatar_image_url": "https://example.com/avatar/123.png"
+    },
+    "message_id": "22",
+    "filename": "report.pdf",
+    "filesize": 2048,
+    "upload_time": 1735707600,
+    "download_url": "https://download.chatwork.com/files/99?token=abc"
+}
