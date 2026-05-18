@@ -10,6 +10,17 @@
     ],
     "license": "MIT",
     "type": "library",
+    "authors": [
+        {
+            "name": "Trust Medical",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/trust-medical/laravel-chatwork-api",
+    "support": {
+        "issues": "https://github.com/trust-medical/laravel-chatwork-api/issues",
+        "source": "https://github.com/trust-medical/laravel-chatwork-api"
+    },
     "require": {
         "php": "^8.3",
         "illuminate/support": "^11.0 || ^12.0 || ^13.0",
