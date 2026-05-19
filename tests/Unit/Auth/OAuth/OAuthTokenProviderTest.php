@@ -33,6 +33,7 @@ function provider(InMemoryTokenRepository $repo, int $leeway = 60): OAuthTokenPr
         repository: $repo,
         oauth: new OAuthClient(new CacheStateStore(Cache::store()), (array) config('chatwork.oauth')),
         leewaySeconds: $leeway,
+        retryDelayMicroseconds: 0,
     );
 }
 
