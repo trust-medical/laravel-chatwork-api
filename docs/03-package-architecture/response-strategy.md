@@ -95,6 +95,22 @@ list 系で `asDto()` 時に Chatwork が 204 を返す場合は `[]` に縮退�
 `sendList()` / `upload()` は低レベル配管であり `@internal`（後方互換保証の対象外、
 公開 API は Resource 層を使う）。
 
+## 未知 enum 値の扱い（設計決定）
+
+Response DTO の `fromArray()` は **throw しない**不変条件を持つ（空・部分・壊れた
+レスポンスでも `TypeError` で落とさない）。この一貫性のため、enum フィールドが
+Chatwork の将来の API 拡張で未知の値を返した場合、`Enum::tryFrom(...) ?? 既定値`
+で安全な既定へ降格する（例: `RoomData::type` 未知値 → `RoomType::Group`、
+`RoomData::role` / `RoomMemberData::role` → `RoomRole::Member`、
+`RoomTaskData::status` / `MyTaskData::status` → `TaskStatus::Open`）。
+
+これは意図的な設計決定である。トレードオフとして、Chatwork が enum に新値を
+追加した際、利用側は降格された既定値を受け取り未知値の出現を検知できない。
+v1 ではこの「未知 enum 値は安全既定へ降格、検出は呼び出し側責務」ポリシーを
+恒久契約として固定する（生値を保持する補助プロパティは v1 公開 API 表面を
+最小に保つため導入しない）。未知値の検知が必要な利用者は `asArray()` /
+`asResponse()` で生レスポンスを参照すること。
+
 ## Validation Exception
 
 送信前バリデーションの失敗は戻り値モードに関係なく例外にする。
