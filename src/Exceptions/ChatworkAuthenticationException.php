@@ -15,4 +15,4 @@ use TrustMedical\LaravelChatworkApi\Auth\TokenProvider;
  * Chatwork 自体からの HTTP 401 レスポンスは本例外ではなく
  * {@see ChatworkRequestException} として表面化する。
  */
-final class ChatworkAuthenticationException extends RuntimeException {}
+final class ChatworkAuthenticationException extends RuntimeException implements ChatworkException {}
