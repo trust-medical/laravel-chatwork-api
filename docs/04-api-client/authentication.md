@@ -164,6 +164,8 @@ callback controllerは `TokenRepository` に保存処理を委譲する。
 
 > **CSRF と `web` ミドルウェアグループについて:** callback は `web` グループ配下に登録されるが、**`GET` ルート**であるため Laravel の `VerifyCsrfToken` は検証を行わない（CSRF トークン検証は `POST`/`PUT`/`PATCH`/`DELETE` のみ）。本エンドポイントの CSRF 防御は `web` グループそのものではなく、**単回使用 `state`**（`OAuthCallbackController` が `StateStore::pull()` で検証し、不正・消費済みは token endpoint に到達せず 400）が担う。したがって利用者側で本ルートに対する独自の CSRF except 設定や `web` グループからの除外を行う必要はない。
 
+> **`route_throttle` と `route:cache` の注意:** callback ルートには `oauth.route_throttle`（既定 `'10,1'`、`null`/空で無効）が `throttle` ミドルウェアとして付与され、`state`/`code` ブルートフォースを抑制する。形式不正値は ServiceProvider 起動時に `ChatworkConfigurationException`。ただしルート登録は `packageBooted()` のクロージャで行われるため、**`php artisan route:cache` 有効時はクロージャが実行されず callback ルートは登録されず、`route_throttle` の形式検証もスキップされる**（`registerOAuthRoutes()` の手動呼び出し時も同様）。`route:cache` 環境で OAuth callback を使う場合はアプリ側 routes ファイルへ明示登録し、throttle 適用を `route:list` 等で確認すること。
+
 ## 秘密情報の漏洩防止
 
 API token / client_secret / refresh_token がログ・例外・debug 情報に出ないようにする。

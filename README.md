@@ -386,6 +386,16 @@ callback ルートは**既定で無効**です（セキュリティのため）�
 
 > **トークンの暗号化:** 既定の `CacheTokenRepository` は access/refresh トークンを Laravel の `Encrypter`（`APP_KEY`）で暗号化してからキャッシュへ保存します。Redis / Memcached を直接参照されてもトークンは平文露出しません。`APP_KEY` 未設定だと `MissingAppKeyException` になります（通常の Laravel アプリでは設定済み）。`APP_KEY` をローテーションした場合、暗号化済みの既存トークンは復号できず「未保存」とみなされ、利用者は再認証が必要になります。独自の `TokenRepository` を使う場合は暗号化も自実装の責務です。
 
+### callback ルートの throttle
+
+`config/chatwork.php` の `oauth.route_throttle`（既定 `'10,1'` = 1分あたり10回）が callback ルートに `throttle` ミドルウェアとして適用され、`state` / `code` のブルートフォースを抑制します。`"max,decayMinutes"` 形式の文字列、または名前付き rate limiter 名を指定できます。`null` / 空文字で throttle を無効化します。形式不正値は ServiceProvider 起動時に `ChatworkConfigurationException` になります。
+
+### 独自 RouteServiceProvider からの手動登録
+
+`routes_enabled` を `false` のままにしつつ、任意の middleware / ドメイン / プレフィックス配下で callback ルートを登録したい場合は、`ChatworkServiceProvider::registerOAuthRoutes()` を独自の `RouteServiceProvider` から呼び出せます（意図的に `public`）。
+
+> **`route:cache` 利用時の注意:** OAuth callback ルートは `packageBooted()` 内のクロージャで登録されます。`php artisan route:cache` が有効な環境ではこのクロージャが実行されず、**callback ルートが登録されず**、また **`route_throttle` の形式検証も行われません**。`registerOAuthRoutes()` を独自 `RouteServiceProvider` から手動呼び出しする場合も `route:cache` 下では同様にスキップされます。`route:cache` を使う環境で OAuth callback を利用する場合は、ルートをアプリ側の実 routes ファイルに明示登録し、`route_throttle` の指定が実際に効いているか（`php artisan route:list` 等で）確認してください。
+
 ## テスト
 
 ```bash
