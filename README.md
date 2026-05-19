@@ -88,7 +88,7 @@ Chatwork::withApiToken($token)->me()->get();
 Chatwork::withBearerToken($oauthAccessToken)->me()->get();
 ```
 
-`connection()` / `withApiToken()` / `withBearerToken()` / `as*()` は新しい manager を返すイミュータブル設計のため、安全にチェーンできます。
+`connection()` / `withApiToken()` / `withBearerToken()` / `as*()` は新しい manager を返すイミュータブル設計のため、安全にチェーンできます。`ChatworkManager` はコンテナ singleton ですが、これらは共有インスタンスを mutate せず clone を返すため、**Laravel Octane / Swoole / キューワーカー等の常駐プロセスでもリクエスト間で connection・認証情報・戻り値モードが漏れません**。
 
 ## 戻り値モード
 

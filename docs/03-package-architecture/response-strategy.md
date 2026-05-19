@@ -200,3 +200,13 @@ Chatwork::asResult()->asArray()->rooms()->...; // asArray が有効
 
 config の `response.mode`（デフォルト `'dto'`）は ServiceProvider の `packageRegistered()`（register 段）で `'chatwork'` シングルトン生成時に `ResponseMode::fromConfig()` を介して Manager の初期 mode を設定するためだけに使う。無効な値は黙ってフォールバックせず `ChatworkConfigurationException` を投げる（fail-fast。送信前入力検証ではなく設定/配線エラーであるため）。
 
+## Octane / 常駐プロセス互換
+
+`ChatworkManager` はコンテナ singleton としてバインドされるが、`connection()` /
+`forConnection()` / `withApiToken()` / `withBearerToken()` / `asArray()`〜`asResult()` の
+すべてが `clone` した新インスタンスを返し、共有 singleton を mutate しない。したがって
+Laravel Octane / Swoole / キューワーカー等の常駐プロセスでもリクエスト間で connection・
+認証情報・戻り値モードが漏れない。この不変条件は
+`tests/Feature/ChatworkManagerImmutabilityTest.php` で回帰固定しており、将来 mutate する
+with 系メソッドが追加された場合はテスト失敗として検出される（観測困難なサイレント BC の防止）。
+
