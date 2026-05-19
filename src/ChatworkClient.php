@@ -105,6 +105,34 @@ final class ChatworkClient
     }
 
     /**
+     * リスト系エンドポイント共通の戻り値処理。Dto モードのときだけ
+     * Collection モードで取得して配列に展開し、それ以外は素の send に委譲する。
+     *
+     * 各リソースの list メソッドに散在していた同一の Dto アンラップを集約する。
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  class-string<MapsFromArray>  $dtoClass
+     *
+     * @throws InvalidArgumentException $method がサポートされていない HTTP メソッドの場合。
+     * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
+     */
+    public function sendList(
+        string $method,
+        string $path,
+        array $payload,
+        string $dtoClass,
+        ?string $operationId = null,
+    ): mixed {
+        if ($this->mode === ResponseMode::Dto) {
+            return $this->withMode(ResponseMode::Collection)
+                ->send($method, $path, $payload, $dtoClass, $operationId)
+                ->all();
+        }
+
+        return $this->send($method, $path, $payload, $dtoClass, $operationId);
+    }
+
+    /**
      * マルチパートファイルアップロード。attach() がマルチパートボディ形式を強制するのに対して、
      * 他の書き込みはすべて asForm() を経由するため、send() と分離している。
      *

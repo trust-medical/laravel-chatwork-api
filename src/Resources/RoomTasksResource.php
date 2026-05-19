@@ -9,7 +9,6 @@ use TrustMedical\LaravelChatworkApi\Data\Requests\CreateRoomTaskRequest;
 use TrustMedical\LaravelChatworkApi\Data\Requests\UpdateRoomTaskStatusRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedTask;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomTaskData;
-use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Enums\TaskStatus;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
@@ -45,25 +44,13 @@ final class RoomTasksResource
             $query['status'] = $status->value;
         }
 
-        $path = sprintf('/rooms/%d/tasks', $roomId);
-
-        // ResponseMode::Dto はパッケージのデフォルトだが、ワイヤー形式はタスクの配列なので、
-        // 内部的に Collection モード経由で送信してアンラップする。
-        // 他のモード (Collection / Array / Response / PsrResponse / Result) は
-        // ChatworkClient::send をそのまま通過する。
-        if ($this->client->mode() === ResponseMode::Dto) {
-            $collection = $this->client->withMode(ResponseMode::Collection)->send(
-                'GET',
-                $path,
-                $query,
-                RoomTaskData::class,
-                'listRoomTasks',
-            );
-
-            return $collection->all();
-        }
-
-        return $this->client->send('GET', $path, $query, RoomTaskData::class, 'listRoomTasks');
+        return $this->client->sendList(
+            'GET',
+            sprintf('/rooms/%d/tasks', $roomId),
+            $query,
+            RoomTaskData::class,
+            'listRoomTasks',
+        );
     }
 
     /**

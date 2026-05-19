@@ -8,7 +8,6 @@ use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\ReplaceRoomMembersRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\ReplacedRoomMembers;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomMemberData;
-use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
@@ -28,25 +27,13 @@ final class RoomMembersResource
      */
     public function list(int $roomId): mixed
     {
-        $path = sprintf('/rooms/%d/members', $roomId);
-
-        // ResponseMode::Dto はパッケージのデフォルトだが、ワイヤー形式はメンバーの配列なので、
-        // 内部的に Collection モード経由で送信してアンラップする。
-        // 他のモード (Collection / Array / Response / PsrResponse / Result) は
-        // ChatworkClient::send をそのまま通過する。
-        if ($this->client->mode() === ResponseMode::Dto) {
-            $collection = $this->client->withMode(ResponseMode::Collection)->send(
-                'GET',
-                $path,
-                [],
-                RoomMemberData::class,
-                'listRoomMembers',
-            );
-
-            return $collection->all();
-        }
-
-        return $this->client->send('GET', $path, [], RoomMemberData::class, 'listRoomMembers');
+        return $this->client->sendList(
+            'GET',
+            sprintf('/rooms/%d/members', $roomId),
+            [],
+            RoomMemberData::class,
+            'listRoomMembers',
+        );
     }
 
     /**

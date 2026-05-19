@@ -7,7 +7,6 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MyStatusData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MyTaskData;
-use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Enums\TaskStatus;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
@@ -45,24 +44,6 @@ final class MyResource
             $query['status'] = $status->value;
         }
 
-        $path = '/my/tasks';
-
-        // ResponseMode::Dto はパッケージのデフォルトだが、ワイヤー形状が
-        // 配列のため、内部的に Collection モード経由でルーティングして
-        // アンラップする。このパスにより仕様上の 204 空ボディも [] に縮退する。
-        // 他のモードは ChatworkClient::send をそのまま通す。
-        if ($this->client->mode() === ResponseMode::Dto) {
-            $collection = $this->client->withMode(ResponseMode::Collection)->send(
-                'GET',
-                $path,
-                $query,
-                MyTaskData::class,
-                'listMyTasks',
-            );
-
-            return $collection->all();
-        }
-
-        return $this->client->send('GET', $path, $query, MyTaskData::class, 'listMyTasks');
+        return $this->client->sendList('GET', '/my/tasks', $query, MyTaskData::class, 'listMyTasks');
     }
 }
