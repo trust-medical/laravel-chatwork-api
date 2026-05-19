@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
-use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkConfigurationException;
 
 it('設定ファイルの文字列値をパースできる', function () {
     expect(ResponseMode::from('dto'))->toBe(ResponseMode::Dto)
@@ -34,14 +34,15 @@ it('fromConfig は有効な設定文字列を ResponseMode に解決する', fun
     ['result', ResponseMode::Result],
 ]);
 
-it('fromConfig は無効な設定値で ChatworkValidationException をスローする', function () {
+it('fromConfig は無効な設定値で ChatworkConfigurationException をスローする', function () {
     $caught = null;
     try {
         ResponseMode::fromConfig('bogus');
-    } catch (ChatworkValidationException $e) {
+    } catch (ChatworkConfigurationException $e) {
         $caught = $e;
     }
 
-    expect($caught)->toBeInstanceOf(ChatworkValidationException::class)
-        ->and($caught?->violations())->toHaveKey('chatwork.response.mode');
+    expect($caught)->toBeInstanceOf(ChatworkConfigurationException::class)
+        ->and($caught?->getMessage())->toContain("chatwork.response.mode 'bogus'")
+        ->and($caught?->getMessage())->toContain('array, dto, collection, response, psr_response, result');
 });
