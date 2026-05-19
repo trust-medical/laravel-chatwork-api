@@ -122,4 +122,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - URL パス・通知ルートへ渡る ID（`message_id` / `room_id`）を送信前に厳格
   検証し、パスインジェクション・誤ルーム送信の余地を排除。
 
+### Documentation
+
+- OAuth callback が `web` グループ配下でも GET ルートのため Laravel の CSRF
+  検証対象外であり、防御の実体は単回使用 `state` である旨を
+  `docs/04-api-client/authentication.md` と `registerOAuthRoutes()` に明文化
+  （利用者が不要な独自 CSRF except / `web` 除外を設定するのを防ぐ）。
+- `ChatworkMessage::escape()` に `@see self::plain()` を付与（IDE 参照補強）。
+- `RoomData::fromArray()` の未知 `type`/`role` フォールバックに、`MyTaskData` /
+  `RoomTaskData` と整合するコメントを付与（フォールバック地点に置く既存規約に追従）。
+- `withMode` の層非対称性（`ChatworkManager` は可変ゆえ clone+mutate で
+  `private`、`ChatworkClient` は不変コラボレータ再構築ゆえ `public`）を docblock 化。
+- レビュー指摘を精査し、以下は **評価のうえ意図的にコード変更しない**ことを記録:
+  - `Route::getRoutes()->refreshNameLookups()` は冗長ではなく load-bearing
+    （`->name()` が `RouteCollection::add()` の後に走り `addLookups()` が
+    nameList へ登録しないため明示再構築が必須）。削除せず理由をコメント化。
+  - `TokenSet::toArray()` に `@internal` は付与しない（`TokenRepository` 公開
+    拡張点の正規シリアライズであり、静的解析が正当な拡張を誤検出するため）。
+    使用契約 docblock を強化し平文露出は `__debugInfo()` マスキングで防止。
+  - `OAuthTokenProvider` 例外文の connection 名は秘匿/ハッシュ化しない
+    （非秘匿の config 識別子であり、どの connection で失敗したかの可観測性を
+    優先。storage キーは別脅威面のため既に SHA-256 化済み）。
+  - `UpdateRoomTaskStatusRequest::toArray()` の `body` がタスクステータス
+    （メッセージ本文ではない）である旨はクラス docblock で充足済みのため
+    重複コメントを追加しない（説明コメント禁止の規約に従う）。
+
 [Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/commits/main
