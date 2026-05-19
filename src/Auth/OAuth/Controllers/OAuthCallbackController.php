@@ -21,6 +21,11 @@ final class OAuthCallbackController
 {
     private const MAX_CODE_LENGTH = 1024;
 
+    // state は本パッケージが生成する短い乱数トークン。code(1024) より厳しい上限を
+    // 設け、route_throttle=null 設定時でも巨大 state による無駄なハッシュ/キャッシュ
+    // 照会を pull() 到達前に短絡させる（深層防御）。
+    private const MAX_STATE_LENGTH = 512;
+
     public function __construct(
         private readonly StateStore $stateStore,
         private readonly OAuthClient $oauthClient,
@@ -46,7 +51,7 @@ final class OAuthCallbackController
         }
 
         $state = (string) $request->query('state', '');
-        if ($state === '') {
+        if ($state === '' || strlen($state) > self::MAX_STATE_LENGTH) {
             return $this->errorResponse(400, 'invalid_state');
         }
 

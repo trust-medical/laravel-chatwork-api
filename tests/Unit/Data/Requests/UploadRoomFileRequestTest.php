@@ -16,6 +16,31 @@ it('存在しないパスを拒否する', function () {
     expect($caught)->toBeInstanceOf(ChatworkValidationException::class);
 });
 
+it('URL パスを拒否する（SSRF 抑止）', function () {
+    $caught = null;
+    try {
+        new UploadRoomFileRequest(path: 'http://169.254.169.254/latest/meta-data/');
+    } catch (ChatworkValidationException $e) {
+        $caught = $e;
+    }
+
+    expect($caught)->toBeInstanceOf(ChatworkValidationException::class)
+        ->and($caught?->getMessage())->toContain('URL or stream wrapper')
+        ->and($caught?->violations())->toHaveKey('file');
+});
+
+it('ストリームラッパーパスを拒否する', function (string $wrapper) {
+    $caught = null;
+    try {
+        new UploadRoomFileRequest(path: $wrapper);
+    } catch (ChatworkValidationException $e) {
+        $caught = $e;
+    }
+
+    expect($caught)->toBeInstanceOf(ChatworkValidationException::class)
+        ->and($caught?->getMessage())->toContain('URL or stream wrapper');
+})->with(['php://temp', 'php://input', 'phar:///tmp/x.phar/payload', 'data://text/plain;base64,QQ==']);
+
 it('空（0 バイト）のファイルを拒否する', function () {
     $path = tempUploadFile('');
 

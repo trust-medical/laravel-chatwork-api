@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MyAccountData;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkConfigurationException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
-use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
 
 it('config の response.mode が singleton manager の既定モードに反映される', function () {
@@ -32,19 +32,19 @@ it('config の response.mode=array が API 呼び出しの既定戻り値に伝�
         ->and($result)->not->toBeInstanceOf(MyAccountData::class);
 });
 
-it('無効な config の response.mode は解決時に ChatworkValidationException をスローする', function () {
+it('無効な config の response.mode は解決時に ChatworkConfigurationException をスローする', function () {
     config()->set('chatwork.response.mode', 'totally-invalid');
     app()->forgetInstance('chatwork');
 
     $caught = null;
     try {
         app('chatwork');
-    } catch (ChatworkValidationException $e) {
+    } catch (ChatworkConfigurationException $e) {
         $caught = $e;
     }
 
-    expect($caught)->toBeInstanceOf(ChatworkValidationException::class)
-        ->and($caught?->violations())->toHaveKey('chatwork.response.mode');
+    expect($caught)->toBeInstanceOf(ChatworkConfigurationException::class)
+        ->and($caught?->getMessage())->toContain("chatwork.response.mode 'totally-invalid'");
 });
 
 it('通知送信は config の既定モードに漏れず asResult 固定で 4xx を例外化する', function () {

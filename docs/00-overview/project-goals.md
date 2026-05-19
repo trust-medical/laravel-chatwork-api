@@ -14,7 +14,7 @@ Chatwork::rooms()->messages()->create($roomId, '本文');
 ```
 
 ```php
-app(ChatworkClient::class)->createRoomMessage($roomId, '本文');
+app(ChatworkClient::class)->rooms()->messages()->create($roomId, '本文');
 ```
 
 ```php

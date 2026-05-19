@@ -179,6 +179,25 @@ it('安全制限を超える長さのcodeを拒否しtokenエンドポイント�
     Http::assertNothingSent();
 });
 
+it('安全制限を超える長さの state を拒否し StateStore を消費しない', function () {
+    Http::fake();
+
+    $store = new CacheStateStore(Cache::store());
+    $repo = new CacheTokenRepository(Cache::store(), testEncrypter());
+    $controller = buildController($store, $repo);
+
+    $longState = str_repeat('s', 513);
+    $store->put($longState, ['connection' => 'default', 'context' => []], 600);
+
+    $response = $controller(callbackRequest('state=' . $longState . '&code=auth-code'));
+
+    expect($response->getStatusCode())->toBe(400)
+        ->and((string) $response->getContent())->toContain('invalid_state');
+    Http::assertNothingSent();
+    // 長さガードは pull() より前で短絡するため state は未消費のまま残る。
+    expect($store->pull($longState))->not->toBeNull();
+});
+
 it('どの分岐でもResponse (Symfony) を返す', function () {
     Http::fake();
 

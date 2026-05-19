@@ -44,7 +44,7 @@ CHATWORK_API_TOKEN=your-api-token
 | `default` | `default` | 使用する connection 名（`CHATWORK_CONNECTION`） |
 | `base_uri` | `https://api.chatwork.com/v2` | API ベース URI |
 | `timeout` | `10` | リクエストタイムアウト秒 |
-| `response.mode` | `dto` | 既定の戻り値モード（`CHATWORK_RESPONSE_MODE`。無効値は `ChatworkValidationException`） |
+| `response.mode` | `dto` | 既定の戻り値モード（`CHATWORK_RESPONSE_MODE`。無効値は `ChatworkConfigurationException`） |
 | `connections` | API Token connection 1件 | 複数 connection 定義可 |
 | `oauth` | — | OAuth2 設定（後述） |
 | `oauth.timeout` | `10` | OAuth トークン要求のタイムアウト秒（`CHATWORK_OAUTH_TIMEOUT`） |
@@ -88,7 +88,7 @@ Chatwork::withApiToken($token)->me()->get();
 Chatwork::withBearerToken($oauthAccessToken)->me()->get();
 ```
 
-`connection()` / `withApiToken()` / `withBearerToken()` / `as*()` は新しい manager を返すイミュータブル設計のため、安全にチェーンできます。
+`connection()` / `withApiToken()` / `withBearerToken()` / `as*()` は新しい manager を返すイミュータブル設計のため、安全にチェーンできます。`ChatworkManager` はコンテナ singleton ですが、これらは共有インスタンスを mutate せず clone を返すため、**Laravel Octane / Swoole / キューワーカー等の常駐プロセスでもリクエスト間で connection・認証情報・戻り値モードが漏れません**。
 
 ## 戻り値モード
 
@@ -385,6 +385,16 @@ callback ルートは**既定で無効**です（セキュリティのため）�
 > **本番環境の推奨:** 既定の `StateStore` / `TokenRepository` は Cache ストアを使います。`state` の一度きりの消費（リプレイ攻撃防止）には read-and-delete のアトミック性が必要なため、本番では `redis` または `database` キャッシュドライバを使用してください。`array` / `file` ドライバは read→delete が非アトミックで、同一 `state` の二重消費が理論上成立し得ます。永続トークンには独自の `TokenRepository`（例: DB 実装）を設定することを推奨します。
 
 > **トークンの暗号化:** 既定の `CacheTokenRepository` は access/refresh トークンを Laravel の `Encrypter`（`APP_KEY`）で暗号化してからキャッシュへ保存します。Redis / Memcached を直接参照されてもトークンは平文露出しません。`APP_KEY` 未設定だと `MissingAppKeyException` になります（通常の Laravel アプリでは設定済み）。`APP_KEY` をローテーションした場合、暗号化済みの既存トークンは復号できず「未保存」とみなされ、利用者は再認証が必要になります。独自の `TokenRepository` を使う場合は暗号化も自実装の責務です。
+
+### callback ルートの throttle
+
+`config/chatwork.php` の `oauth.route_throttle`（既定 `'10,1'` = 1分あたり10回）が callback ルートに `throttle` ミドルウェアとして適用され、`state` / `code` のブルートフォースを抑制します。`"max,decayMinutes"` 形式の文字列、または名前付き rate limiter 名を指定できます。`null` / 空文字で throttle を無効化します。形式不正値は ServiceProvider 起動時に `ChatworkConfigurationException` になります。
+
+### 独自 RouteServiceProvider からの手動登録
+
+`routes_enabled` を `false` のままにしつつ、任意の middleware / ドメイン / プレフィックス配下で callback ルートを登録したい場合は、`ChatworkServiceProvider::registerOAuthRoutes()` を独自の `RouteServiceProvider` から呼び出せます（意図的に `public`）。
+
+> **`route:cache` 利用時の注意:** OAuth callback ルートは `packageBooted()` 内のクロージャで登録されます。`php artisan route:cache` が有効な環境ではこのクロージャが実行されず、**callback ルートが登録されず**、また **`route_throttle` の形式検証も行われません**。`registerOAuthRoutes()` を独自 `RouteServiceProvider` から手動呼び出しする場合も `route:cache` 下では同様にスキップされます。`route:cache` を使う環境で OAuth callback を利用する場合は、ルートをアプリ側の実 routes ファイルに明示登録し、`route_throttle` の指定が実際に効いているか（`php artisan route:list` 等で）確認してください。
 
 ## テスト
 

@@ -32,8 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `config('chatwork.response.mode')` を `ChatworkManager` の既定戻り値モードへ実際に
-  配線。無効値は黙ってフォールバックせず `ChatworkValidationException` を投げる
-  （fail-fast）。それまで当該設定は無効だった。
+  配線。無効値は黙ってフォールバックせず `ChatworkConfigurationException` を投げる
+  （fail-fast。送信前入力検証ではなく設定/配線エラーであるため `ChatworkValidationException`
+  ではない）。それまで当該設定は無効だった。
 - `illuminate/cache` / `illuminate/contracts` / `illuminate/routing` を `require` に
   明示宣言（従来は推移的依存）。`extra.branch-alias`（`dev-main` → `1.0.x-dev`）を追加。
 - `composer-runtime-api`（`^2.0`）と `psr/http-message`（`^1.1 || ^2.0`）を `require`
