@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class RoomData
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+use TrustMedical\LaravelChatworkApi\Enums\RoomRole;
+use TrustMedical\LaravelChatworkApi\Enums\RoomType;
+
+final readonly class RoomData implements MapsFromArray
 {
     public function __construct(
         public int $roomId,
         public string $name,
-        public string $type,
-        public string $role,
+        public RoomType $type,
+        public RoomRole $role,
         public bool $sticky,
         public int $unreadNum,
         public int $mentionNum,
@@ -41,13 +45,13 @@ final readonly class RoomData
      *     description?: string
      * }  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             roomId: (int) ($data['room_id'] ?? 0),
             name: (string) ($data['name'] ?? ''),
-            type: (string) ($data['type'] ?? ''),
-            role: (string) ($data['role'] ?? ''),
+            type: RoomType::tryFrom((string) ($data['type'] ?? '')) ?? RoomType::Group,
+            role: RoomRole::tryFrom((string) ($data['role'] ?? '')) ?? RoomRole::Member,
             sticky: (bool) ($data['sticky'] ?? false),
             unreadNum: (int) ($data['unread_num'] ?? 0),
             mentionNum: (int) ($data['mention_num'] ?? 0),

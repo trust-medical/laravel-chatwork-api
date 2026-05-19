@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Notifications;
 
 use TrustMedical\LaravelChatworkApi\Data\Requests\CreateMessageRequest;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 /**
  * Chatwork メッセージのビルダー / DTO。
@@ -34,7 +35,6 @@ final class ChatworkMessage
         return new self();
     }
 
-    /** @return $this */
     public function body(string $text): self
     {
         $this->segments[] = $text;
@@ -42,7 +42,6 @@ final class ChatworkMessage
         return $this;
     }
 
-    /** @return $this */
     public function to(int $accountId): self
     {
         $this->segments[] = sprintf('[To:%d]', $accountId);
@@ -50,7 +49,6 @@ final class ChatworkMessage
         return $this;
     }
 
-    /** @return $this */
     public function info(string $title, string $body): self
     {
         $this->segments[] = sprintf('[info][title]%s[/title]%s[/info]', $title, $body);
@@ -58,7 +56,6 @@ final class ChatworkMessage
         return $this;
     }
 
-    /** @return $this */
     public function title(string $text): self
     {
         $this->segments[] = sprintf('[title]%s[/title]', $text);
@@ -66,7 +63,6 @@ final class ChatworkMessage
         return $this;
     }
 
-    /** @return $this */
     public function code(string $text): self
     {
         $this->segments[] = sprintf('[code]%s[/code]', $text);
@@ -74,7 +70,6 @@ final class ChatworkMessage
         return $this;
     }
 
-    /** @return $this */
     public function hr(): self
     {
         $this->segments[] = '[hr]';
@@ -85,8 +80,6 @@ final class ChatworkMessage
     /**
      * Chatwork タグの角括弧を全角文字に無害化してテキストを追加する。
      * 意図しないマークアップ / タグインジェクションを防止する。
-     *
-     * @return $this
      */
     public function plain(string $text): self
     {
@@ -97,15 +90,12 @@ final class ChatworkMessage
 
     /**
      * plain() のエイリアス: タグ無害化済みテキストを追加する。
-     *
-     * @return $this
      */
     public function escape(string $text): self
     {
         return $this->plain($text);
     }
 
-    /** @return $this */
     public function selfUnread(bool $value = true): self
     {
         $this->selfUnread = $value;
@@ -113,7 +103,6 @@ final class ChatworkMessage
         return $this;
     }
 
-    /** @return $this */
     public function toRoom(int|string $roomId): self
     {
         $this->targetRoomId = $roomId;
@@ -127,7 +116,14 @@ final class ChatworkMessage
     }
 
     /**
+     * 蓄積したセグメントを Chatwork メッセージ送信ペイロードへ変換する。
+     *
+     * 少なくとも 1 回 `body()` 系で本文を追加していること。本文が空のまま
+     * 呼ぶと送信前バリデーションで失敗する。
+     *
      * @return array{body: string, self_unread?: 0|1}
+     *
+     * @throws ChatworkValidationException 本文が空、または文字数上限を超える場合。
      */
     public function toPayload(): array
     {

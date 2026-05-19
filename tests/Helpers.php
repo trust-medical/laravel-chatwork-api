@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Illuminate\Contracts\Encryption\Encrypter;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkMessage;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkNotification;
 
@@ -79,6 +80,18 @@ if (! function_exists('chatworkNotification')) {
                 return $this->message;
             }
         };
+    }
+}
+
+if (! function_exists('testEncrypter')) {
+    /**
+     * CacheTokenRepository など Encrypter を要求するクラス用の決定的なテスト用 Encrypter。
+     * アプリの APP_KEY 設定に依存せず、save / find が同一インスタンスを使う限り
+     * ラウンドトリップが成立する。
+     */
+    function testEncrypter(): Encrypter
+    {
+        return new Illuminate\Encryption\Encrypter(str_repeat('k', 32), 'aes-256-cbc');
     }
 }
 

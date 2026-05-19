@@ -14,7 +14,6 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\MarkReadResult;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MarkUnreadResult;
 use TrustMedical\LaravelChatworkApi\Data\Responses\MessageData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedMessage;
-use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
@@ -60,25 +59,14 @@ final class RoomMessagesResource
     public function list(int $roomId, ?bool $force = null): mixed
     {
         $query = $force === true ? ['force' => 1] : [];
-        $path = sprintf('/rooms/%d/messages', $roomId);
 
-        // ResponseMode::Dto はパッケージのデフォルトだが、ワイヤー形式はメッセージの配列なので、
-        // 内部的に Collection モード経由で送信してアンラップする。
-        // 他のモード (Collection / Array / Response / PsrResponse / Result) は
-        // ChatworkClient::send をそのまま通過する。
-        if ($this->client->mode() === ResponseMode::Dto) {
-            $collection = $this->client->withMode(ResponseMode::Collection)->send(
-                'GET',
-                $path,
-                $query,
-                MessageData::class,
-                'listRoomMessages',
-            );
-
-            return $collection->all();
-        }
-
-        return $this->client->send('GET', $path, $query, MessageData::class, 'listRoomMessages');
+        return $this->client->sendList(
+            'GET',
+            sprintf('/rooms/%d/messages', $roomId),
+            $query,
+            MessageData::class,
+            'listRoomMessages',
+        );
     }
 
     /**

@@ -6,7 +6,6 @@ namespace TrustMedical\LaravelChatworkApi\Resources;
 
 use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Responses\ContactData;
-use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 /**
@@ -25,24 +24,6 @@ final class ContactsResource
      */
     public function list(): mixed
     {
-        $path = '/contacts';
-
-        // GET /contacts は 200 で array<Contact>、204 で空ボディを返す
-        // （仕様上 204 を宣言する唯一のリスト系エンドポイント）。
-        // Dto モードを Collection 経由でルーティングすることで、204 も []
-        // に正しく縮退する。他のモードは ChatworkClient::send をそのまま通す。
-        if ($this->client->mode() === ResponseMode::Dto) {
-            $collection = $this->client->withMode(ResponseMode::Collection)->send(
-                'GET',
-                $path,
-                [],
-                ContactData::class,
-                'listContacts',
-            );
-
-            return $collection->all();
-        }
-
-        return $this->client->send('GET', $path, [], ContactData::class, 'listContacts');
+        return $this->client->sendList('GET', '/contacts', [], ContactData::class, 'listContacts');
     }
 }

@@ -18,7 +18,13 @@ final class OAuthTokenProvider implements TokenProvider
 {
     private const LOCK_KEY_PREFIX = 'chatwork:oauth:refresh:';
 
-    private const LOCK_TTL_SECONDS = 10;
+    /**
+     * リフレッシュロックの保持上限。トークンエンドポイント応答が遅延しても
+     * ロック保持中に失効しないよう、OAuth `timeout`（既定 10 秒）の数倍を確保する。
+     * `chatwork.oauth.timeout` は必ずこの値より十分小さく設定すること。
+     * 同値以上だと二重 refresh により invalid_grant でリフレッシュトークンが失効しうる。
+     */
+    private const LOCK_TTL_SECONDS = 30;
 
     private const RETRY_DELAY_MICROSECONDS = 500_000;
 

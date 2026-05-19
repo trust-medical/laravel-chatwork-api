@@ -15,4 +15,6 @@ final class MessageBodyConstraints
     public const int BODY_MIN = 1;
 
     public const int BODY_MAX = 65535;
+
+    private function __construct() {}
 }

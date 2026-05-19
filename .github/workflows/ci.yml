@@ -60,7 +60,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2
-          coverage: none
+          coverage: pcov
       - name: Pin Laravel versions
         run: |
           composer require \
@@ -73,4 +73,4 @@ jobs:
             --no-update --no-interaction
       - name: Install dependencies
         run: composer update --${{ matrix.dependency-version }} --no-interaction --prefer-dist
-      - run: composer run test
+      - run: composer run test:coverage

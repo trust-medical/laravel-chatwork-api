@@ -32,6 +32,9 @@ return [
         'timeout' => env('CHATWORK_OAUTH_TIMEOUT', 10),
         'routes_enabled' => false,
         'route_prefix' => 'chatwork/oauth',
+        // callback ルートに付与する throttle ミドルウェア指定（"max,decayMinutes"）。
+        // null / 空文字で無効化。state/code ブルートフォースを抑制する。
+        'route_throttle' => '10,1',
         'redirect_after_callback' => null,
         'token_repository' => null,
         'state_store' => null,

@@ -8,6 +8,31 @@ use TrustMedical\LaravelChatworkApi\Connection;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
 use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
 
+it('var_dump 出力で credentials を再帰展開せず FQCN 文字列で表す (__debugInfo)', function () {
+    $conn = Connection::make('tenant-x', new ApiTokenCredentials('secret-token-value'));
+
+    ob_start();
+    var_dump($conn);
+    $dump = (string) ob_get_clean();
+
+    expect(str_contains($dump, 'secret-token-value'))->toBeFalse();
+    expect(str_contains($dump, 'object(' . ApiTokenCredentials::class . ')'))->toBeFalse();
+    expect($dump)
+        ->toContain('"' . ApiTokenCredentials::class . '"')
+        ->toContain('tenant-x')
+        ->toContain('https://api.chatwork.com/v2');
+});
+
+it('Connection::make は http(s) 以外の baseUri スキームを拒否する', function () {
+    Connection::make('x', new ApiTokenCredentials('t'), baseUri: 'file:///etc/passwd');
+})->throws(InvalidArgumentException::class);
+
+it('Connection::make は http スキームの baseUri を許可する', function () {
+    $conn = Connection::make('x', new ApiTokenCredentials('t'), baseUri: 'http://localhost:8080/v2');
+
+    expect($conn->baseUri)->toBe('http://localhost:8080/v2');
+});
+
 it('Connection::make はデフォルト値を持つ値オブジェクトを生成する', function () {
     $conn = Connection::make('tenant-1', new ApiTokenCredentials('t'));
 

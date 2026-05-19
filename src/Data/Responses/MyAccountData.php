@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class MyAccountData
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+
+final readonly class MyAccountData implements MapsFromArray
 {
     public function __construct(
         public int $accountId,
@@ -51,7 +53,7 @@ final readonly class MyAccountData
      *     login_mail?: string
      * }  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             accountId: (int) ($data['account_id'] ?? 0),

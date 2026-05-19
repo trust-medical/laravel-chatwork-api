@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
 use TrustMedical\LaravelChatworkApi\Enums\RoomRole;
 
-final readonly class RoomMemberData
+final readonly class RoomMemberData implements MapsFromArray
 {
     public function __construct(
         public int $accountId,
@@ -31,7 +32,7 @@ final readonly class RoomMemberData
      *     avatar_image_url?: string
      * }  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             accountId: (int) ($data['account_id'] ?? 0),

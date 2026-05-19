@@ -11,7 +11,6 @@ use TrustMedical\LaravelChatworkApi\Data\Responses\CreatedRoom;
 use TrustMedical\LaravelChatworkApi\Data\Responses\NoContentData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UpdatedRoom;
-use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 /**
@@ -30,24 +29,7 @@ final class RoomsResource
      */
     public function list(): mixed
     {
-        $path = '/rooms';
-
-        // Dto モードは Collection をアンラップして呼び出し元に array<RoomData> を返す。
-        // 他のモード (Collection / Array / Response / PsrResponse / Result) は
-        // ChatworkClient::send をそのまま通過する。
-        if ($this->client->mode() === ResponseMode::Dto) {
-            $collection = $this->client->withMode(ResponseMode::Collection)->send(
-                'GET',
-                $path,
-                [],
-                RoomData::class,
-                'listRooms',
-            );
-
-            return $collection->all();
-        }
-
-        return $this->client->send('GET', $path, [], RoomData::class, 'listRooms');
+        return $this->client->sendList('GET', '/rooms', [], RoomData::class, 'listRooms');
     }
 
     /**

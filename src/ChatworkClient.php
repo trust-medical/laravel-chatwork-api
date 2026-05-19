@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi;
 
 use InvalidArgumentException;
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
@@ -71,7 +72,7 @@ final class ChatworkClient
      * array、Collection、Laravel/PSR-7 response、または ChatworkResult — そのため `mixed`。
      *
      * @param  array<string, mixed>  $payload  POST/PUT/DELETE のフォームボディ、GET のクエリパラメータ
-     * @param  class-string|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
+     * @param  class-string<MapsFromArray>|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
      *
      * @throws InvalidArgumentException $method がサポートされていない HTTP メソッドの場合。
      * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
@@ -104,13 +105,41 @@ final class ChatworkClient
     }
 
     /**
+     * リスト系エンドポイント共通の戻り値処理。Dto モードのときだけ
+     * Collection モードで取得して配列に展開し、それ以外は素の send に委譲する。
+     *
+     * 各リソースの list メソッドに散在していた同一の Dto アンラップを集約する。
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  class-string<MapsFromArray>  $dtoClass
+     *
+     * @throws InvalidArgumentException $method がサポートされていない HTTP メソッドの場合。
+     * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
+     */
+    public function sendList(
+        string $method,
+        string $path,
+        array $payload,
+        string $dtoClass,
+        ?string $operationId = null,
+    ): mixed {
+        if ($this->mode === ResponseMode::Dto) {
+            return $this->withMode(ResponseMode::Collection)
+                ->send($method, $path, $payload, $dtoClass, $operationId)
+                ->all();
+        }
+
+        return $this->send($method, $path, $payload, $dtoClass, $operationId);
+    }
+
+    /**
      * マルチパートファイルアップロード。attach() がマルチパートボディ形式を強制するのに対して、
      * 他の書き込みはすべて asForm() を経由するため、send() と分離している。
      *
      * 具体的な戻り値の型は {@see ResponseMode} によって決まるため `mixed`。
      *
      * @param  array<string, scalar>  $fields  ファイル以外のマルチパートパーツ
-     * @param  class-string|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
+     * @param  class-string<MapsFromArray>|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
      *
      * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
      */

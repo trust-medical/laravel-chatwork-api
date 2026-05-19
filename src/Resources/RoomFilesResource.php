@@ -8,7 +8,6 @@ use TrustMedical\LaravelChatworkApi\ChatworkClient;
 use TrustMedical\LaravelChatworkApi\Data\Requests\UploadRoomFileRequest;
 use TrustMedical\LaravelChatworkApi\Data\Responses\RoomFileData;
 use TrustMedical\LaravelChatworkApi\Data\Responses\UploadedRoomFile;
-use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
@@ -30,25 +29,14 @@ final class RoomFilesResource
     public function list(int $roomId, ?int $accountId = null): mixed
     {
         $query = $accountId !== null ? ['account_id' => $accountId] : [];
-        $path = sprintf('/rooms/%d/files', $roomId);
 
-        // ResponseMode::Dto はパッケージのデフォルトだが、ワイヤー形状がファイルの
-        // 配列のため、内部的に Collection モード経由でルーティングしてアンラップする。
-        // 他のモード（Collection / Array / Response / PsrResponse / Result）は
-        // ChatworkClient::send をそのまま通す。
-        if ($this->client->mode() === ResponseMode::Dto) {
-            $collection = $this->client->withMode(ResponseMode::Collection)->send(
-                'GET',
-                $path,
-                $query,
-                RoomFileData::class,
-                'listRoomFiles',
-            );
-
-            return $collection->all();
-        }
-
-        return $this->client->send('GET', $path, $query, RoomFileData::class, 'listRoomFiles');
+        return $this->client->sendList(
+            'GET',
+            sprintf('/rooms/%d/files', $roomId),
+            $query,
+            RoomFileData::class,
+            'listRoomFiles',
+        );
     }
 
     /**

@@ -11,6 +11,10 @@ it('コンストラクタからボディを構築する', function () {
     expect($message->toPayload())->toBe(['body' => 'Hello']);
 });
 
+it('本文未設定のまま toPayload() を呼ぶと ChatworkValidationException', function () {
+    ChatworkMessage::make()->toPayload();
+})->throws(ChatworkValidationException::class);
+
 it('make()->body() でボディを構築する', function () {
     $message = ChatworkMessage::make()->body('Hello');
 

@@ -27,6 +27,46 @@ it('routes_enabledがtrueかつヘルパ呼び出し時にcallbackルートを�
     expect($route?->uri())->toBe('chatwork/oauth/callback');
 });
 
+it('既定でcallbackルートにthrottleミドルウェアを適用する', function () {
+    Config::set('chatwork.oauth.routes_enabled', true);
+
+    $provider = app()->getProvider(ChatworkServiceProvider::class);
+    expect($provider)->toBeInstanceOf(ChatworkServiceProvider::class);
+    /** @var ChatworkServiceProvider $provider */
+    $provider->registerOAuthRoutes();
+
+    $route = Route::getRoutes()->getByName('chatwork.oauth.callback');
+    expect($route?->middleware())->toContain('web')->toContain('throttle:10,1');
+});
+
+it('route_throttleがnullの場合はthrottleを適用しない', function () {
+    Config::set('chatwork.oauth.routes_enabled', true);
+    Config::set('chatwork.oauth.route_throttle', null);
+
+    $provider = app()->getProvider(ChatworkServiceProvider::class);
+    expect($provider)->toBeInstanceOf(ChatworkServiceProvider::class);
+    /** @var ChatworkServiceProvider $provider */
+    $provider->registerOAuthRoutes();
+
+    $route = Route::getRoutes()->getByName('chatwork.oauth.callback');
+    $hasThrottle = collect($route?->middleware() ?? [])
+        ->contains(fn (string $m): bool => str_starts_with($m, 'throttle'));
+    expect($hasThrottle)->toBeFalse();
+});
+
+it('カスタムroute_throttle値を反映する', function () {
+    Config::set('chatwork.oauth.routes_enabled', true);
+    Config::set('chatwork.oauth.route_throttle', '60,1');
+
+    $provider = app()->getProvider(ChatworkServiceProvider::class);
+    expect($provider)->toBeInstanceOf(ChatworkServiceProvider::class);
+    /** @var ChatworkServiceProvider $provider */
+    $provider->registerOAuthRoutes();
+
+    $route = Route::getRoutes()->getByName('chatwork.oauth.callback');
+    expect($route?->middleware())->toContain('throttle:60,1');
+});
+
 it('カスタムroute_prefixを反映する', function () {
     Config::set('chatwork.oauth.routes_enabled', true);
     Config::set('chatwork.oauth.route_prefix', 'auth/chatwork');

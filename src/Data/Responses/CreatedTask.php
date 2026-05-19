@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class CreatedTask
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+use TrustMedical\LaravelChatworkApi\Data\Responses\Concerns\ConvertsToIntList;
+
+final readonly class CreatedTask implements MapsFromArray
 {
+    use ConvertsToIntList;
+
     /**
      * @param  list<int>  $taskIds
      */
@@ -16,22 +21,10 @@ final readonly class CreatedTask
     /**
      * @param  array{task_ids?: list<int|string>}  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             taskIds: self::toIntList($data['task_ids'] ?? []),
         );
-    }
-
-    /**
-     * @return list<int>
-     */
-    private static function toIntList(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_map(static fn (mixed $id): int => (int) $id, $value));
     }
 }

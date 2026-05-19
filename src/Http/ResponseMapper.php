@@ -7,6 +7,7 @@ namespace TrustMedical\LaravelChatworkApi\Http;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
@@ -23,7 +24,7 @@ final class ResponseMapper
      *  - PsrResponse=> Psr\Http\Message\ResponseInterface (throw しない)
      *  - Result     => 成功/失敗をラップした Result (throw しない)
      *
-     * @param  class-string|null  $dtoClass  Dto / Collection モードでのみ必須
+     * @param  class-string<MapsFromArray>|null  $dtoClass  Dto / Collection モードでのみ必須
      * @return array<int|string, mixed>|object|Collection<int, object>|Response|ResponseInterface|Result
      *
      * @throws ChatworkRequestException Array / Dto / Collection モードで 4xx/5xx の場合
@@ -66,7 +67,7 @@ final class ResponseMapper
     }
 
     /**
-     * @param  class-string|null  $dtoClass
+     * @param  class-string<MapsFromArray>|null  $dtoClass
      *
      * @throws ChatworkRequestException 4xx/5xx の場合
      * @throws \LogicException $dtoClass が null の場合
@@ -96,7 +97,7 @@ final class ResponseMapper
     }
 
     /**
-     * @param  class-string|null  $dtoClass
+     * @param  class-string<MapsFromArray>|null  $dtoClass
      * @return Collection<int, object>
      *
      * @throws ChatworkRequestException 4xx/5xx の場合

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Responses;
 
-final readonly class IncomingRequestData
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
+
+final readonly class IncomingRequestData implements MapsFromArray
 {
     public function __construct(
         public int $requestId,
@@ -31,7 +33,7 @@ final readonly class IncomingRequestData
      *     avatar_image_url?: string
      * }  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             requestId: (int) ($data['request_id'] ?? 0),

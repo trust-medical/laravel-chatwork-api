@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Requests;
 
+use TrustMedical\LaravelChatworkApi\Data\Requests\Concerns\NormalizesIntegerList;
 use TrustMedical\LaravelChatworkApi\Enums\IconPreset;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class CreateRoomRequest
 {
+    use NormalizesIntegerList;
+
     private const int NAME_MIN = 1;
 
     private const int NAME_MAX = 255;
@@ -118,28 +121,5 @@ final readonly class CreateRoomRequest
                 ['link_code' => [sprintf('must be %d characters or less', self::LINK_CODE_MAX)]],
             );
         }
-    }
-
-    /**
-     * @param  array<int, mixed>  $ids
-     */
-    private static function assertIntegerList(array $ids, string $field): void
-    {
-        foreach ($ids as $id) {
-            if (! is_int($id) || $id <= 0) {
-                throw new ChatworkValidationException(
-                    sprintf('%s must contain positive integers only.', $field),
-                    [$field => ['must contain positive integers only']],
-                );
-            }
-        }
-    }
-
-    /**
-     * @param  array<int, int>  $ids
-     */
-    private static function idsToCsv(array $ids): string
-    {
-        return implode(',', $ids);
     }
 }

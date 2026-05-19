@@ -63,6 +63,9 @@ final readonly class TokenSet
     }
 
     /**
+     * 永続化スナップショット専用。access/refresh トークンを平文で含むため、
+     * ログ・例外・レスポンスへ渡さず {@see TokenRepository} 実装の保存にのみ使う。
+     *
      * @return array{access_token: string, refresh_token: string, expires_at: string, token_type: string}
      */
     public function toArray(): array
@@ -72,6 +75,21 @@ final readonly class TokenSet
             'refresh_token' => $this->refreshToken,
             'expires_at' => $this->expiresAt->format(DateTimeImmutable::ATOM),
             'token_type' => $this->tokenType,
+        ];
+    }
+
+    /**
+     * var_dump / dd / エラートラッカーで access/refresh トークンが平文露出しないようマスクする。
+     *
+     * @return array{accessToken: string, refreshToken: string, expiresAt: string, tokenType: string}
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'accessToken' => '***redacted***',
+            'refreshToken' => '***redacted***',
+            'expiresAt' => $this->expiresAt->format(DateTimeImmutable::ATOM),
+            'tokenType' => $this->tokenType,
         ];
     }
 

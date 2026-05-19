@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Requests;
 
+use TrustMedical\LaravelChatworkApi\Data\Requests\Concerns\NormalizesIntegerList;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class ReplaceRoomMembersRequest
 {
+    use NormalizesIntegerList;
+
     /**
      * @param  array<int, int>  $membersAdminIds
      * @param  array<int, int>|null  $membersMemberIds
@@ -58,28 +61,5 @@ final readonly class ReplaceRoomMembersRequest
         if ($this->membersReadonlyIds !== null) {
             self::assertIntegerList($this->membersReadonlyIds, 'members_readonly_ids');
         }
-    }
-
-    /**
-     * @param  array<int, mixed>  $ids
-     */
-    private static function assertIntegerList(array $ids, string $field): void
-    {
-        foreach ($ids as $id) {
-            if (! is_int($id) || $id <= 0) {
-                throw new ChatworkValidationException(
-                    sprintf('%s must contain positive integers only.', $field),
-                    [$field => ['must contain positive integers only']],
-                );
-            }
-        }
-    }
-
-    /**
-     * @param  array<int, int>  $ids
-     */
-    private static function idsToCsv(array $ids): string
-    {
-        return implode(',', $ids);
     }
 }
