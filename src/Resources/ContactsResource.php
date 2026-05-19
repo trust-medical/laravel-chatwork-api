@@ -10,6 +10,8 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 /**
  * Chatwork `/contacts` エンドポイントグループの公開 API。
+ *
+ * @api 公開 API。宣言戻り値型は asDto() モード契約（他モードは実行時型が変わる。型対応表は README / docs を参照）。
  */
 final class ContactsResource
 {
@@ -18,7 +20,7 @@ final class ContactsResource
     /**
      * 認証ユーザーのコンタクト一覧を取得する (GET /contacts)。
      *
-     * @return list<ContactData> デフォルト Dto モード時（204 は `[]` に縮退）；他の ResponseMode はそれぞれの型を返す
+     * @return list<ContactData> asDto() 契約（204 は `[]` に縮退）。他モードは ResponseMode に従い実行時型が変わる
      *
      * @throws ChatworkRequestException throw するモード（asArray/asDto/asCollection）での 4xx/5xx 時。
      */

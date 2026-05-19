@@ -19,6 +19,8 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 /**
  * Chatwork `/rooms/{room_id}/messages` エンドポイントグループ（一覧取得・単件取得・作成・更新・削除・既読・未読）の公開 API。
+ *
+ * @api 公開 API。宣言戻り値型は asDto() モード契約（他モードは実行時型が変わる。型対応表は README / docs を参照）。
  */
 final class RoomMessagesResource
 {
@@ -52,7 +54,7 @@ final class RoomMessagesResource
      * $force = true を渡すと、Chatwork の「前回取得以降のメッセージのみ返す」挙動を
      * バイパスして常に最新 100 件を取得する。
      *
-     * @return list<MessageData> デフォルトの Dto モードでは配列を返す。他のレスポンスモードはそれぞれ対応する形式で返す
+     * @return list<MessageData> asDto() 契約。他モードは ResponseMode に従い実行時型が変わる
      *
      * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
      */

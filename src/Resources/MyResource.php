@@ -12,6 +12,8 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 /**
  * Chatwork `/my/*` エンドポイントグループ（status, tasks）の公開 API。
+ *
+ * @api 公開 API。宣言戻り値型は asDto() モード契約（他モードは実行時型が変わる。型対応表は README / docs を参照）。
  */
 final class MyResource
 {
@@ -30,7 +32,7 @@ final class MyResource
     /**
      * 認証ユーザーに割り当てられたタスク一覧を取得する（任意フィルタ対応）(GET /my/tasks)。
      *
-     * @return list<MyTaskData> デフォルト Dto モード時（204 は `[]` に縮退）；他の ResponseMode はそれぞれの型を返す
+     * @return list<MyTaskData> asDto() 契約（204 は `[]` に縮退）。他モードは ResponseMode に従い実行時型が変わる
      *
      * @throws ChatworkRequestException throw するモード（asArray/asDto/asCollection）での 4xx/5xx 時。
      */

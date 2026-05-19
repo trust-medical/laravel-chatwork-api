@@ -13,6 +13,8 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 /**
  * Chatwork `/rooms/{room_id}/files` エンドポイントグループ（list / find / upload）の公開 API。
+ *
+ * @api 公開 API。宣言戻り値型は asDto() モード契約（他モードは実行時型が変わる。型対応表は README / docs を参照）。
  */
 final class RoomFilesResource
 {
@@ -22,7 +24,7 @@ final class RoomFilesResource
      * ルームにアップロードされたファイル一覧を取得する（アップローダーでフィルタ可能）
      * (GET /rooms/{room_id}/files)。
      *
-     * @return list<RoomFileData> デフォルト Dto モード時；他の ResponseMode はそれぞれの型を返す
+     * @return list<RoomFileData> asDto() 契約。他モードは ResponseMode に従い実行時型が変わる
      *
      * @throws ChatworkRequestException throw するモード（asArray/asDto/asCollection）での 4xx/5xx 時。
      */

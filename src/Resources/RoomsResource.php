@@ -15,6 +15,8 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 /**
  * Chatwork `/rooms` エンドポイントグループ（一覧取得・単件取得・作成・更新・退室・削除）とネストリソースの公開 API。
+ *
+ * @api 公開 API。宣言戻り値型は asDto() モード契約（他モードは実行時型が変わる。型対応表は README / docs を参照）。
  */
 final class RoomsResource
 {
@@ -23,7 +25,7 @@ final class RoomsResource
     /**
      * 認証ユーザーが所属する全ルームを一覧取得する (GET /rooms)。
      *
-     * @return list<RoomData> デフォルトの Dto モードでは配列を返す。他のレスポンスモードはそれぞれ対応する形式で返す
+     * @return list<RoomData> asDto() 契約。他モードは ResponseMode に従い実行時型が変わる
      *
      * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
      */
