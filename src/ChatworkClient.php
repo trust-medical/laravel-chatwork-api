@@ -182,14 +182,4 @@ final class ChatworkClient
 
         return $this->mapper->map($response, $this->mode, $dtoClass, 'POST', $path, $operationId);
     }
-
-    /**
-     * rooms()->messages()->create() の簡易ショートカット。戻り値はアクティブなモードに従う。
-     *
-     * @throws ChatworkRequestException 投例モードで 4xx/5xx が返った場合。
-     */
-    public function createRoomMessage(int $roomId, string $body, ?bool $selfUnread = null): mixed
-    {
-        return $this->rooms()->messages()->create($roomId, $body, $selfUnread);
-    }
 }

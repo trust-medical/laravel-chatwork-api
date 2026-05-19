@@ -78,10 +78,10 @@ OpenAPI 上の差分:
 - `markAsRead` (`PUT /rooms/{room_id}/messages/read`) の `message_id` は **optional**。指定なしならその時点までの全件を既読にする。
 - `markAsUnread` (`PUT /rooms/{room_id}/messages/unread`) の `message_id` は **required**。
 
-簡易メソッド:
+メッセージ投稿:
 
 ```php
-app(ChatworkClient::class)->createRoomMessage($roomId, '本文');
+Chatwork::rooms()->messages()->create($roomId, '本文');
 ```
 
 ## Rooms
