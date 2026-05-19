@@ -90,6 +90,8 @@ final class ChatworkMessage
 
     /**
      * plain() のエイリアス: タグ無害化済みテキストを追加する。
+     *
+     * @see self::plain()
      */
     public function escape(string $text): self
     {

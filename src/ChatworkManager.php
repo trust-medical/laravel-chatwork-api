@@ -191,6 +191,11 @@ final class ChatworkManager
         return $this->client()->incomingRequests();
     }
 
+    /**
+     * 戻り値モード選択の公開エントリポイントは Client 層（{@see ChatworkClient::withMode()}）にある。
+     * Manager は非 readonly な可変オブジェクトのため、ここでは shallow clone して mode のみ
+     * 差し替える複製イディオムを使い、内部委譲専用として private に閉じる。
+     */
     private function withMode(ResponseMode $mode): self
     {
         $new = clone $this;

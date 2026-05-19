@@ -162,6 +162,8 @@ callback controllerは `TokenRepository` に保存処理を委譲する。
 
 レンダリングは利用者がカスタマイズできるよう、`OAuthCallbackController` を継承可能にする。redirect 先は config の `oauth.redirect_after_callback`（未設定なら `/`）から取る。
 
+> **CSRF と `web` ミドルウェアグループについて:** callback は `web` グループ配下に登録されるが、**`GET` ルート**であるため Laravel の `VerifyCsrfToken` は検証を行わない（CSRF トークン検証は `POST`/`PUT`/`PATCH`/`DELETE` のみ）。本エンドポイントの CSRF 防御は `web` グループそのものではなく、**単回使用 `state`**（`OAuthCallbackController` が `StateStore::pull()` で検証し、不正・消費済みは token endpoint に到達せず 400）が担う。したがって利用者側で本ルートに対する独自の CSRF except 設定や `web` グループからの除外を行う必要はない。
+
 ## 秘密情報の漏洩防止
 
 API token / client_secret / refresh_token がログ・例外・debug 情報に出ないようにする。
