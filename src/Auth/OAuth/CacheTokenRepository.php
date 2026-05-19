@@ -28,20 +28,10 @@ final class CacheTokenRepository implements TokenRepository
         private readonly Encrypter $encrypter,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $context
-     *
-     * @throws InvalidArgumentException $context['connection'] が存在しないか空でない文字列でない場合。
-     */
-    public function save(TokenSet $tokenSet, array $context = []): void
+    public function save(string $connectionName, TokenSet $tokenSet): void
     {
-        $connection = $context['connection'] ?? null;
-        if (! is_string($connection) || $connection === '') {
-            throw new InvalidArgumentException('CacheTokenRepository::save requires non-empty $context["connection"].');
-        }
-
         $this->cache->forever(
-            $this->cacheKey($connection),
+            $this->cacheKey($connectionName),
             $this->encrypter->encrypt($tokenSet->toArray()),
         );
     }

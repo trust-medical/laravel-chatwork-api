@@ -86,6 +86,9 @@ final class ChatworkClient
      * 具体的な戻り値の型は {@see ResponseMode} によって決まる: readonly DTO、
      * array、Collection、Laravel/PSR-7 response、または ChatworkResult — そのため `mixed`。
      *
+     * @internal 低レベル配管。公開 API は Resource 層（`Chatwork::rooms()` 等）を使うこと。
+     *   このシグネチャは後方互換保証の対象外。
+     *
      * @param  array<string, mixed>  $payload  POST/PUT/DELETE のフォームボディ、GET のクエリパラメータ
      * @param  class-string<MapsFromArray>|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
      *
@@ -125,6 +128,9 @@ final class ChatworkClient
      *
      * 各リソースの list メソッドに散在していた同一の Dto アンラップを集約する。
      *
+     * @internal 低レベル配管。公開 API は Resource 層（`Chatwork::rooms()` 等）を使うこと。
+     *   このシグネチャは後方互換保証の対象外。
+     *
      * @param  array<string, mixed>  $payload
      * @param  class-string<MapsFromArray>  $dtoClass
      *
@@ -152,6 +158,9 @@ final class ChatworkClient
      * 他の書き込みはすべて asForm() を経由するため、send() と分離している。
      *
      * 具体的な戻り値の型は {@see ResponseMode} によって決まるため `mixed`。
+     *
+     * @internal 低レベル配管。公開 API は Resource 層（`Chatwork::rooms()` 等）を使うこと。
+     *   このシグネチャは後方互換保証の対象外。
      *
      * @param  array<string, scalar>  $fields  ファイル以外のマルチパートパーツ
      * @param  class-string<MapsFromArray>|null  $dtoClass  Dto/Collection モードでハイドレートする DTO

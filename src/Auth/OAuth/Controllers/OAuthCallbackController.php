@@ -66,7 +66,7 @@ final class OAuthCallbackController
 
         try {
             $tokenSet = $this->oauthClient->exchange($code);
-            $this->tokenRepository->save($tokenSet, ['connection' => $connection]);
+            $this->tokenRepository->save($connection, $tokenSet);
         } catch (ChatworkRequestException) {
             return $this->errorResponse(502, 'token_exchange_failed');
         } catch (InvalidArgumentException|RuntimeException) {
