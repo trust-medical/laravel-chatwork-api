@@ -11,7 +11,7 @@ return [
     'timeout' => env('CHATWORK_TIMEOUT', 10),
 
     'response' => [
-        'mode' => 'dto',
+        'mode' => env('CHATWORK_RESPONSE_MODE', 'dto'),
     ],
 
     'connections' => [

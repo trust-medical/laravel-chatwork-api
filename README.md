@@ -44,7 +44,7 @@ CHATWORK_API_TOKEN=your-api-token
 | `default` | `default` | 使用する connection 名（`CHATWORK_CONNECTION`） |
 | `base_uri` | `https://api.chatwork.com/v2` | API ベース URI |
 | `timeout` | `10` | リクエストタイムアウト秒 |
-| `response.mode` | `dto` | 既定の戻り値モード（無効値は `ChatworkValidationException`） |
+| `response.mode` | `dto` | 既定の戻り値モード（`CHATWORK_RESPONSE_MODE`。無効値は `ChatworkValidationException`） |
 | `connections` | API Token connection 1件 | 複数 connection 定義可 |
 | `oauth` | — | OAuth2 設定（後述） |
 | `oauth.timeout` | `10` | OAuth トークン要求のタイムアウト秒（`CHATWORK_OAUTH_TIMEOUT`） |
