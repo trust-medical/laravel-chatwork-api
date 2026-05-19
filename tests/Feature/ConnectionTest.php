@@ -6,6 +6,7 @@ use TrustMedical\LaravelChatworkApi\Auth\ApiTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Auth\BearerTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Connection;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkConfigurationException;
 use TrustMedical\LaravelChatworkApi\Facades\Chatwork;
 
 it('var_dump 出力で credentials を再帰展開せず FQCN 文字列で表す (__debugInfo)', function () {
@@ -25,7 +26,11 @@ it('var_dump 出力で credentials を再帰展開せず FQCN 文字列で表す
 
 it('Connection::make は http(s) 以外の baseUri スキームを拒否する', function () {
     Connection::make('x', new ApiTokenCredentials('t'), baseUri: 'file:///etc/passwd');
-})->throws(InvalidArgumentException::class);
+})->throws(ChatworkConfigurationException::class);
+
+it('Connection のコンストラクタは private で make() のみが生成口である', function () {
+    expect((new ReflectionMethod(Connection::class, '__construct'))->isPrivate())->toBeTrue();
+});
 
 it('Connection::make は http スキームの baseUri を許可する', function () {
     $conn = Connection::make('x', new ApiTokenCredentials('t'), baseUri: 'http://localhost:8080/v2');

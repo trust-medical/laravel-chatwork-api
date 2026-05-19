@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi;
 
-use InvalidArgumentException;
 use TrustMedical\LaravelChatworkApi\Auth\Credentials;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkConfigurationException;
 
 /**
  * Chatwork connection のアイデンティティ・credentials・base URI・タイムアウトを統一する
@@ -14,7 +14,11 @@ use TrustMedical\LaravelChatworkApi\Auth\Credentials;
  */
 final readonly class Connection
 {
-    public function __construct(
+    /**
+     * 直接の生成は不可。{@see self::make()} を唯一の生成口とし、
+     * baseUri スキーム検証を必ず通すことで値オブジェクトの不変条件を保証する。
+     */
+    private function __construct(
         public string $name,
         public Credentials $credentials,
         public string $baseUri = 'https://api.chatwork.com/v2',
@@ -31,7 +35,7 @@ final readonly class Connection
 
         $scheme = strtolower((string) parse_url($resolvedBaseUri, PHP_URL_SCHEME));
         if ($scheme !== 'http' && $scheme !== 'https') {
-            throw new InvalidArgumentException(
+            throw new ChatworkConfigurationException(
                 sprintf('Connection baseUri must use the http or https scheme, got "%s".', $resolvedBaseUri),
             );
         }
