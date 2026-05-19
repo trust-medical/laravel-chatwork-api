@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use TrustMedical\LaravelChatworkApi\Auth\ApiTokenCredentials;
 use TrustMedical\LaravelChatworkApi\Connection;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRoutingException;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkRoute;
 
 it('room() で roomId を公開する', function () {
@@ -19,6 +20,18 @@ it('文字列の roomId を受け入れる', function () {
 
     expect($route->roomId())->toBe('456');
 });
+
+it('不正なルーム ID は ChatworkRoutingException で拒否する', function (int|string $roomId) {
+    expect(fn () => ChatworkRoute::room($roomId))
+        ->toThrow(ChatworkRoutingException::class);
+})->with([
+    'ゼロ' => [0],
+    '負数' => [-5],
+    '非数字' => ['abc'],
+    '空文字' => [''],
+    '先頭ゼロ' => ['012'],
+    '混在' => ['5x'],
+]);
 
 it('connection() で名前付きコネクションを紐付ける', function () {
     $route = ChatworkRoute::room(123)->connection('sales');
