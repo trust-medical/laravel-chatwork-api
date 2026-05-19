@@ -16,6 +16,15 @@ use TrustMedical\LaravelChatworkApi\Resources\MeResource;
 use TrustMedical\LaravelChatworkApi\Resources\MyResource;
 use TrustMedical\LaravelChatworkApi\Resources\RoomsResource;
 
+/**
+ * 低レベル HTTP 実行と Resource factory。{@see ChatworkManager} が解決した
+ * {@see Connection} を受け取り、戻り値モードに応じて {@see ResponseMapper} で
+ * レスポンスを変換する。
+ *
+ * 不変。connection / factory / mapper のコラボレータから再構築されるため、モード切替は
+ * clone ではなく {@see self::withMode()} が新インスタンスを返す（cf. 可変な
+ * {@see ChatworkManager}）。
+ */
 final class ChatworkClient
 {
     public function __construct(

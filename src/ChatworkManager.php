@@ -21,6 +21,15 @@ use TrustMedical\LaravelChatworkApi\Resources\MeResource;
 use TrustMedical\LaravelChatworkApi\Resources\MyResource;
 use TrustMedical\LaravelChatworkApi\Resources\RoomsResource;
 
+/**
+ * Facade `Chatwork::` と DI コンテナが解決する公開エントリポイント。connection 名を
+ * {@see Connection} へ解決し、有効な credentials とアクティブなレスポンスモードで
+ * {@see ChatworkClient} を組み立てる。
+ *
+ * {@see ChatworkClient} と異なり readonly ではなく可変。connection / 認証オーバーライド /
+ * mode を差し替える with 系メソッドは shallow clone した新インスタンスを返す
+ * （{@see self::withMode()} 参照）。
+ */
 final class ChatworkManager
 {
     private ?Connection $connection = null;
