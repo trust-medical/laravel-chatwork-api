@@ -83,6 +83,11 @@ final class ChatworkServiceProvider extends PackageServiceProvider
      * 意図的に public: `routes_enabled=false` のままにしつつ、独自の RouteServiceProvider
      * から任意の middleware / ドメイン / プレフィックス配下でこの callback ルートを
      * 手動登録したいアプリケーション向けの公開エントリポイントである。
+     *
+     * 既知の制約: `php artisan route:cache` 有効時は本メソッドのクロージャが
+     * 実行されないため、`route_throttle` の形式検証も行われない。
+     *
+     * @throws ChatworkConfigurationException `route_throttle` が "max,minutes" でも limiter 名でもない場合。
      */
     public function registerOAuthRoutes(): void
     {
@@ -92,7 +97,16 @@ final class ChatworkServiceProvider extends PackageServiceProvider
 
         $middleware = ['web'];
         $throttle = $config->get('chatwork.oauth.route_throttle');
-        if (is_string($throttle) && $throttle !== '') {
+        if ($throttle !== null && $throttle !== '') {
+            if (! is_string($throttle)
+                || (! preg_match('/^\d+,\d+$/', $throttle)
+                    && ! preg_match('/^[A-Za-z][A-Za-z0-9_-]*$/', $throttle))) {
+                throw new ChatworkConfigurationException(sprintf(
+                    'chatwork.oauth.route_throttle は "max,minutes"（例 "10,1"）または limiter 名である必要があります。got: %s',
+                    is_scalar($throttle) ? (string) $throttle : get_debug_type($throttle),
+                ));
+            }
+
             $middleware[] = 'throttle:' . $throttle;
         }
 

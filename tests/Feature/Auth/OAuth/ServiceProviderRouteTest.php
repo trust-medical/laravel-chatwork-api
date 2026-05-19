@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 use TrustMedical\LaravelChatworkApi\ChatworkServiceProvider;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkConfigurationException;
 
 it('routesが無効な場合はboot時にcallbackルートを登録しない', function () {
     // パッケージの通常boot時にroutes_enabled=false（デフォルト）が検出されるため、ルートは登録されない。
@@ -66,6 +67,33 @@ it('カスタムroute_throttle値を反映する', function () {
     $route = Route::getRoutes()->getByName('chatwork.oauth.callback');
     expect($route?->middleware())->toContain('throttle:60,1');
 });
+
+it('named limiter 形式の route_throttle を反映する', function () {
+    Config::set('chatwork.oauth.routes_enabled', true);
+    Config::set('chatwork.oauth.route_throttle', 'chatwork-oauth');
+
+    $provider = app()->getProvider(ChatworkServiceProvider::class);
+    /** @var ChatworkServiceProvider $provider */
+    $provider->registerOAuthRoutes();
+
+    $route = Route::getRoutes()->getByName('chatwork.oauth.callback');
+    expect($route?->middleware())->toContain('throttle:chatwork-oauth');
+});
+
+it('不正な route_throttle は ChatworkConfigurationException', function (mixed $value) {
+    Config::set('chatwork.oauth.routes_enabled', true);
+    Config::set('chatwork.oauth.route_throttle', $value);
+
+    $provider = app()->getProvider(ChatworkServiceProvider::class);
+    /** @var ChatworkServiceProvider $provider */
+    expect(fn () => $provider->registerOAuthRoutes())
+        ->toThrow(ChatworkConfigurationException::class);
+})->with([
+    '数値ペア不正' => ['abc,def'],
+    '三つ組' => ['10,1,2'],
+    '記号' => ['!!!'],
+    '非文字列' => [60],
+]);
 
 it('カスタムroute_prefixを反映する', function () {
     Config::set('chatwork.oauth.routes_enabled', true);
