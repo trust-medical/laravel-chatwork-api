@@ -11,6 +11,8 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 /**
  * Chatwork `/rooms/{room_id}/link` エンドポイントグループ（招待リンクの取得・作成・更新・削除）の公開 API。
+ *
+ * @api 公開 API。宣言戻り値型は asDto() モード契約（他モードは実行時型が変わる。型対応表は README / docs を参照）。
  */
 final class RoomLinksResource
 {

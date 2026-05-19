@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Auth\OAuth;
 
-use InvalidArgumentException;
-
 /**
  * テストおよびローカル開発専用のインメモリトークンストア。
  *
@@ -43,19 +41,9 @@ final class InMemoryTokenRepository implements TokenRepository
         );
     }
 
-    /**
-     * @param  array<string, mixed>  $context
-     *
-     * @throws InvalidArgumentException $context['connection'] が存在しないか空でない文字列でない場合。
-     */
-    public function save(TokenSet $tokenSet, array $context = []): void
+    public function save(string $connectionName, TokenSet $tokenSet): void
     {
-        $connection = $context['connection'] ?? null;
-        if (! is_string($connection) || $connection === '') {
-            throw new InvalidArgumentException('InMemoryTokenRepository::save requires non-empty $context["connection"].');
-        }
-
-        $this->store[$connection] = $tokenSet;
+        $this->store[$connectionName] = $tokenSet;
     }
 
     public function find(string $connectionName): ?TokenSet

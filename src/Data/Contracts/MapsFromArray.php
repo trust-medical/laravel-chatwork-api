@@ -13,6 +13,8 @@ use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
  * {@see ResponseMapper} はこの契約を
  * 満たすクラスのみ hydrate でき、`class-string<MapsFromArray>` により
  * 非対応クラスの誤渡しを PHPStan が静的に検出できる。
+ *
+ * @api 安定したファクトリ契約。シグネチャは v1 で恒久固定される後方互換契約である。
  */
 interface MapsFromArray
 {

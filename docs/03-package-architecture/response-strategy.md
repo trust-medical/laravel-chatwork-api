@@ -26,6 +26,75 @@ Chatwork::asResult();
 | `asPsrResponse` | `Psr\Http\Message\ResponseInterface` | throwしない | PSR連携 |
 | `asResult` | `ChatworkResult` | throwしない | 失敗を値として扱う |
 
+## 型契約（v1 公開契約）
+
+公開 Resource メソッドの戻り値は `ResponseMode` により実行時型が変わるため、
+ネイティブ署名は `: mixed` で固定する。これは v1 で恒久固定する後方互換契約であり、
+後から具体型へ narrowing しない（`mixed` を受けている利用側コードを壊すため）。
+
+`ResponseMode` はメソッド引数ではなくチェーンで決まる Manager の instance state
+であるため、PHPStan の conditional return type（`@phpstan-return ($param is …)`）は
+構造上適用できない。型情報は次の方針で提供する。
+
+- 公開 Resource クラスに `@api` を付与し、サポート対象の公開表面を明示する。
+- list 系メソッドは `@return list<XData>` を宣言する（`list<>` は配列互換のため、
+  非 Dto モードへ切り替えても静的解析と構造的に衝突しない）。
+- 単体取得系メソッドは `@return` を宣言しない。具体型を宣言すると PHPStan level 6 が
+  それを honor し、全モードを検証するテスト・利用側コード（`asResult()` の
+  `->failed()`、`asArray()` の添字アクセス等）と構造的に衝突するため。
+  asDto() モードの型は下表で示す。
+
+宣言された `@return` および下表の型は、いずれも **`asDto()`（デフォルト）モードの
+契約**である。`asArray()` / `asCollection()` / `asResponse()` / `asPsrResponse()` /
+`asResult()` へ切り替えた場合は実行時型が変わり（[対応表](#対応表)・[204 No Content](#204-no-content)
+参照）、その型解釈は呼び出し側の責務となる。
+
+### メソッド別 asDto() 戻り値型
+
+| Resource | メソッド | asDto() 戻り値型 |
+| --- | --- | --- |
+| `RoomsResource` | `list()` | `list<RoomData>` |
+| `RoomsResource` | `create()` | `CreatedRoom` |
+| `RoomsResource` | `find()` | `RoomData` |
+| `RoomsResource` | `update()` | `UpdatedRoom` |
+| `RoomsResource` | `leaveRoom()` | `NoContentData` |
+| `RoomsResource` | `deleteRoom()` | `NoContentData` |
+| `RoomMessagesResource` | `create()` | `CreatedMessage` |
+| `RoomMessagesResource` | `list()` | `list<MessageData>` |
+| `RoomMessagesResource` | `find()` | `MessageData` |
+| `RoomMessagesResource` | `update()` | `UpdatedMessage` |
+| `RoomMessagesResource` | `deleteMessage()` | `DeletedMessage` |
+| `RoomMessagesResource` | `markAsRead()` | `MarkReadResult` |
+| `RoomMessagesResource` | `markAsUnread()` | `MarkUnreadResult` |
+| `RoomMembersResource` | `list()` | `list<RoomMemberData>` |
+| `RoomMembersResource` | `replaceMembers()` | `ReplacedRoomMembers` |
+| `RoomTasksResource` | `list()` | `list<RoomTaskData>` |
+| `RoomTasksResource` | `create()` | `CreatedTask` |
+| `RoomTasksResource` | `find()` | `RoomTaskData` |
+| `RoomTasksResource` | `updateStatus()` | `RoomTaskData` |
+| `RoomFilesResource` | `list()` | `list<RoomFileData>` |
+| `RoomFilesResource` | `upload()` | `UploadedRoomFile` |
+| `RoomFilesResource` | `find()` | `RoomFileData` |
+| `RoomLinksResource` | `find()` | `RoomLinkData` |
+| `RoomLinksResource` | `create()` | `RoomLinkData` |
+| `RoomLinksResource` | `update()` | `RoomLinkData` |
+| `RoomLinksResource` | `deleteLink()` | `RoomLinkData` |
+| `ContactsResource` | `list()` | `list<ContactData>` |
+| `MeResource` | `get()` | `MyAccountData` |
+| `MyResource` | `status()` | `MyStatusData` |
+| `MyResource` | `tasks()` | `list<MyTaskData>` |
+| `IncomingRequestsResource` | `list()` | `list<IncomingRequestData>` |
+| `IncomingRequestsResource` | `accept()` | `ContactData` |
+| `IncomingRequestsResource` | `decline()` | `NoContentData` |
+
+list 系で `asDto()` 時に Chatwork が 204 を返す場合は `[]` に縮退する
+（`ContactsResource::list` / `MyResource::tasks` / `IncomingRequestsResource::list`）。
+
+拡張点 interface（`TokenRepository` / `MapsFromArray`）は `@api` を付与し、
+シグネチャを v1 で恒久固定する後方互換契約とする。`ChatworkClient::send()` /
+`sendList()` / `upload()` は低レベル配管であり `@internal`（後方互換保証の対象外、
+公開 API は Resource 層を使う）。
+
 ## Validation Exception
 
 送信前バリデーションの失敗は戻り値モードに関係なく例外にする。

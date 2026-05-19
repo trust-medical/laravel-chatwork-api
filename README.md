@@ -111,6 +111,48 @@ $res   = Chatwork::asResponse()->rooms()->find(123);
 
 > 送信前バリデーション失敗は戻り値モードに関わらず常に `ChatworkValidationException` を throw します。
 
+### メソッド別の戻り値型（`asDto()` 契約）
+
+各 Resource メソッドのネイティブ署名は `: mixed` です（戻り値型は `ResponseMode`
+により実行時に変わるため）。下表は **既定の `asDto()` モード** での戻り値型です。
+`asArray()` / `asCollection()` / `asResponse()` / `asPsrResponse()` / `asResult()`
+へ切り替えた場合は宣言型・下表の型と実行時型が乖離し、その型解釈は呼び出し側の
+責務になります（設計判断の詳細は `docs/03-package-architecture/response-strategy.md`）。
+
+| メソッド | `asDto()` 戻り値型 |
+|---|---|
+| `rooms()->list()` | `list<RoomData>` |
+| `rooms()->create()` | `CreatedRoom` |
+| `rooms()->find()` | `RoomData` |
+| `rooms()->update()` | `UpdatedRoom` |
+| `rooms()->leaveRoom()` / `deleteRoom()` | `NoContentData` |
+| `rooms()->messages()->create()` | `CreatedMessage` |
+| `rooms()->messages()->list()` | `list<MessageData>` |
+| `rooms()->messages()->find()` | `MessageData` |
+| `rooms()->messages()->update()` | `UpdatedMessage` |
+| `rooms()->messages()->deleteMessage()` | `DeletedMessage` |
+| `rooms()->messages()->markAsRead()` | `MarkReadResult` |
+| `rooms()->messages()->markAsUnread()` | `MarkUnreadResult` |
+| `rooms()->members()->list()` | `list<RoomMemberData>` |
+| `rooms()->members()->replaceMembers()` | `ReplacedRoomMembers` |
+| `rooms()->tasks()->list()` | `list<RoomTaskData>` |
+| `rooms()->tasks()->create()` | `CreatedTask` |
+| `rooms()->tasks()->find()` / `updateStatus()` | `RoomTaskData` |
+| `rooms()->files()->list()` | `list<RoomFileData>` |
+| `rooms()->files()->upload()` | `UploadedRoomFile` |
+| `rooms()->files()->find()` | `RoomFileData` |
+| `rooms()->links()->find()` / `create()` / `update()` / `deleteLink()` | `RoomLinkData` |
+| `contacts()->list()` | `list<ContactData>` |
+| `me()->get()` | `MyAccountData` |
+| `my()->status()` | `MyStatusData` |
+| `my()->tasks()` | `list<MyTaskData>` |
+| `incomingRequests()->list()` | `list<IncomingRequestData>` |
+| `incomingRequests()->accept()` | `ContactData` |
+| `incomingRequests()->decline()` | `NoContentData` |
+
+`list<…>` 系で Chatwork が 204 を返す場合、`asDto()` では `[]` に縮退します
+（`contacts()->list()` / `my()->tasks()` / `incomingRequests()->list()`）。
+
 ## リソース別の例
 
 ### Rooms

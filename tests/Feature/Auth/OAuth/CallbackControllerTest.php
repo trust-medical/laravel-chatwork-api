@@ -223,7 +223,7 @@ it('トークン保存が設定不備で失敗した場合は500を返す', func
     $store = new CacheStateStore(Cache::store());
     $failingRepo = new class() implements TokenRepository
     {
-        public function save(TokenSet $tokenSet, array $context = []): void
+        public function save(string $connectionName, TokenSet $tokenSet): void
         {
             throw new InvalidArgumentException('connection misconfigured');
         }

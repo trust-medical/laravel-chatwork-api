@@ -30,7 +30,7 @@ it('TokenSet を暗号化してキャッシュへ保存し復元できる', func
         expiresAt: Carbon::now()->addHours(2)->toDateTimeImmutable(),
     );
 
-    $repo->save($token, ['connection' => 'oauth-conn']);
+    $repo->save('oauth-conn', $token);
 
     $loaded = $repo->find('oauth-conn');
 
@@ -49,8 +49,8 @@ it('保存されていないコネクション名で find すると null を返�
 it('キャッシュ生値は平文トークンを含まない暗号文字列である', function () {
     $repo = new CacheTokenRepository(Cache::store(), testEncrypter());
     $repo->save(
+        'c',
         new TokenSet('plain-access-x', 'plain-refresh-y', Carbon::now()->addHour()->toDateTimeImmutable()),
-        ['connection' => 'c'],
     );
 
     $raw = Cache::get(cacheTokenKey('c'));

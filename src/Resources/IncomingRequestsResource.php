@@ -12,6 +12,8 @@ use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 
 /**
  * Chatwork `/incoming_requests` エンドポイントグループ（list / accept / decline）の公開 API。
+ *
+ * @api 公開 API。宣言戻り値型は asDto() モード契約（他モードは実行時型が変わる。型対応表は README / docs を参照）。
  */
 final class IncomingRequestsResource
 {
@@ -20,7 +22,7 @@ final class IncomingRequestsResource
     /**
      * 認証ユーザー宛の未承認コンタクト申請一覧を取得する (GET /incoming_requests)。
      *
-     * @return list<IncomingRequestData> デフォルト Dto モード時（204 は `[]` に縮退）；他の ResponseMode はそれぞれの型を返す
+     * @return list<IncomingRequestData> asDto() 契約（204 は `[]` に縮退）。他モードは ResponseMode に従い実行時型が変わる
      *
      * @throws ChatworkRequestException throw するモード（asArray/asDto/asCollection）での 4xx/5xx 時。
      */

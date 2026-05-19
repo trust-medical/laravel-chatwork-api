@@ -88,7 +88,7 @@ final class OAuthTokenProvider implements TokenProvider
             }
 
             $newTokenSet = $this->oauth->refresh($current->refreshToken);
-            $this->repository->save($newTokenSet, ['connection' => $this->connectionName]);
+            $this->repository->save($this->connectionName, $newTokenSet);
 
             return $newTokenSet;
         } finally {
