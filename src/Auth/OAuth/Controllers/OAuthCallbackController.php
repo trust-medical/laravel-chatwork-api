@@ -93,6 +93,10 @@ final class OAuthCallbackController
      */
     private function normalizeRedirect(string $value): string
     {
+        // 深層防御: 設定値に紛れた CR/LF を除去し、Location ヘッダ分割
+        // （レスポンススプリッティング / ヘッダ注入）を構造的に防ぐ。
+        $value = str_replace(["\r", "\n"], '', $value);
+
         if (! str_starts_with($value, '/')) {
             return '/';
         }
