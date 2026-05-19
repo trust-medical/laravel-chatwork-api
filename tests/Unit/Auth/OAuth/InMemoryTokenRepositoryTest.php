@@ -18,7 +18,7 @@ it('コネクション名をキーに TokenSet を保存・取得できる', fun
     $repo = new InMemoryTokenRepository();
     $token = new TokenSet('a', 'r', Carbon::now()->addHour()->toDateTimeImmutable());
 
-    $repo->save($token, ['connection' => 'sales']);
+    $repo->save('sales', $token);
 
     expect($repo->find('sales')->accessToken)->toBe('a');
 });

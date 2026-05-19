@@ -40,11 +40,11 @@ it('有効期限内のトークンが保存済みの場合は BearerTokenCredent
     Http::fake(['api.chatwork.com/*' => Http::response([], 200)]);
 
     $repo = new InMemoryTokenRepository();
-    $repo->save(new TokenSet(
+    $repo->save('default', new TokenSet(
         accessToken: 'fresh-access',
         refreshToken: 'r',
         expiresAt: Carbon::now()->addHour()->toDateTimeImmutable(),
-    ), ['connection' => 'default']);
+    ));
 
     $credentials = provider($repo)->credentials();
 
@@ -61,11 +61,11 @@ it('保存済みトークンが expiresAt を過ぎている場合はリフレ�
     ]);
 
     $repo = new InMemoryTokenRepository();
-    $repo->save(new TokenSet(
+    $repo->save('default', new TokenSet(
         accessToken: 'old',
         refreshToken: 'old-refresh',
         expiresAt: Carbon::now()->subSecond()->toDateTimeImmutable(),
-    ), ['connection' => 'default']);
+    ));
 
     $credentials = provider($repo, leeway: 0)->credentials();
 
@@ -82,11 +82,11 @@ it('保存済みトークンが leeway ウィンドウ内にある場合もリ�
     ]);
 
     $repo = new InMemoryTokenRepository();
-    $repo->save(new TokenSet(
+    $repo->save('default', new TokenSet(
         accessToken: 'within-leeway',
         refreshToken: 'r',
         expiresAt: Carbon::now()->addSeconds(30)->toDateTimeImmutable(),
-    ), ['connection' => 'default']);
+    ));
 
     provider($repo, leeway: 60)->credentials();
 
@@ -99,11 +99,11 @@ it('リフレッシュ後の TokenSet をリポジトリに永続化する', fun
     ]);
 
     $repo = new InMemoryTokenRepository();
-    $repo->save(new TokenSet(
+    $repo->save('default', new TokenSet(
         accessToken: 'old',
         refreshToken: 'old-refresh',
         expiresAt: Carbon::now()->subSecond()->toDateTimeImmutable(),
-    ), ['connection' => 'default']);
+    ));
 
     provider($repo, leeway: 0)->credentials();
 
@@ -130,11 +130,11 @@ it('リフレッシュが失敗した場合は ChatworkAuthenticationException �
     ]);
 
     $repo = new InMemoryTokenRepository();
-    $repo->save(new TokenSet(
+    $repo->save('default', new TokenSet(
         accessToken: 'old',
         refreshToken: 'bad-refresh',
         expiresAt: Carbon::now()->subSecond()->toDateTimeImmutable(),
-    ), ['connection' => 'default']);
+    ));
 
     $caught = null;
     try {
@@ -158,7 +158,7 @@ it('Cache::lock で同時リフレッシュを一本化する', function () {
         refreshToken: 'r',
         expiresAt: Carbon::now()->subSecond()->toDateTimeImmutable(),
     );
-    $repo->save($expired, ['connection' => 'default']);
+    $repo->save('default', $expired);
 
     $lockKey = 'chatwork:oauth:refresh:' . hash('sha256', 'default');
     $heldLock = Cache::lock($lockKey, 10);

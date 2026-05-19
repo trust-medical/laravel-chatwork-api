@@ -34,11 +34,11 @@ it('保存済みTokenSetからAuthorization Bearerヘッダーを送信する', 
         ),
     ]);
 
-    app(TokenRepository::class)->save(new TokenSet(
+    app(TokenRepository::class)->save('oauth-conn', new TokenSet(
         accessToken: 'stored-access-token',
         refreshToken: 'stored-refresh',
         expiresAt: Carbon::now()->addHour()->toDateTimeImmutable(),
-    ), ['connection' => 'oauth-conn']);
+    ));
 
     Chatwork::connection('oauth-conn')->rooms()->messages()->create(123, 'Hello');
 
@@ -57,11 +57,11 @@ it('トークンが期限切れの場合はAPI呼び出し前にリフレッシ�
         ),
     ]);
 
-    app(TokenRepository::class)->save(new TokenSet(
+    app(TokenRepository::class)->save('oauth-conn', new TokenSet(
         accessToken: 'expired-access',
         refreshToken: 'old-refresh',
         expiresAt: Carbon::now()->subSecond()->toDateTimeImmutable(),
-    ), ['connection' => 'oauth-conn']);
+    ));
 
     Chatwork::connection('oauth-conn')->rooms()->messages()->create(123, 'Hi');
 
@@ -80,11 +80,11 @@ it('リフレッシュに失敗したときChatworkAuthenticationExceptionをス
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-400.json'), 400),
     ]);
 
-    app(TokenRepository::class)->save(new TokenSet(
+    app(TokenRepository::class)->save('oauth-conn', new TokenSet(
         accessToken: 'expired-access',
         refreshToken: 'bad-refresh',
         expiresAt: Carbon::now()->subSecond()->toDateTimeImmutable(),
-    ), ['connection' => 'oauth-conn']);
+    ));
 
     $caught = null;
     try {
