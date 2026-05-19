@@ -113,10 +113,17 @@ final class ChatworkServiceProvider extends PackageServiceProvider
         Route::prefix($resolvedPrefix)
             ->middleware($middleware)
             ->group(function (): void {
+                // GET ルートのため `web` グループ配下でも Laravel の CSRF 検証対象外。
+                // 本 callback の CSRF 防御は単回使用 state（OAuthCallbackController の
+                // StateStore::pull() 検証）が担う。
                 Route::get('callback', OAuthCallbackController::class)
                     ->name('chatwork.oauth.callback');
             });
 
+        // `->name()` は RouteCollection::add() の後に適用されるため addLookups() が
+        // このルートを nameList に登録できない。Laravel 自身の
+        // RouteServiceProvider::loadRoutes() 末尾と同様、明示再構築が必須
+        // （削除すると Route::has()/getByName()/route() が解決できなくなる）。
         Route::getRoutes()->refreshNameLookups();
     }
 

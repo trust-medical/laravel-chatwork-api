@@ -35,6 +35,12 @@ final class ChatworkClient
         return $this->mode;
     }
 
+    /**
+     * 戻り値モード選択の公開エントリポイント（fluent chain の起点）。
+     * Client は不変なコラボレータ（connection / factory / mapper）から構築されるため、
+     * clone ではなく新インスタンス再構築で immutability を担保する
+     * （cf. {@see ChatworkManager::withMode()} は可変 Manager のため clone+mutate）。
+     */
     public function withMode(ResponseMode $mode): self
     {
         return new self($this->connection, $this->factory, $this->mapper, $mode);

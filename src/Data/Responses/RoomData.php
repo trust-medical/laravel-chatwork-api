@@ -50,6 +50,7 @@ final readonly class RoomData implements MapsFromArray
         return new self(
             roomId: (int) ($data['room_id'] ?? 0),
             name: (string) ($data['name'] ?? ''),
+            // fromArray は throw しない方針。未知 type/role は既定 (Group/Member) に倒す。
             type: RoomType::tryFrom((string) ($data['type'] ?? '')) ?? RoomType::Group,
             role: RoomRole::tryFrom((string) ($data['role'] ?? '')) ?? RoomRole::Member,
             sticky: (bool) ($data['sticky'] ?? false),
