@@ -31,7 +31,7 @@ function provider(InMemoryTokenRepository $repo, int $leeway = 60): OAuthTokenPr
     return new OAuthTokenProvider(
         connectionName: 'default',
         repository: $repo,
-        oauth: new OAuthClient(new CacheStateStore(Cache::store()), config('chatwork.oauth')),
+        oauth: new OAuthClient(new CacheStateStore(Cache::store()), (array) config('chatwork.oauth')),
         leewaySeconds: $leeway,
     );
 }
