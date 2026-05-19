@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi\Data\Requests;
 
 use TrustMedical\LaravelChatworkApi\Data\Requests\Concerns\NormalizesIntegerList;
+use TrustMedical\LaravelChatworkApi\Data\Requests\Concerns\ValidatesBodyLength;
 use TrustMedical\LaravelChatworkApi\Enums\LimitType;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class CreateRoomTaskRequest
 {
     use NormalizesIntegerList;
+    use ValidatesBodyLength;
 
     private const int BODY_MIN = 1;
 
@@ -56,19 +58,7 @@ final readonly class CreateRoomTaskRequest
 
     private function validate(): void
     {
-        $length = mb_strlen($this->body);
-        if ($length < self::BODY_MIN) {
-            throw new ChatworkValidationException(
-                'Task body must not be empty.',
-                ['body' => ['must not be empty']],
-            );
-        }
-        if ($length > self::BODY_MAX) {
-            throw new ChatworkValidationException(
-                sprintf('Task body must be %d characters or less.', self::BODY_MAX),
-                ['body' => [sprintf('must be %d characters or less', self::BODY_MAX)]],
-            );
-        }
+        self::assertBodyLength($this->body, self::BODY_MIN, self::BODY_MAX, 'Task');
 
         if (count($this->toIds) === 0) {
             throw new ChatworkValidationException(
