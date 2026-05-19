@@ -16,6 +16,10 @@ it('数値の message_id を string に変換する', function () {
     expect($dto->messageId)->toBe('1024');
 });
 
+it('欠損キーは空文字にフォールバックする', function () {
+    expect(CreatedMessage::fromArray([])->messageId)->toBe('');
+});
+
 it('readonly クラスである', function () {
     expect(CreatedMessage::class)->toBeReadonly();
 });

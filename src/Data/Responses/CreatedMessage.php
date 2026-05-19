@@ -11,10 +11,10 @@ final readonly class CreatedMessage implements MapsFromArray
     public function __construct(public string $messageId) {}
 
     /**
-     * @param  array{message_id: string|int}  $data
+     * @param  array{message_id?: string|int}  $data
      */
     public static function fromArray(array $data): static
     {
-        return new self((string) $data['message_id']);
+        return new self((string) ($data['message_id'] ?? ''));
     }
 }
