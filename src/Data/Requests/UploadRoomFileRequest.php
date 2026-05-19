@@ -59,7 +59,19 @@ final readonly class UploadRoomFileRequest
 
     private function validate(): void
     {
-        if (! is_file($this->path) || ! is_readable($this->path)) {
+        // ローカルファイルシステムパスのみ許可する。`http://` 等の URL や
+        // `php://` / `phar://` / `data://` 等のストリームラッパーは、利用側が
+        // ユーザー入力を $path に渡した場合に SSRF / 任意ストリーム読み取りへ
+        // 発展しうるため、ファイルシステム検査より前に拒否する（深層防御）。
+        // `://` を要求することで Windows のドライブレター（`C:\...`）を誤検出しない。
+        if (preg_match('#^[A-Za-z][A-Za-z0-9+.\-]*://#', $this->path) === 1) {
+            throw new ChatworkValidationException(
+                'file must be a local filesystem path, not a URL or stream wrapper.',
+                ['file' => ['must be a local filesystem path, not a URL or stream wrapper']],
+            );
+        }
+
+        if (realpath($this->path) === false || ! is_file($this->path) || ! is_readable($this->path)) {
             throw new ChatworkValidationException(
                 'file must be an existing readable path.',
                 ['file' => ['must be an existing readable path']],
