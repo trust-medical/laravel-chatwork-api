@@ -61,6 +61,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ChatworkChannel::send()` の docblock を実装（4xx/5xx/429 すべて
   `ChatworkRequestException` に変換して throw＝queue retry トリガー）と整合。
 - `ChatworkRoute` の connection フィールドを `readonly` 化（値オブジェクトの不変性徹底）。
+- `CreatedMessage::fromArray()` が `message_id` 欠損時に TypeError を起こして
+  いたのを、他 Response DTO と同じ `?? ''` フォールバックへ統一（空/壊れた
+  レスポンスで throw しない不変条件を回復）。
+- 8 リソースに重複していた Dto モードのリストアンラップを
+  `ChatworkClient::sendList()` へ集約（挙動不変、将来のモード追加点を一元化）。
+- `ChatworkClient::send()` / `upload()` の `$dtoClass` を
+  `class-string<MapsFromArray>|null` へ厳格化（`ResponseMapper` と整合、
+  DTO 誤渡しを静的検出）。
+- `InMemoryTokenRepository` を `@internal` 化し、testing / local 以外の環境で
+  生成された場合に `E_USER_NOTICE` で警告（本番誤用を能動検出）。
 
 ### Security
 
