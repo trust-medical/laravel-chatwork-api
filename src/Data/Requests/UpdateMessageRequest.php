@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace TrustMedical\LaravelChatworkApi\Data\Requests;
 
+use TrustMedical\LaravelChatworkApi\Data\Requests\Concerns\ValidatesBodyLength;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkValidationException;
 
 final readonly class UpdateMessageRequest
 {
+    use ValidatesBodyLength;
+
     /**
      * @throws ChatworkValidationException 本文が空、または Chatwork の文字数上限を超えた場合。
      */
@@ -26,20 +29,11 @@ final readonly class UpdateMessageRequest
 
     private function validate(): void
     {
-        $length = mb_strlen($this->body);
-
-        if ($length < MessageBodyConstraints::BODY_MIN) {
-            throw new ChatworkValidationException(
-                'Message body must not be empty.',
-                ['body' => ['must not be empty']],
-            );
-        }
-
-        if ($length > MessageBodyConstraints::BODY_MAX) {
-            throw new ChatworkValidationException(
-                sprintf('Message body must be %d characters or less.', MessageBodyConstraints::BODY_MAX),
-                ['body' => [sprintf('must be %d characters or less', MessageBodyConstraints::BODY_MAX)]],
-            );
-        }
+        self::assertBodyLength(
+            $this->body,
+            MessageBodyConstraints::BODY_MIN,
+            MessageBodyConstraints::BODY_MAX,
+            'Message',
+        );
     }
 }

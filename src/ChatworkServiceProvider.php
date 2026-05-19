@@ -16,6 +16,7 @@ use TrustMedical\LaravelChatworkApi\Auth\OAuth\OAuthClient;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\StateStore;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenRepository;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkConfigurationException;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
 use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
 use TrustMedical\LaravelChatworkApi\Notifications\ChatworkChannel;
@@ -34,32 +35,14 @@ final class ChatworkServiceProvider extends PackageServiceProvider
         $this->app->singleton(ChatworkPendingRequestFactory::class);
         $this->app->singleton(ResponseMapper::class);
 
-        $this->app->bind(StateStore::class, function (Application $app): StateStore {
-            $configured = $app->make('config')->get('chatwork.oauth.state_store');
-            if (is_string($configured) && $configured !== '') {
-                $instance = $app->make($configured);
-                if ($instance instanceof StateStore) {
-                    return $instance;
-                }
-            }
+        $this->app->bind(StateStore::class, fn (Application $app): StateStore => $this->resolveConfigured($app, 'chatwork.oauth.state_store', StateStore::class)
+            ?? new CacheStateStore($app->make('cache')->store()));
 
-            return new CacheStateStore($app->make('cache')->store());
-        });
-
-        $this->app->bind(TokenRepository::class, function (Application $app): TokenRepository {
-            $configured = $app->make('config')->get('chatwork.oauth.token_repository');
-            if (is_string($configured) && $configured !== '') {
-                $instance = $app->make($configured);
-                if ($instance instanceof TokenRepository) {
-                    return $instance;
-                }
-            }
-
-            return new CacheTokenRepository(
+        $this->app->bind(TokenRepository::class, fn (Application $app): TokenRepository => $this->resolveConfigured($app, 'chatwork.oauth.token_repository', TokenRepository::class)
+            ?? new CacheTokenRepository(
                 $app->make('cache')->store(),
                 $app->make('encrypter'),
-            );
-        });
+            ));
 
         $this->app->bind(OAuthClient::class, function (Application $app): OAuthClient {
             $config = $app->make('config')->get('chatwork.oauth');
@@ -100,6 +83,11 @@ final class ChatworkServiceProvider extends PackageServiceProvider
      * 意図的に public: `routes_enabled=false` のままにしつつ、独自の RouteServiceProvider
      * から任意の middleware / ドメイン / プレフィックス配下でこの callback ルートを
      * 手動登録したいアプリケーション向けの公開エントリポイントである。
+     *
+     * 既知の制約: `php artisan route:cache` 有効時は本メソッドのクロージャが
+     * 実行されないため、`route_throttle` の形式検証も行われない。
+     *
+     * @throws ChatworkConfigurationException `route_throttle` が "max,minutes" でも limiter 名でもない場合。
      */
     public function registerOAuthRoutes(): void
     {
@@ -109,7 +97,16 @@ final class ChatworkServiceProvider extends PackageServiceProvider
 
         $middleware = ['web'];
         $throttle = $config->get('chatwork.oauth.route_throttle');
-        if (is_string($throttle) && $throttle !== '') {
+        if ($throttle !== null && $throttle !== '') {
+            if (! is_string($throttle)
+                || (! preg_match('/^\d+,\d+$/', $throttle)
+                    && ! preg_match('/^[A-Za-z][A-Za-z0-9_-]*$/', $throttle))) {
+                throw new ChatworkConfigurationException(sprintf(
+                    'chatwork.oauth.route_throttle は "max,minutes"（例 "10,1"）または limiter 名である必要があります。got: %s',
+                    is_scalar($throttle) ? (string) $throttle : get_debug_type($throttle),
+                ));
+            }
+
             $middleware[] = 'throttle:' . $throttle;
         }
 
@@ -121,5 +118,45 @@ final class ChatworkServiceProvider extends PackageServiceProvider
             });
 
         Route::getRoutes()->refreshNameLookups();
+    }
+
+    /**
+     * config 値で差し替え可能なサービス（state_store / token_repository）を解決する。
+     *
+     * 未設定（null / 空文字）なら null を返し、呼び出し側が既定実装へフォールバックする。
+     * クラス名が指定されているのに存在しない／契約 interface を実装しないときは、
+     * 黙ってフォールバックせず {@see ChatworkConfigurationException} で fail-loud にする。
+     *
+     * @template T of object
+     *
+     * @param  class-string<T>  $contract
+     * @return T|null
+     *
+     * @throws ChatworkConfigurationException 指定クラスが不存在、または契約 interface 未実装の場合。
+     */
+    private function resolveConfigured(Application $app, string $configKey, string $contract): ?object
+    {
+        $configured = $app->make('config')->get($configKey);
+        if (! is_string($configured) || $configured === '') {
+            return null;
+        }
+
+        if (! class_exists($configured)) {
+            throw new ChatworkConfigurationException(
+                sprintf('%s に指定されたクラス %s が存在しません。', $configKey, $configured),
+            );
+        }
+
+        $instance = $app->make($configured);
+        if (! $instance instanceof $contract) {
+            throw new ChatworkConfigurationException(sprintf(
+                '%s は %s を実装する必要がありますが %s が解決されました。',
+                $configKey,
+                $contract,
+                get_debug_type($instance),
+            ));
+        }
+
+        return $instance;
     }
 }

@@ -13,7 +13,7 @@ use RuntimeException;
  * 依存しない。`asResponse()` / `asResult()` 下でも呼び出し元は常にこの例外を受け取る。
  * {@see ChatworkRoutingException} は通知ルートの競合に特化した派生クラス。
  */
-class ChatworkValidationException extends RuntimeException
+class ChatworkValidationException extends RuntimeException implements ChatworkException
 {
     /**
      * @param  array<string, array<int, string>>  $violations  フィールド名 => バリデーション違反メッセージのリスト

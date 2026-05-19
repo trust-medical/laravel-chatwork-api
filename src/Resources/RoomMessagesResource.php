@@ -72,10 +72,13 @@ final class RoomMessagesResource
     /**
      * 指定した ID のメッセージを 1 件取得する (GET /rooms/{room_id}/messages/{message_id})。
      *
+     * @throws ChatworkValidationException $messageId が正の整数文字列でない場合。
      * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
      */
     public function find(int $roomId, string $messageId): mixed
     {
+        $this->assertMessageId($messageId);
+
         return $this->client->send(
             'GET',
             sprintf('/rooms/%d/messages/%s', $roomId, $messageId),
@@ -91,11 +94,13 @@ final class RoomMessagesResource
      * 新しい本文は送信前に検証される（空でないこと、Chatwork の文字数上限以内であること）ため、
      * 不正な本文はレスポンスモードに関わらず即失敗する。
      *
-     * @throws ChatworkValidationException $body が空、または Chatwork の文字数上限を超えている場合。
+     * @throws ChatworkValidationException $messageId が正の整数文字列でない、$body が空、または Chatwork の文字数上限を超えている場合。
      * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
      */
     public function update(int $roomId, string $messageId, string $body): mixed
     {
+        $this->assertMessageId($messageId);
+
         $request = new UpdateMessageRequest($body);
 
         return $this->client->send(
@@ -110,10 +115,13 @@ final class RoomMessagesResource
     /**
      * 指定したメッセージを完全に削除する (DELETE /rooms/{room_id}/messages/{message_id})。
      *
+     * @throws ChatworkValidationException $messageId が正の整数文字列でない場合。
      * @throws ChatworkRequestException スローモード (asArray/asDto/asCollection) で 4xx/5xx が返った場合。
      */
     public function deleteMessage(int $roomId, string $messageId): mixed
     {
+        $this->assertMessageId($messageId);
+
         return $this->client->send(
             'DELETE',
             sprintf('/rooms/%d/messages/%s', $roomId, $messageId),
@@ -172,5 +180,24 @@ final class RoomMessagesResource
             MarkUnreadResult::class,
             'markRoomMessagesAsUnread',
         );
+    }
+
+    /**
+     * message_id を URL パスへ埋め込む前に正の整数文字列であることを検証する。
+     *
+     * Chatwork の message_id は 64bit を超えうるため int 化はせず文字列のまま
+     * 扱う。空・非数字・先頭ゼロ（曖昧表現）はパスインジェクション/誤操作を
+     * 招くため送信前に拒否する。
+     *
+     * @throws ChatworkValidationException message_id が正の整数文字列でない場合。
+     */
+    private function assertMessageId(string $messageId): void
+    {
+        if ($messageId === '' || ! ctype_digit($messageId) || $messageId[0] === '0') {
+            throw new ChatworkValidationException(
+                'message_id must be a positive integer string.',
+                ['message_id' => ['must be a positive integer string']],
+            );
+        }
     }
 }

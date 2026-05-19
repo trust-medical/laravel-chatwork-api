@@ -44,6 +44,9 @@ jobs:
         php: ['8.3', '8.4']
         laravel: ['^11.0', '^12.0']
         dependency-version: [prefer-stable, prefer-lowest]
+        # Laravel 13 は前方互換カナリア。pestphp/pest-plugin-laravel が
+        # laravel/framework ^11|^12 までしか許可しないため composer 解決
+        # 段階で必ず失敗する。対応版が出るまで experimental（非ブロッキング）。
         include:
           - php: '8.3'
             laravel: '^13.0'

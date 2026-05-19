@@ -44,7 +44,7 @@ CHATWORK_API_TOKEN=your-api-token
 | `default` | `default` | 使用する connection 名（`CHATWORK_CONNECTION`） |
 | `base_uri` | `https://api.chatwork.com/v2` | API ベース URI |
 | `timeout` | `10` | リクエストタイムアウト秒 |
-| `response.mode` | `dto` | 既定の戻り値モード（無効値は `ChatworkValidationException`） |
+| `response.mode` | `dto` | 既定の戻り値モード（`CHATWORK_RESPONSE_MODE`。無効値は `ChatworkValidationException`） |
 | `connections` | API Token connection 1件 | 複数 connection 定義可 |
 | `oauth` | — | OAuth2 設定（後述） |
 | `oauth.timeout` | `10` | OAuth トークン要求のタイムアウト秒（`CHATWORK_OAUTH_TIMEOUT`） |
@@ -233,6 +233,19 @@ Chatwork::incomingRequests()->decline(456);
 | `ChatworkValidationException` | 送信前バリデーション失敗（戻り値モードに関わらず常に throw） |
 | `ChatworkRequestException` | 4xx / 5xx（throw 系モード時） |
 | `ChatworkAuthenticationException` | 認証情報の解決失敗（connection 不正・OAuth refresh 失敗等） |
+| `ChatworkConfigurationException` | 設定・配線が不正（`oauth.state_store` / `oauth.token_repository` に不正クラス、`oauth.route_throttle` 形式不正、`base_uri` スキーム不正など） |
+
+すべての例外は marker interface `ChatworkException` を実装します。本パッケージ由来の例外を一括捕捉したい場合は `catch (ChatworkException $e)` が使えます（`status()` / `violations()` などの固有メソッドは具象例外型で分岐してください）。
+
+```php
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkException;
+
+try {
+    Chatwork::rooms()->messages()->create(123, '本文');
+} catch (ChatworkException $e) {
+    // 本パッケージ由来の全例外をここで捕捉
+}
+```
 
 `ChatworkRequestException` はエラーボディ2系統を取り出せます:
 
