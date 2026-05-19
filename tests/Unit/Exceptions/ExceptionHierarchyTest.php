@@ -34,6 +34,10 @@ it('全パッケージ例外は ChatworkException マーカーを実装する', 
     ChatworkConfigurationException::class,
 ]);
 
+it('ChatworkException は \Throwable のサブタイプである', function () {
+    expect((new ReflectionClass(ChatworkException::class))->implementsInterface(Throwable::class))->toBeTrue();
+});
+
 it('catch (ChatworkException) で全パッケージ例外を一括捕捉できる', function () {
     $exceptions = [
         new ChatworkValidationException('v'),
