@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TrustMedical\LaravelChatworkApi;
 
 use InvalidArgumentException;
+use TrustMedical\LaravelChatworkApi\Data\Contracts\MapsFromArray;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkRequestException;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
@@ -71,7 +72,7 @@ final class ChatworkClient
      * array、Collection、Laravel/PSR-7 response、または ChatworkResult — そのため `mixed`。
      *
      * @param  array<string, mixed>  $payload  POST/PUT/DELETE のフォームボディ、GET のクエリパラメータ
-     * @param  class-string|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
+     * @param  class-string<MapsFromArray>|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
      *
      * @throws InvalidArgumentException $method がサポートされていない HTTP メソッドの場合。
      * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
@@ -110,7 +111,7 @@ final class ChatworkClient
      * 具体的な戻り値の型は {@see ResponseMode} によって決まるため `mixed`。
      *
      * @param  array<string, scalar>  $fields  ファイル以外のマルチパートパーツ
-     * @param  class-string|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
+     * @param  class-string<MapsFromArray>|null  $dtoClass  Dto/Collection モードでハイドレートする DTO
      *
      * @throws ChatworkRequestException 投例モード（asArray/asDto/asCollection）で 4xx/5xx が返った場合。
      */
