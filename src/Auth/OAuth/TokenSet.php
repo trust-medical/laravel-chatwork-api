@@ -66,7 +66,16 @@ final readonly class TokenSet
      * 永続化スナップショット専用。access/refresh トークンを平文で含むため、
      * ログ・例外・レスポンスへ渡さず {@see TokenRepository} 実装の保存にのみ使う。
      *
+     * これは {@see TokenRepository::save()} 実装が永続化に用いる唯一の正規シリアライズで
+     * あり、復元は {@see self::fromArray()} と対になる。`@internal` は付与しない:
+     * サードパーティの TokenRepository 実装が正当に呼ぶ公開拡張点の一部であり、
+     * `@internal` 化すると静的解析が正当な拡張実装を誤検出して DX を損なうため。
+     * 平文露出は本 docblock の使用契約と {@see self::__debugInfo()} のマスキングで防ぐ。
+     *
      * @return array{access_token: string, refresh_token: string, expires_at: string, token_type: string}
+     *
+     * @see TokenRepository::save()
+     * @see self::fromArray()
      */
     public function toArray(): array
     {

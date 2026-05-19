@@ -120,6 +120,10 @@ final class ChatworkServiceProvider extends PackageServiceProvider
                     ->name('chatwork.oauth.callback');
             });
 
+        // `->name()` は RouteCollection::add() の後に適用されるため addLookups() が
+        // このルートを nameList に登録できない。Laravel 自身の
+        // RouteServiceProvider::loadRoutes() 末尾と同様、明示再構築が必須
+        // （削除すると Route::has()/getByName()/route() が解決できなくなる）。
         Route::getRoutes()->refreshNameLookups();
     }
 
