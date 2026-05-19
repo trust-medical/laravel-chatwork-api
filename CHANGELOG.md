@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   （fail-fast）。それまで当該設定は無効だった。
 - `illuminate/cache` / `illuminate/contracts` / `illuminate/routing` を `require` に
   明示宣言（従来は推移的依存）。`extra.branch-alias`（`dev-main` → `1.0.x-dev`）を追加。
+- `composer-runtime-api`（`^2.0`）と `psr/http-message`（`^1.1 || ^2.0`）を `require`
+  に明示宣言。`Composer\InstalledVersions`（User-Agent 構築）と PSR-7
+  `ResponseInterface`（`asPsrResponse()` 戻り型）は公開コードパスで使用するが、
+  従来は `illuminate/*` → guzzle 経由の推移的依存に暗黙依存していた。
 - **BREAKING CHANGE:** 全 Response DTO に `MapsFromArray` 契約を導入し、
   `fromArray()` の戻り型を `self` → `static` に統一（`ResponseMapper` の
   `class-string<MapsFromArray>` 化により誤渡しを静的検出）。
@@ -49,6 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING CHANGE:** `Connection` のコンストラクタを `private` 化し
   `Connection::make()` を唯一の生成口に統一。`baseUri` スキーム不正時の
   例外を `InvalidArgumentException` → `ChatworkConfigurationException` に変更。
+- **BREAKING CHANGE:** `TokenRepository::save()` のシグネチャを
+  `save(TokenSet $tokenSet, array $context = [])` →
+  `save(string $connectionName, TokenSet $tokenSet)` に変更。弱い連想配列契約と
+  実装ごとに重複していた `$context['connection']` ガードを排除（`find()` と
+  語順統一）。カスタム `TokenRepository` 実装・直接呼出は要更新
+  （pre-1.0 のため公開リリース済み利用者への影響なし）。
 - `chatwork.response.mode` を `CHATWORK_RESPONSE_MODE` 環境変数で上書き
   可能に（他設定キーと一貫）。`composer.json` の author に組織 homepage を追加。
 
@@ -79,6 +89,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   DTO 誤渡しを静的検出）。
 - `InMemoryTokenRepository` を `@internal` 化し、testing / local 以外の環境で
   生成された場合に `E_USER_NOTICE` で警告（本番誤用を能動検出）。
+- 拡張点契約を凍結: `TokenRepository` / `MapsFromArray` に `@api`（v1 で恒久固定
+  する後方互換契約）、`ChatworkClient::send()` / `sendList()` / `upload()` に
+  `@internal`（低レベル配管、公開 API は Resource 層を使う）。
+- 公開 Resource クラスに `@api` を付与し、list 系メソッドの `@return list<X>`
+  文言を「`asDto()` 契約」に統一。単体取得系は `: mixed` のまま `@return` を
+  宣言しない（PHPStan level 6 が具体型を honor し、全モードを検証するテスト・
+  利用側コードと構造的に衝突するため）。`asDto()` モードのメソッド別戻り値型は
+  README および `docs/03-package-architecture/response-strategy.md` の型対応表で明文化。
 - `oauth.state_store` / `oauth.token_repository` に不存在クラスや契約 interface
   未実装クラスを設定しても無言で既定へフォールバックしていたのを、
   `ChatworkConfigurationException` で fail-loud に（誤設定の隠蔽を解消）。
