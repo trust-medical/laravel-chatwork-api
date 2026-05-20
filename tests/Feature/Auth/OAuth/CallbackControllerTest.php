@@ -163,6 +163,32 @@ it('redirect_after_callbackがスキーム相対URLの場合はルートパス�
     expect($path)->toBe('/');
 });
 
+it('redirect_after_callback の CR/LF を除去しヘッダ注入を防ぐ', function () {
+    Config::set('chatwork.oauth.redirect_after_callback', "/dashboard\r\nSet-Cookie: pwned=1");
+    Http::fake([
+        'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
+    ]);
+
+    $store = new CacheStateStore(Cache::store());
+    $repo = new CacheTokenRepository(Cache::store(), testEncrypter());
+    $controller = buildController($store, $repo);
+
+    $store->put('state-crlf', ['connection' => 'default', 'context' => []], 600);
+
+    $response = $controller(callbackRequest('state=state-crlf&code=auth-code'));
+
+    expect($response)->toBeInstanceOf(RedirectResponse::class);
+    /** @var RedirectResponse $response */
+    // セキュリティ不変条件: Location ヘッダに CR/LF が無い（= レスポンス
+    // スプリッティング不成立）。CR/LF 除去後に残る文字列はパスの一部に
+    // すぎず、単一ヘッダ値として無害。
+    $location = (string) $response->headers->get('Location');
+    expect($response->getTargetUrl())->not->toContain("\r")
+        ->and($response->getTargetUrl())->not->toContain("\n")
+        ->and($location)->not->toContain("\r")
+        ->and($location)->not->toContain("\n");
+});
+
 it('安全制限を超える長さのcodeを拒否しtokenエンドポイントをスキップする', function () {
     Http::fake();
 

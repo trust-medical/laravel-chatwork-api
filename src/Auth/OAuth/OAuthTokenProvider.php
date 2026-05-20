@@ -26,13 +26,19 @@ final class OAuthTokenProvider implements TokenProvider
      */
     private const LOCK_TTL_SECONDS = 30;
 
-    private const RETRY_DELAY_MICROSECONDS = 500_000;
+    private const DEFAULT_RETRY_DELAY_MICROSECONDS = 500_000;
 
+    /**
+     * @param  int  $retryDelayMicroseconds  ロック取得失敗時にロック保持者の永続化を
+     *                                       待つ時間。テストでは 0 を渡して実時間
+     *                                       依存を排除できる（既定は 0.5 秒）。
+     */
     public function __construct(
         private readonly string $connectionName,
         private readonly TokenRepository $repository,
         private readonly OAuthClient $oauth,
         private readonly int $leewaySeconds = 60,
+        private readonly int $retryDelayMicroseconds = self::DEFAULT_RETRY_DELAY_MICROSECONDS,
     ) {}
 
     /**
@@ -70,7 +76,9 @@ final class OAuthTokenProvider implements TokenProvider
         $lock = Cache::lock($this->lockKey(), self::LOCK_TTL_SECONDS);
 
         if (! $lock->get()) {
-            usleep(self::RETRY_DELAY_MICROSECONDS);
+            if ($this->retryDelayMicroseconds > 0) {
+                usleep($this->retryDelayMicroseconds);
+            }
             $latest = $this->repository->find($this->connectionName);
             if ($latest === null || $latest->isExpired($this->leewaySeconds)) {
                 throw new ChatworkAuthenticationException(

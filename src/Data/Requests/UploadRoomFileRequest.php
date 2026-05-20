@@ -78,8 +78,14 @@ final readonly class UploadRoomFileRequest
             );
         }
 
-        $size = (int) filesize($this->path);
-        if ($size <= 0) {
+        $size = filesize($this->path);
+        if ($size === false) {
+            throw new ChatworkValidationException(
+                'file size could not be determined.',
+                ['file' => ['size could not be determined']],
+            );
+        }
+        if ($size === 0) {
             throw new ChatworkValidationException(
                 'file must not be empty.',
                 ['file' => ['must not be empty']],
