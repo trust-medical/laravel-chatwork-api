@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-05-25
+
 ### Fixed
 
 - **`withBearerToken()` / `withApiToken()` の動的クレデンシャル**:
@@ -198,6 +200,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     （メッセージ本文ではない）である旨はクラス docblock で充足済みのため
     重複コメントを追加しない（説明コメント禁止の規約に従う）。
 
-[Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v1.0.2
 [1.0.1]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v1.0.1
 [1.0.0]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v1.0.0
