@@ -1,9 +1,8 @@
 ---
 name: release-package
-description: trust-medical/laravel-chatwork-api を Composer パッケージとしてリリースする一連の手続き（CHANGELOG 確定 → release ブランチ + PR → CI 確認 → main merge → vX.Y.Z タグ push → release workflow 発火確認 → GitHub Release 検証 → Packagist 同期確認 → composer 解決確認）を、ステップごとにユーザー承認を取りながら遂行するスキル。手動呼び出し専用（`/release-package <version>`）。ユーザーが「リリースして」「vX.Y.Z を出して」「タグ打って公開」「パッケージを公開」と言った時、または `[Unreleased]` セクションを確定リリースに変えたい時に呼ぶ。本パッケージ専用（Keep a Changelog + tag-triggered release.yml + Packagist webhook 同期を前提）。
+description: trust-medical/laravel-chatwork-api を Composer パッケージとしてリリースする一連の手続き（状態スキャン → CHANGELOG 確定 → release ブランチ + PR → CI 確認 → main merge → vX.Y.Z タグ push → release workflow 発火確認 → GitHub Release 検証 + ノート自動修復 → Packagist 同期確認 → composer 解決確認）を、ステップごとにユーザー承認を取りながら遂行するスキル。手動呼び出し専用（`/release-package <version>`）。ユーザーが「リリースして」「vX.Y.Z を出して」「タグ打って公開」「パッケージを公開」と言った時、または `[Unreleased]` セクションを確定リリースに変えたい時に呼ぶ。本パッケージ専用（Keep a Changelog + tag-triggered release.yml + Packagist webhook 同期を前提）。冪等再実行可（途中で止まっても状態スキャンが残作業を判定する）。
 argument-hint: <version>（例: 1.0.1、`v` プレフィックスは付けない）
 arguments: version
-disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
@@ -11,7 +10,12 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 
 trust-medical/laravel-chatwork-api を **v$version** としてリリースする手続きを進める。
 
-各 step の末尾でユーザーに**続行確認を取り**、失敗したら即停止する。途中で `git push --force` / `git reset --hard` / `--no-verify` / `--amend` を使ってはならない（`.claude/rules/commit-style.md` に反する）。
+## 全体方針
+
+- 各 step の末尾で**ユーザーに続行確認を取り**、`!` ブロックの出力が想定外であれば即停止する。
+- `git push --force` / `git reset --hard` / `--no-verify` / `--amend` は使わない（`.claude/rules/commit-style.md`）。例外はタグ位置修復のみ（後述、ユーザー承認必須）。
+- `!` ブロック内では `$version` 以外の `<...>` プレースホルダを書かない。PR 番号などの動的値は **ブランチ名 / gh CLI から都度再取得** する。bash 変数は subshell をまたがず再導出する。
+- 途中で止まった場合は **`/release-package $version` を再実行**すればよい。最初の「状態スキャン」が部分完了状態を検知し、残作業から resume する。
 
 ## 引数検証
 
@@ -19,25 +23,79 @@ trust-medical/laravel-chatwork-api を **v$version** としてリリースする
 
 ```!
 echo "Target version: v$version"
-echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' || echo "INVALID: not a semver"
+if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+  echo "INVALID: '$version' is not a semver"
+  exit 1
+fi
 ```
+
+## 状態スキャン（必須・冪等再実行の起点）
+
+このスキルは途中失敗・再実行を前提とする。**最初に部分完了状態を検知して resume ポイントを決める**。
+
+```!
+BRANCH="chore/release-v$version"
+echo "=== state scan for v$version ==="
+
+echo -n "local branch ($BRANCH): "
+git rev-parse --verify --quiet "refs/heads/$BRANCH" >/dev/null && echo "exists" || echo "absent"
+
+echo -n "remote branch ($BRANCH): "
+git ls-remote --heads origin "$BRANCH" | grep -q . && echo "exists" || echo "absent"
+
+echo -n "CHANGELOG has '## [$version]': "
+grep -Eq "^## \[$version\]( |$)" CHANGELOG.md && echo "yes" || echo "no"
+
+echo -n "open/merged PR for $BRANCH: "
+gh pr list --head "$BRANCH" --state all --json number,state,mergedAt --jq 'if length == 0 then "none" else .[0] | "#\(.number) state=\(.state) mergedAt=\(.mergedAt // "null")" end'
+
+echo -n "local tag v$version: "
+git tag --list "v$version" | grep -q . && echo "exists at $(git rev-list -n 1 v$version)" || echo "absent"
+
+echo -n "remote tag v$version: "
+REMOTE_TAG=$(git ls-remote origin "refs/tags/v$version" | awk '{print $1}')
+[ -n "$REMOTE_TAG" ] && echo "exists at $REMOTE_TAG" || echo "absent"
+
+echo -n "GitHub Release v$version: "
+gh release view "v$version" --json tagName,isDraft,publishedAt --jq '"tagName=\(.tagName) isDraft=\(.isDraft) publishedAt=\(.publishedAt)"' 2>/dev/null || echo "not found"
+
+echo -n "Packagist has v$version: "
+curl -s "https://repo.packagist.org/p2/trust-medical/laravel-chatwork-api.json" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); v=[p for p in d.get('packages',{}).get('trust-medical/laravel-chatwork-api',[]) if p.get('version')=='v$version']; print('yes (dist '+v[0].get('dist',{}).get('reference','')[:12]+')' if v else 'no')"
+```
+
+スキャン結果と進むべき step の対応:
+
+| 検知シグナル                                  | resume すべき step                              |
+| --------------------------------------------- | ----------------------------------------------- |
+| すべて absent / no / none / not found / no    | **Pre-flight チェック**（通常開始）             |
+| local branch exists, but no PR / no CHANGELOG | **CHANGELOG 編集** から（ローカル branch 再利用） |
+| branch + CHANGELOG OK, PR open                | **CI 通過確認** へ                              |
+| PR mergedAt != null, local main 未同期        | **main 同期** へ                                |
+| main 同期済み, local tag absent               | **タグ作成と push** へ                          |
+| remote tag exists at "merge commit SHA"       | **release workflow 発火確認** へ                |
+| remote tag exists but at non-merge SHA        | **タグ位置修復**（後述）                        |
+| Release publishedAt != null, Packagist no     | **Packagist 同期確認** へ                       |
+| Release + Packagist ともに OK                 | **composer 解決確認 → 完了報告** へ             |
+
+不整合が複数ある（例: tag が remote にあるが Release が無い）場合は、`gh run list --workflow=release.yml --limit 3` でワークフロー run を確認し、ユーザーに状況提示してから判断を仰ぐ。
 
 ## Pre-flight チェック
 
-下記がすべて OK でないと進めない。
+通常開始時の前提条件。
 
 ```!
-git -C . rev-parse --abbrev-ref HEAD
-git -C . status --porcelain
-git tag --list "v$version"
+echo -n "current branch: "; git rev-parse --abbrev-ref HEAD
+echo "uncommitted changes:"; git status --porcelain
+echo -n "remote main protection: "
 gh api repos/trust-medical/laravel-chatwork-api/branches/main/protection 2>&1 | head -1
 ```
 
 判定:
-- 現在ブランチが `main` でなければ中断（`git checkout main && git pull` を促す）
-- 作業ツリーに未コミット変更があれば中断
-- `v$version` タグが既存なら中断（リリース済み）
-- main は保護なし想定。protection があれば手順を読み替える
+
+- 現在ブランチが `main` でなければ中断（`git checkout main && git pull origin main` を促す）
+- 作業ツリーに未コミット変更があれば中断（**この skill の差分以外を含めない**ため重要）
+- main が保護されていれば手順を読み替える（現状は保護なし想定）
 
 ## ローカルチェック（全 green 必須）
 
@@ -49,28 +107,32 @@ CI と重複するが、PR 提出前に local で early-fail させる。
 ./vendor/bin/pest
 ```
 
-1 つでも fail したら中断し、修正コミットを別 PR で先行マージしてから再開する。リリース PR に修正を混ぜない。
+1 つでも fail したら中断し、修正コミットを別 PR で先行マージしてから再開する。**リリース PR に修正を混ぜない**。
 
 ## CHANGELOG 編集
 
 ### 編集ルール（必ず守る）
 
-CHANGELOG.md は **Keep a Changelog** 形式。`.github/workflows/release.yml` は **タグ名から逆引きで `## [<version>]` セクションを抽出する**（PR #8 で fix 済み）。よって以下を守る:
+CHANGELOG.md は **Keep a Changelog** 形式。`.github/workflows/release.yml` は **タグ名から逆引きで `## [<version>]` セクションを抽出する**。よって以下を守る:
 
-- `## [Unreleased]` 見出しは **rename しない**。空のまま最上部に残す（次の開発サイクル用）
-- その下に新しい `## [$version] - <YYYY-MM-DD>` セクションを追加し、これまで `[Unreleased]` に書かれていた本文をこちらに移す
+- `## [Unreleased]` 見出しは **rename しない**。空のまま最上部に残す（次の開発サイクル用）。
+- その下に新しい `## [$version] - <YYYY-MM-DD>` セクションを追加し、これまで `[Unreleased]` 配下にあった本文をそちらに移す。
 - 末尾のリンク参照を 2 行更新:
   - `[Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/compare/v$version...HEAD`
   - `[$version]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v$version`
 
 ### 編集手順
 
-1. `date +%Y-%m-%d` で本日の日付を取得
-2. Edit ツールで CHANGELOG.md を編集:
+1. `date +%Y-%m-%d` で本日の日付を取得（下の `!` ブロックで一度実行）。
+2. Edit ツールで `CHANGELOG.md` を編集:
    - `## [Unreleased]` 直後の空行の **後ろ** に `## [$version] - <date>` 見出しを挿入
-   - これまで `[Unreleased]` の下にあった本文（Added/Changed/Fixed/Security/Documentation セクション）をそのまま下の `[$version]` セクション配下に置く（実質、`[Unreleased]` セクションの内容を `[$version]` セクションに移す）
+   - これまで `[Unreleased]` 配下にあった本文（Added/Changed/Fixed/Security/Documentation セクション）を `[$version]` セクション配下に移す
    - 末尾リンク参照を上記の通り 2 行更新
 3. `git diff CHANGELOG.md` を表示してユーザーに目視確認させる
+
+```!
+date +%Y-%m-%d
+```
 
 ### 抽出ロジックの dry-run 検証
 
@@ -82,121 +144,247 @@ awk -v ver="$version" '
   /^## \[/ && capture { exit }
   /^\[[^]]+\]:/ && capture { exit }
   capture { print }
-' CHANGELOG.md | head -20
+' CHANGELOG.md | head -25
 ```
 
-最初の行が `## [$version] - <date>` であること、本文が抽出されることを確認する。空なら CHANGELOG 編集をやり直す。
+最初の行が `## [$version] - <date>` であること、本文が抽出されること、**バッククォート含む inline code がそのまま見えること** を確認する。空なら CHANGELOG 編集をやり直す。
 
 ## Release ブランチ作成と PR
 
 ```!
-git checkout -b "chore/release-v$version"
+BRANCH="chore/release-v$version"
+if git rev-parse --verify --quiet "refs/heads/$BRANCH" >/dev/null; then
+  echo "branch $BRANCH already exists locally; checking out"
+  git checkout "$BRANCH"
+else
+  git checkout -b "$BRANCH"
+fi
 git add CHANGELOG.md
+git status --short
 ```
 
-commit メッセージは下記 HEREDOC で渡す（`.claude/rules/commit-style.md` の Conventional Commits + Co-Authored-By を守る）:
+commit メッセージは下記 HEREDOC で渡す（`.claude/rules/commit-style.md` の Conventional Commits + Co-Authored-By を守る）。Claude は `Bash` ツール上で次のテンプレを `$version` と本日の日付に置換して実行する:
 
 ```
-chore(release): prepare $version
+chore(release): prepare <version>
 
-CHANGELOG の [Unreleased] 本文を [$version] - <date> に確定し、
-release.yml がタグ名から抽出する `## [$version]` セクションを正式版
+CHANGELOG の [Unreleased] 本文を [<version>] - <date> に確定し、
+release.yml がタグ名から抽出する `## [<version>]` セクションを正式版
 リリースノートとして整備。新しい空の [Unreleased] と、末尾リンク参照
-（[$version] リリースタグ / [Unreleased] compare URL）も追加。
+（[<version>] リリースタグ / [Unreleased] compare URL）も追加。
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 ```
 
-push と PR 作成:
+push と PR 作成（**PR 番号はこの後ブランチ名から再導出するため、ここで控えなくてよい**）:
 
 ```!
-git push -u origin "chore/release-v$version"
-gh pr create --title "chore(release): prepare $version" --body "..."
+BRANCH="chore/release-v$version"
+git push -u origin "$BRANCH"
+gh pr create --title "chore(release): prepare $version" --body "$(cat <<EOF
+## Summary
+
+CHANGELOG の [Unreleased] 本文を [$version] - $(date +%Y-%m-%d) セクションに確定し、release.yml がタグ名から抽出する \`## [$version]\` セクションを正式版リリースノートとして整備。コードへの変更なし。
+
+## Release readiness
+
+- Pint / PHPStan / Pest 全 green（ローカル確認済み）
+- CI matrix: Laravel 11/12 全 SUCCESS 必須、Laravel 13 は \`pestphp/pest-plugin-laravel ^3.0\` 上流対応待ちで experimental fail を許容
+- CHANGELOG 抽出 dry-run: \`## [$version]\` セクションがクリーンに取れることを確認済み
+
+## Next step
+
+1. この PR を merge commit でマージ
+2. main 同期 → \`v$version\` タグを merge commit に打って push
+3. release.yml 発火を確認 → GitHub Release ノート差分検証 → Packagist 同期確認 → composer 解決確認
+
+## Test plan
+
+- [ ] CI green（Laravel 11/12 全 SUCCESS、Laravel 13 fail は許容）
+- [ ] CHANGELOG \`## [$version]\` セクションが release.yml の awk 抽出でクリーンに取れる（dry-run 済）
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
 ```
 
-PR 本文には以下を含める:
-- Summary（CHANGELOG 確定の意図）
-- Release readiness（OpenAPI カバレッジ / Pest 件数 / Pint / PHPStan / 前回 merge 以降の変更要約）
-- Next step（タグ push → Packagist 同期確認）
-- Test plan checklist（CI green、CHANGELOG 抽出確認）
+PR が既に存在する場合（再実行時）は `gh pr create` が「pull request already exists」エラーで終わるので、その出力をそのまま CI 確認ステップへ進む合図にする。
 
 ## CI 通過確認
 
+PR 番号はブランチ名から都度引く（subshell をまたいでも安全）。
+
 ```!
-gh pr checks <PR番号> --watch
-gh pr view <PR番号> --json mergeable,mergeStateStatus,statusCheckRollup --jq '{mergeable, mergeStateStatus, failing: [.statusCheckRollup[] | select(.conclusion == "FAILURE") | .name]}'
+BRANCH="chore/release-v$version"
+PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+if [ -z "$PR_NUMBER" ]; then
+  echo "no open PR for $BRANCH"
+  exit 1
+fi
+echo "PR_NUMBER=$PR_NUMBER"
+gh pr checks "$PR_NUMBER" --watch
+```
+
+```!
+BRANCH="chore/release-v$version"
+PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup \
+  --jq '{
+    mergeable,
+    mergeStateStatus,
+    failing: [.statusCheckRollup[] | select(.conclusion == "FAILURE") | .name],
+    passing: [.statusCheckRollup[] | select(.conclusion == "SUCCESS") | .name] | length
+  }'
 ```
 
 許容ルール:
+
 - Pint / PHPStan / Pest (PHP 8.3/8.4 × Laravel 11/12 × stable/lowest) は **全 pass 必須**
-- **Laravel 13 matrix の fail は許容**（`ci.yml` で `continue-on-error: true` の experimental。`pestphp/pest-plugin-laravel` 上流対応待ち）
+- **Laravel 13 matrix の fail は許容**（`pestphp/pest-plugin-laravel` 上流対応待ち）
 - `mergeStateStatus` が `UNSTABLE` でも上記条件を満たせば `mergeable: MERGEABLE` で merge 可
+
+`failing` 配列に Laravel 13 以外が含まれていれば中断してユーザーに報告。
 
 ユーザー承認を取って merge:
 
 ```!
-gh pr merge <PR番号> --merge --delete-branch
+BRANCH="chore/release-v$version"
+PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+gh pr merge "$PR_NUMBER" --merge --delete-branch
 ```
 
 これまでの PR 履歴と整合させるため `--merge`（merge commit）を使う。`--squash` は使わない。
 
-## main 同期とタグ push
+## main 同期
 
 ```!
 git checkout main
 git pull origin main
-git log --oneline -3
+git log --oneline -5
 ```
 
-merge commit が手元に来たことを確認したら、ユーザー承認を取ってタグを切る。
+直近 commit が `Merge pull request #<PR_NUMBER> from trust-medical/chore/release-v$version` であることを目視確認。`chore(release): prepare $version` も一つ下に見えるはず。
+
+## タグ pre-check（push 直前に必ず実行）
+
+タグ位置のミス（fix commit に打つ等）を防ぐため、push 直前に **ローカル / リモート両方** を再検証する。
 
 ```!
+echo -n "target merge SHA: "
+MERGE_SHA=$(git rev-parse HEAD)
+echo "$MERGE_SHA"
+
+echo -n "local tag v$version: "
+git tag --list "v$version" | grep -q . && echo "exists at $(git rev-list -n 1 v$version)" || echo "absent"
+
+echo -n "remote tag v$version: "
+REMOTE_TAG=$(git ls-remote origin "refs/tags/v$version" | awk '{print $1}')
+[ -n "$REMOTE_TAG" ] && echo "exists at $REMOTE_TAG" || echo "absent"
+
+echo -n "HEAD is merge commit (has 2 parents): "
+git cat-file -p HEAD | grep -c '^parent ' | grep -q '^2$' && echo "yes" || echo "no (likely a fix commit; do not tag here)"
+```
+
+判定:
+
+- `local tag` も `remote tag` も absent、かつ `HEAD is merge commit: yes` → **タグ作成と push** へ進む
+- どちらかの tag が exists かつ **同じ SHA** = `MERGE_SHA` → タグは既に正位置。**release workflow 発火確認** へスキップ
+- どちらかの tag が exists かつ **異なる SHA** → **タグ位置修復**（次節）が必要
+
+## タグ作成と push（不可逆操作）
+
+ユーザーに最終承認を取ってから実行する。`$MERGE_SHA` は **同じ subshell 内で再取得** する。
+
+```!
+MERGE_SHA=$(git rev-parse HEAD)
+echo "tagging v$version at $MERGE_SHA"
+git tag -a "v$version" -m "Release v$version" "$MERGE_SHA"
+git push origin "v$version"
+```
+
+タグ push 後、`.github/workflows/release.yml` が自動発火する。
+
+### タグ位置修復（remote tag が wrong SHA の場合）
+
+タグ位置が想定外の場合、**ユーザーに「タグ削除 → 正位置で再作成」の承認を取ってから**以下を実行する。GitHub Release が既に作成されていれば先に `gh release delete v$version` も必要（`--cleanup-tag` を付けるとタグも一括削除される）。
+
+```!
+gh release view "v$version" --json isDraft 2>/dev/null && echo "Release exists; consider 'gh release delete v$version --cleanup-tag' before retagging" || echo "no Release; tag deletion is safe"
+git tag -d "v$version"
+git push origin ":refs/tags/v$version"
 MERGE_SHA=$(git rev-parse HEAD)
 git tag -a "v$version" -m "Release v$version" "$MERGE_SHA"
 git push origin "v$version"
 ```
 
-タグ push は **不可逆操作（GitHub Release が一般公開される）** なので、push の直前に必ず再確認する。
+タグ削除は `git push --force` と同等の不可逆操作であり、`commit-style.md` の force push 禁則の唯一の例外。**必ずユーザーに最終承認を取る**。
 
 ## release workflow 発火確認
 
-タグ push 後、`.github/workflows/release.yml` が自動発火する。
+タグ push の数秒後に workflow run が現れる。`--watch` で完了を待つ。
 
 ```!
-sleep 5
-gh run list --workflow=release.yml --limit 3
+RUN_ID=""
+while [ -z "$RUN_ID" ]; do
+  RUN_ID=$(gh run list --workflow=release.yml --limit 5 --json databaseId,headBranch \
+    --jq ".[] | select(.headBranch == \"v$version\") | .databaseId" | head -1)
+  [ -z "$RUN_ID" ] && sleep 3
+done
+echo "watching run $RUN_ID"
+gh run watch "$RUN_ID" --exit-status
+gh run view "$RUN_ID" --json conclusion,headSha,headBranch --jq '{conclusion, headSha, headBranch}'
 ```
 
-直近 run が `status: completed, conclusion: success` であることを確認。failed なら次節の「修復」へ。
+`conclusion: success` でなければ次の `gh run view --log-failed` で原因を見る。よくある failure: CHANGELOG セクション欠落（`[Unreleased]` を rename してしまった等） / 抽出結果が空。
 
-## GitHub Release 検証
+## GitHub Release 検証 + ノート自動修復（重要）
+
+`release.yml` は `gh release create --notes "${{ ... }}"` で notes を bash の double-quote 内に展開しているため、**バッククォート（inline code）がコマンド置換として消費されて全消失する**既存バグがある（PR で修正予定）。Skill 側で次の auto-repair を行い、リリース発生時点で確実にノートが正しい状態にする。
 
 ```!
+echo "=== release metadata ==="
 gh release view "v$version" --json url,name,publishedAt,tagName,isPrerelease,isDraft
-gh release view "v$version" --json body --jq '.body' | head -3
-```
 
-検証項目:
-- `isDraft: false` / `isPrerelease: false`
-- リリースノート本文の **最初の行が `## [$version] - <date>`** であること
+echo "=== first 5 lines of release body ==="
+gh api "repos/trust-medical/laravel-chatwork-api/releases/tags/v$version" --jq '.body' | head -5
 
-万一最初の行が `## [Unreleased]` だった場合は release.yml の awk バグ（v1.0.0 で発生、PR #8 で fix 済み）が再発した可能性がある。修復:
-
-```!
+echo "=== expected notes (from local CHANGELOG) ==="
 awk -v ver="$version" '
   $0 ~ "^## \\[" ver "\\]( |$)" { capture=1; print; next }
   /^## \[/ && capture { exit }
   /^\[[^]]+\]:/ && capture { exit }
   capture { print }
-' CHANGELOG.md > /tmp/v$version-notes.md
-gh release edit "v$version" --notes-file /tmp/v$version-notes.md
+' CHANGELOG.md > "/tmp/v$version-notes.md"
+head -5 "/tmp/v$version-notes.md"
+```
+
+検証項目:
+
+- `isDraft: false` / `isPrerelease: false`
+- リリースノート本文の最初の行が `## [$version] - <date>` であること
+- `/tmp/v$version-notes.md` と release body が **inline code（バッククォート）含めて一致** すること
+
+ノートに **バッククォートが消失している、または最初の行が一致しない** 場合は auto-repair:
+
+```!
+ACTUAL=$(gh api "repos/trust-medical/laravel-chatwork-api/releases/tags/v$version" --jq '.body')
+EXPECTED=$(cat "/tmp/v$version-notes.md")
+if [ "$ACTUAL" != "$EXPECTED" ]; then
+  echo "notes differ; repairing via --notes-file"
+  gh release edit "v$version" --notes-file "/tmp/v$version-notes.md"
+  echo "after repair:"
+  gh api "repos/trust-medical/laravel-chatwork-api/releases/tags/v$version" --jq '.body' | head -5
+else
+  echo "notes match expected; no repair needed"
+fi
 ```
 
 ## Packagist 同期確認
 
-Packagist 初回登録は本パッケージで完了済み（v1.0.0 時点）。以降は GitHub Webhook で自動同期されるはず。
+Packagist 初回登録は本パッケージで完了済み（v1.0.0 時点）。以降は GitHub Webhook で自動同期されるはず。dist ref が `MERGE_SHA` と一致することも確認する。
 
 ```!
+MERGE_SHA=$(git rev-list -n 1 "v$version")
 curl -s "https://repo.packagist.org/p2/trust-medical/laravel-chatwork-api.json" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
@@ -204,15 +392,17 @@ pkgs = d.get('packages', {}).get('trust-medical/laravel-chatwork-api', [])
 target = 'v$version'
 hit = [p for p in pkgs if p.get('version') == target]
 if hit:
-    print(f'OK: {target} synced')
-    print(f\"  dist ref: {hit[0].get('dist', {}).get('reference','')[:12]}\")
-    print(f\"  time: {hit[0].get('time')}\")
+    dist_ref = hit[0].get('dist', {}).get('reference','')
+    print(f'OK: {target} synced (dist ref {dist_ref[:12]}, time {hit[0].get(\"time\")})')
+    if not '$MERGE_SHA'.startswith(dist_ref):
+        print(f'WARN: dist ref does not match MERGE_SHA {\"$MERGE_SHA\"[:12]}')
 else:
     print(f'NOT YET: {target} not in Packagist (have {[p.get(\"version\") for p in pkgs[:5]]})')
+    sys.exit(1)
 "
 ```
 
-5 分待っても同期されない場合、Packagist の package settings から手動 update を促す。dist ref が `git rev-parse v$version^{commit}` と一致することも確認。
+5 分待っても同期されない場合、Packagist の package settings から手動 update を促す。
 
 ## composer 解決確認
 
@@ -221,25 +411,24 @@ else:
 ```!
 TMPDIR=$(mktemp -d)
 cd "$TMPDIR"
+MAJOR=$(echo "$version" | cut -d. -f1)
 cat > composer.json <<EOF
 {
   "name": "tmp/install-test",
   "require": {
     "php": "^8.3",
     "laravel/framework": "^12.0",
-    "trust-medical/laravel-chatwork-api": "^$(echo $version | cut -d. -f1).0"
+    "trust-medical/laravel-chatwork-api": "^${MAJOR}.0"
   },
   "minimum-stability": "stable",
   "prefer-stable": true
 }
 EOF
 composer install --dry-run --no-interaction 2>&1 | grep -E "trust-medical|laravel/framework" | head -5
-cd - && rm -rf "$TMPDIR"
+cd - >/dev/null && rm -rf "$TMPDIR"
 ```
 
-Laravel 11 でも同じ手順で dry-run しておくと安心（`"laravel/framework": "^11.0"` に差し替え）。
-
-`trust-medical/laravel-chatwork-api (v$version)` が解決されることを確認。
+`trust-medical/laravel-chatwork-api (v$version)` が解決されることを確認。Laravel 11 でも同じ手順で dry-run しておくと安心（`"laravel/framework": "^11.0"` に差し替え）。
 
 ## 完了報告
 
@@ -251,19 +440,23 @@ Laravel 11 でも同じ手順で dry-run しておくと安心（`"laravel/frame
 - Pest 件数 / Pint / PHPStan の green 確認
 - インストールコマンド: `composer require trust-medical/laravel-chatwork-api:^<major>`
 
-## 失敗時のロールバック指針
+## 中断状態からのリカバリ指針
 
-| 失敗段階 | 対応 |
-|---|---|
-| ローカルチェック失敗 | 修正を別 PR で先行マージしてから再開 |
-| CI 失敗 | PR を修正 commit で更新（force push 禁止）。CHANGELOG 編集に手戻りがあれば該当ブランチ上で normal commit |
-| タグ push 後の release workflow 失敗 | run のログを確認 → `gh release edit --notes-file` でノート上書き or `gh release delete v$version --cleanup-tag` で完全取り消し（**ユーザー承認必須**、タグ削除は不可逆） |
-| Packagist 同期失敗 | packagist.org の package 画面で "Update" を押す or webhook 設定確認 |
-| composer 解決失敗 | composer.json の制約・stability 設定の不整合を疑う。タグは残して fix 用 PR でメタデータ修正 → v$version+0.0.1 を別途リリース |
+| 失敗段階                                    | 対応                                                                                                                                                                                                                                            |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ローカルチェック失敗                        | 修正を別 PR で先行マージしてから再開                                                                                                                                                                                                            |
+| CI 失敗（Laravel 13 以外）                  | PR を修正 commit で更新（force push 禁止）。CHANGELOG 編集に手戻りがあれば該当ブランチ上で normal commit                                                                                                                                        |
+| `gh pr create` で "already exists"          | 状態スキャンが PR 検知するはず。CI 確認ステップへ進む                                                                                                                                                                                           |
+| ローカル `chore/release-vX.Y.Z` 既存        | 状態スキャンで検知 → 同名ブランチを `git checkout` で再利用、または手動削除（`git branch -D`）                                                                                                                                                  |
+| **タグが wrong SHA を指して remote に存在** | **「タグ位置修復」** へ。`git push origin :refs/tags/v$version` で削除 → 正位置で再作成 → push。Release が既にあれば `gh release delete v$version --cleanup-tag` を先行（ユーザー承認必須・不可逆）                                              |
+| release workflow 失敗（抽出結果空など）     | `gh run view --log-failed` で原因確認 → CHANGELOG を修正してメインに別 PR でマージ → タグを wrong-SHA 修復手順で打ち直し or `gh release edit --notes-file` でノート上書き                                                                        |
+| **release notes のバッククォート消失**      | **GitHub Release 検証ステップで auto-repair される**。万一 skill 外で気づいた場合は `awk -v ver=X ... CHANGELOG.md > /tmp/notes.md && gh release edit vX --notes-file /tmp/notes.md`                                                             |
+| Packagist 同期失敗                          | packagist.org の package 画面で "Update" を押す or webhook 設定確認                                                                                                                                                                             |
+| composer 解決失敗                           | composer.json の制約・stability 設定の不整合を疑う。タグは残して fix 用 PR でメタデータ修正 → `$version` +0.0.1 を別途リリース                                                                                                                  |
 
 ## 参考
 
-- 前例: v1.0.0 リリース（commit `e46f9ee`, PR #7、release workflow fix PR #8）
+- 前例: v1.0.0 リリース（commit `e46f9ee`, PR #7、release workflow fix PR #8）、v1.0.1（PR #11）、v1.0.2（PR #13）
 - CHANGELOG 編集ルール: `CHANGELOG.md` 冒頭の注釈
 - release workflow: `.github/workflows/release.yml`
 - コミット規約: `.claude/rules/commit-style.md`

@@ -16,39 +16,45 @@ jobs:
       - uses: actions/checkout@v4
 
       # Extract the CHANGELOG section that matches the pushed tag (e.g.
-      # `v1.0.0` -> `## [1.0.0]` or `## [1.0.0] - DATE`). Matching by
-      # version rather than "top-most section" keeps the standard Keep-a-
-      # Changelog flow intact, where a fresh empty `## [Unreleased]` is
-      # left at the top after each release. If the section is missing
-      # (forgot to rename `[Unreleased]`, or wrong tag), fail loudly so
-      # the GitHub Release is not created with empty/wrong notes.
+      # `v1.0.0` -> `## [1.0.0]` or `## [1.0.0] - DATE`) and write it to
+      # a file. Passing notes via a file (--notes-file) avoids the bash
+      # double-quote interpolation that consumed `inline code` backticks
+      # as command substitution in v1.0.0..v1.0.2 (notes were assembled
+      # into ${{ steps.changelog.outputs.notes }} and re-interpolated
+      # into a `gh release create --notes "$INTERPOLATED"` invocation;
+      # backticks in the interpolated string ran as commands and were
+      # stripped from the published release body).
+      #
+      # Matching by version rather than "top-most section" keeps the
+      # standard Keep-a-Changelog flow intact, where a fresh empty
+      # `## [Unreleased]` is left at the top after each release. If the
+      # section is missing (forgot to rename `[Unreleased]`, or wrong
+      # tag), fail loudly so the GitHub Release is not created with
+      # empty notes.
       - name: Extract changelog section
-        id: changelog
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
           version="${TAG_NAME#v}"
-          notes=$(awk -v ver="$version" '
+          awk -v ver="$version" '
             $0 ~ "^## \\[" ver "\\]( |$)" { capture=1; print; next }
             /^## \[/ && capture { exit }
             /^\[[^]]+\]:/ && capture { exit }
             capture { print }
-          ' CHANGELOG.md)
-          if [ -z "$notes" ]; then
+          ' CHANGELOG.md > "${RUNNER_TEMP}/release-notes.md"
+          if [ ! -s "${RUNNER_TEMP}/release-notes.md" ]; then
             echo "::error::No CHANGELOG section found for version ${version} (tag ${TAG_NAME}). Did you forget to rename '## [Unreleased]' to '## [${version}] - DATE'?"
             exit 1
           fi
-          {
-            echo 'notes<<__CHANGELOG_EOF__'
-            echo "$notes"
-            echo '__CHANGELOG_EOF__'
-          } >> "$GITHUB_OUTPUT"
+          echo "Extracted notes ($(wc -l < "${RUNNER_TEMP}/release-notes.md") lines):"
+          head -5 "${RUNNER_TEMP}/release-notes.md"
 
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            --title "${{ github.ref_name }}" \
-            --notes "${{ steps.changelog.outputs.notes }}" \
+          gh release create "${TAG_NAME}" \
+            --title "${TAG_NAME}" \
+            --notes-file "${RUNNER_TEMP}/release-notes.md" \
             --verify-tag
