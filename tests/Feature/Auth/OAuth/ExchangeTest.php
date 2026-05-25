@@ -24,7 +24,7 @@ function makeOAuthClient(): OAuthClient
     return new OAuthClient(new CacheStateStore(Cache::store()), config('chatwork.oauth'));
 }
 
-it('authorization_code grantで/tokenへPOSTする', function () {
+it('authorization_code grantで/tokenへPOSTする (Confidential = HTTP Basic 認証)', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -32,14 +32,56 @@ it('authorization_code grantで/tokenへPOSTする', function () {
     makeOAuthClient()->exchange('auth-code-123');
 
     Http::assertSent(function (Request $request) {
+        $body = $request->data();
+        $expectedAuth = 'Basic ' . base64_encode('client-abc:super-secret');
+
         return $request->method() === 'POST'
             && $request->url() === 'https://oauth.chatwork.com/token'
-            && $request['grant_type'] === 'authorization_code'
-            && $request['code'] === 'auth-code-123'
-            && $request['client_id'] === 'client-abc'
-            && $request['client_secret'] === 'super-secret'
-            && $request['redirect_uri'] === 'https://app.example.com/callback'
-            && $request->hasHeader('Content-Type', 'application/x-www-form-urlencoded');
+            && $request->hasHeader('Authorization', $expectedAuth)
+            && $request->hasHeader('Content-Type', 'application/x-www-form-urlencoded')
+            && $body['grant_type'] === 'authorization_code'
+            && $body['code'] === 'auth-code-123'
+            && $body['redirect_uri'] === 'https://app.example.com/callback'
+            && ! array_key_exists('client_id', $body)
+            && ! array_key_exists('client_secret', $body);
+    });
+});
+
+it('Public client (client_secret 未設定) は client_id を body に入れ Authorization ヘッダを送らない', function () {
+    Config::set('chatwork.oauth.client_secret', null);
+
+    Http::fake([
+        'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
+    ]);
+
+    makeOAuthClient()->exchange('auth-code-123');
+
+    Http::assertSent(function (Request $request) {
+        $body = $request->data();
+
+        return $request->method() === 'POST'
+            && $request->url() === 'https://oauth.chatwork.com/token'
+            && ! $request->hasHeader('Authorization')
+            && $body['grant_type'] === 'authorization_code'
+            && $body['code'] === 'auth-code-123'
+            && $body['redirect_uri'] === 'https://app.example.com/callback'
+            && $body['client_id'] === 'client-abc'
+            && ! array_key_exists('client_secret', $body);
+    });
+});
+
+it('Public client (client_secret 空文字) も Public モード扱い', function () {
+    Config::set('chatwork.oauth.client_secret', '');
+
+    Http::fake([
+        'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
+    ]);
+
+    makeOAuthClient()->exchange('auth-code-123');
+
+    Http::assertSent(function (Request $request) {
+        return ! $request->hasHeader('Authorization')
+            && $request['client_id'] === 'client-abc';
     });
 });
 

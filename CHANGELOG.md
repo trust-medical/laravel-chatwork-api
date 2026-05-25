@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **OAuth token endpoint authentication**: `OAuthClient::exchange()` /
+  `refresh()` がクライアント認証情報を body に入れて送っていたため、Chatwork が
+  Confidential Client に要求する HTTP Basic 認証
+  (`Authorization: Basic Base64(client_id:client_secret)`) と整合せず常に 401 を
+  返していた。`client_secret` 設定時は Basic 認証ヘッダで送るよう修正し、Public
+  Client (`client_secret` 未設定/空文字) では従来どおり body に `client_id` のみを
+  含める動作を維持する。公開 API シグネチャ (`exchange`, `refresh`,
+  `buildAuthorizationUrl`) と `TokenSet` / `TokenRepository` 契約は不変。
+  下流プロジェクトでの callback 401 を解消する破壊的でないバグ修正。
+
 ## [1.0.0] - 2026-05-25
 
 初の一般公開リリース。Chatwork API v2 を Laravel から安全に利用するための Composer パッケージ。

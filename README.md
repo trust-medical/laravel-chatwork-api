@@ -367,6 +367,14 @@ CHATWORK_OAUTH_CLIENT_SECRET=...
 CHATWORK_OAUTH_REDIRECT_URI=https://example.com/chatwork/oauth/callback
 ```
 
+> **Confidential / Public Client の自動判定:** Chatwork は OAuth クライアント
+> 種別ごとにトークンエンドポイントの認証方式が異なります。Confidential Client
+> (client_secret あり) は `Authorization: Basic Base64(client_id:client_secret)`
+> ヘッダーが必須、Public Client (client_secret なし) は body に `client_id` のみを
+> 含めて Basic 認証ヘッダーを送りません。本ライブラリは `CHATWORK_OAUTH_CLIENT_SECRET`
+> の有無 (空文字含む) で自動判定します。Confidential / Public を切り替える追加
+> 設定キーはありません。
+
 callback ルートは**既定で無効**です（セキュリティのため）。利用する場合は `config/chatwork.php` で有効化します:
 
 ```php
