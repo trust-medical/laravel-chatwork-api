@@ -15,15 +15,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Use the top-most CHANGELOG section as the release notes. The
-      # maintainer renames `## [Unreleased]` to `## [x.y.z] - DATE`
-      # before tagging (see the note at the top of CHANGELOG.md); if
-      # that is forgotten the notes will literally say "Unreleased",
-      # which is a visible, harmless reminder rather than a silent miss.
+      # Extract the CHANGELOG section that matches the pushed tag (e.g.
+      # `v1.0.0` -> `## [1.0.0]` or `## [1.0.0] - DATE`). Matching by
+      # version rather than "top-most section" keeps the standard Keep-a-
+      # Changelog flow intact, where a fresh empty `## [Unreleased]` is
+      # left at the top after each release. If the section is missing
+      # (forgot to rename `[Unreleased]`, or wrong tag), fail loudly so
+      # the GitHub Release is not created with empty/wrong notes.
       - name: Extract changelog section
         id: changelog
+        env:
+          TAG_NAME: ${{ github.ref_name }}
         run: |
-          notes=$(awk '/^## \[/{n++; if (n==2) exit} n==1{print}' CHANGELOG.md)
+          version="${TAG_NAME#v}"
+          notes=$(awk -v ver="$version" '
+            $0 ~ "^## \\[" ver "\\]( |$)" { capture=1; print; next }
+            /^## \[/ && capture { exit }
+            /^\[[^]]+\]:/ && capture { exit }
+            capture { print }
+          ' CHANGELOG.md)
+          if [ -z "$notes" ]; then
+            echo "::error::No CHANGELOG section found for version ${version} (tag ${TAG_NAME}). Did you forget to rename '## [Unreleased]' to '## [${version}] - DATE'?"
+            exit 1
+          fi
           {
             echo 'notes<<__CHANGELOG_EOF__'
             echo "$notes"
