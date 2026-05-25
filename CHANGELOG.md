@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-25
+
 初の一般公開リリース。Chatwork API v2 を Laravel から安全に利用するための Composer パッケージ。
 
 ### Added
@@ -166,4 +168,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     （メッセージ本文ではない）である旨はクラス docblock で充足済みのため
     重複コメントを追加しない（説明コメント禁止の規約に従う）。
 
-[Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/commits/main
+[Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v1.0.0
