@@ -24,7 +24,7 @@ function refreshClient(): OAuthClient
     return new OAuthClient(new CacheStateStore(Cache::store()), config('chatwork.oauth'));
 }
 
-it('refresh_token grantで/tokenへPOSTする', function () {
+it('refresh_token grantで/tokenへPOSTする (Confidential = HTTP Basic 認証)', function () {
     Http::fake([
         'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
     ]);
@@ -32,12 +32,37 @@ it('refresh_token grantで/tokenへPOSTする', function () {
     refreshClient()->refresh('refresh-token-xyz');
 
     Http::assertSent(function (Request $request) {
+        $body = $request->data();
+        $expectedAuth = 'Basic ' . base64_encode('client-abc:super-secret');
+
         return $request->method() === 'POST'
             && $request->url() === 'https://oauth.chatwork.com/token'
-            && $request['grant_type'] === 'refresh_token'
-            && $request['refresh_token'] === 'refresh-token-xyz'
-            && $request['client_id'] === 'client-abc'
-            && $request['client_secret'] === 'super-secret';
+            && $request->hasHeader('Authorization', $expectedAuth)
+            && $body['grant_type'] === 'refresh_token'
+            && $body['refresh_token'] === 'refresh-token-xyz'
+            && ! array_key_exists('client_id', $body)
+            && ! array_key_exists('client_secret', $body);
+    });
+});
+
+it('Public client (client_secret 未設定) の refresh は body に client_id', function () {
+    Config::set('chatwork.oauth.client_secret', null);
+
+    Http::fake([
+        'oauth.chatwork.com/token' => Http::response(fixtureJson('oauth/token-200.json'), 200),
+    ]);
+
+    refreshClient()->refresh('refresh-token-xyz');
+
+    Http::assertSent(function (Request $request) {
+        $body = $request->data();
+
+        return $request->method() === 'POST'
+            && ! $request->hasHeader('Authorization')
+            && $body['grant_type'] === 'refresh_token'
+            && $body['refresh_token'] === 'refresh-token-xyz'
+            && $body['client_id'] === 'client-abc'
+            && ! array_key_exists('client_secret', $body);
     });
 });
 

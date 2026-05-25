@@ -71,8 +71,6 @@ final class OAuthClient
         return $this->postToken([
             'grant_type' => 'authorization_code',
             'code' => $code,
-            'client_id' => $this->configString('client_id'),
-            'client_secret' => $this->configString('client_secret'),
             'redirect_uri' => $this->configString('redirect_uri'),
         ]);
     }
@@ -92,8 +90,6 @@ final class OAuthClient
             return $this->postToken([
                 'grant_type' => 'refresh_token',
                 'refresh_token' => $refreshToken,
-                'client_id' => $this->configString('client_id'),
-                'client_secret' => $this->configString('client_secret'),
             ]);
         } catch (ChatworkRequestException $e) {
             throw new ChatworkAuthenticationException('OAuth refresh failed.', previous: $e);
@@ -109,11 +105,23 @@ final class OAuthClient
     private function postToken(array $params): TokenSet
     {
         $tokenUrl = $this->configUrl('token_url');
+        $clientId = $this->configString('client_id');
+        $clientSecret = $this->optionalClientSecret();
 
-        $response = Http::asForm()
+        $request = Http::asForm()
             ->withHeaders(['User-Agent' => UserAgent::string()])
-            ->timeout($this->timeoutSeconds())
-            ->post($tokenUrl, $params);
+            ->timeout($this->timeoutSeconds());
+
+        if ($clientSecret !== null) {
+            // Confidential client: Chatwork は RFC 6749 §2.3.1 準拠で
+            // Authorization: Basic Base64(client_id:client_secret) を要求する。
+            // body に client_secret を入れると 401 になる。
+            $request = $request->withBasicAuth($clientId, $clientSecret);
+        } else {
+            $params['client_id'] = $clientId;
+        }
+
+        $response = $request->post($tokenUrl, $params);
 
         if ($response->failed()) {
             throw ChatworkRequestException::fromResponse(
@@ -131,6 +139,18 @@ final class OAuthClient
 
         /** @var array<string, mixed> $body */
         return TokenSet::fromArray($body);
+    }
+
+    /**
+     * client_secret の有無で Confidential / Public client を判定する。
+     * Public client は client_secret を保持しないため、未設定・空文字を
+     * 「Public モード」のシグナルとして扱う（configString のような fail-fast にしない）。
+     */
+    private function optionalClientSecret(): ?string
+    {
+        $value = $this->config['client_secret'] ?? null;
+
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     private function generateState(): string
