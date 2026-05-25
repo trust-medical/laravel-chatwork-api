@@ -132,21 +132,39 @@ final class ChatworkManager
     /**
      * withApiToken()/withBearerToken() のオーバーライドを適用して connection を解決する。
      *
-     * @throws ChatworkAuthenticationException 基底の connection が設定不正な場合。
+     * credentialsOverride が設定されている場合は base 接続の static credentials 解決
+     * （`buildStaticCredentials` / `buildOAuthCredentials`）をスキップする。これは
+     * OAuth 専用プロジェクト等で base connection の token を未設定にしたまま動的トークン
+     * （`withBearerToken` / `withApiToken`）を使いたいケースを成立させるため必須。
+     * base 接続からは name / base URI / timeout のメタデータのみを引き継ぐ。
+     *
+     * @throws ChatworkAuthenticationException 基底の connection が未定義の場合、または
+     *                                         credentialsOverride 無しで base credentials
+     *                                         を解決できない場合。
      */
     public function getEffectiveConnection(): Connection
     {
-        $base = $this->getConnection();
-
         if ($this->credentialsOverride === null) {
-            return $base;
+            return $this->getConnection();
         }
 
+        if ($this->connection !== null) {
+            return Connection::make(
+                name: $this->connection->name,
+                credentials: $this->credentialsOverride,
+                baseUri: $this->connection->baseUri,
+                timeout: $this->connection->timeout,
+            );
+        }
+
+        $name = $this->defaultConnectionName();
+        $entry = $this->getConnectionEntry($name);
+
         return Connection::make(
-            name: $base->name,
+            name: $name,
             credentials: $this->credentialsOverride,
-            baseUri: $base->baseUri,
-            timeout: $base->timeout,
+            baseUri: $this->resolveBaseUri($entry),
+            timeout: $this->resolveTimeout($entry),
         );
     }
 
@@ -218,14 +236,7 @@ final class ChatworkManager
      */
     private function resolveConnection(string $name): Connection
     {
-        $config = $this->container->make('config');
-        $entry = $config->get(sprintf('chatwork.connections.%s', $name));
-
-        if (! is_array($entry)) {
-            throw new ChatworkAuthenticationException(
-                sprintf("Chatwork connection '%s' is not configured.", $name),
-            );
-        }
+        $entry = $this->getConnectionEntry($name);
 
         $auth = $entry['auth'] ?? null;
         $credentials = match ($auth) {
@@ -241,16 +252,62 @@ final class ChatworkManager
             ),
         };
 
-        $baseUri = $config->get('chatwork.base_uri');
-        $timeout = $config->get(sprintf('chatwork.connections.%s.timeout', $name))
-            ?? $config->get('chatwork.timeout');
-
         return Connection::make(
             name: $name,
             credentials: $credentials,
-            baseUri: is_string($baseUri) ? $baseUri : null,
-            timeout: is_numeric($timeout) ? (int) $timeout : null,
+            baseUri: $this->resolveBaseUri($entry),
+            timeout: $this->resolveTimeout($entry),
         );
+    }
+
+    /**
+     * connections.<name> の設定エントリを取得する（credentials は解決しない）。
+     *
+     * @return array<string, mixed>
+     *
+     * @throws ChatworkAuthenticationException エントリが存在しないか配列でない場合。
+     */
+    private function getConnectionEntry(string $name): array
+    {
+        $entry = $this->container->make('config')->get(sprintf('chatwork.connections.%s', $name));
+
+        if (! is_array($entry)) {
+            throw new ChatworkAuthenticationException(
+                sprintf("Chatwork connection '%s' is not configured.", $name),
+            );
+        }
+
+        return $entry;
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     */
+    private function resolveBaseUri(array $entry): ?string
+    {
+        $perConnection = $entry['base_uri'] ?? null;
+        if (is_string($perConnection) && $perConnection !== '') {
+            return $perConnection;
+        }
+
+        $global = $this->container->make('config')->get('chatwork.base_uri');
+
+        return is_string($global) ? $global : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     */
+    private function resolveTimeout(array $entry): ?int
+    {
+        $perConnection = $entry['timeout'] ?? null;
+        if (is_numeric($perConnection)) {
+            return (int) $perConnection;
+        }
+
+        $global = $this->container->make('config')->get('chatwork.timeout');
+
+        return is_numeric($global) ? (int) $global : null;
     }
 
     private function defaultConnectionName(): string

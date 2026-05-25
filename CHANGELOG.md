@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`withBearerToken()` / `withApiToken()` の動的クレデンシャル**:
+  `ChatworkManager::getEffectiveConnection()` が credentials override の存在を
+  確認する前に base connection の static credentials を解決しに行っていたため、
+  base connection が token 未設定（例: OAuth 専用プロジェクトで
+  `CHATWORK_API_TOKEN` 未設定）の環境では override が使えず常に
+  `ChatworkAuthenticationException` (`has no token configured`) になっていた。
+  override 設定時は base credentials の解決をスキップし、base 接続からは
+  name / base URI / timeout のメタデータのみを引き継ぐよう修正。OAuth callback
+  内で `TokenRepository::save` 前に `Chatwork::withBearerToken($accessToken)->me()`
+  でユーザー識別するフローなど、動的トークン経路が base API token 未設定環境で
+  動作するようになる。公開 API シグネチャ（`withApiToken`, `withBearerToken`,
+  `connection`, `getEffectiveConnection`）と既存の挙動（override 無し時は従来通り
+  base credentials を要求、`connection('foo')` 明示時も従来通り credentials 必須）は不変。
+
 ## [1.0.1] - 2026-05-25
 
 ### Fixed
