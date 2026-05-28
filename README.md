@@ -404,6 +404,37 @@ callback ルートは**既定で無効**です（セキュリティのため）�
 
 > **`route:cache` 利用時の注意:** OAuth callback ルートは `packageBooted()` 内のクロージャで登録されます。`php artisan route:cache` が有効な環境ではこのクロージャが実行されず、**callback ルートが登録されず**、また **`route_throttle` の形式検証も行われません**。`registerOAuthRoutes()` を独自 `RouteServiceProvider` から手動呼び出しする場合も `route:cache` 下では同様にスキップされます。`route:cache` を使う環境で OAuth callback を利用する場合は、ルートをアプリ側の実 routes ファイルに明示登録し、`route_throttle` の指定が実際に効いているか（`php artisan route:list` 等で）確認してください。
 
+### 動的 (per-tenant) OAuth コネクション
+
+Laravel のユーザーごとに別の OAuth access_token を持つ SaaS / マルチテナント環境では、`Chatwork::forOAuthKey($key)` を使うと `TokenRepository` の検索キーをランタイムに指定して OAuth コネクションを組み立てられます。
+
+```php
+// ユーザー単位の OAuth トークンで API を叩く
+Chatwork::forOAuthKey((string) $user->id)
+    ->rooms()
+    ->messages()
+    ->create($roomId, $body);
+
+// レスポンスモードはどちら順で chain しても効く
+Chatwork::asResult()->forOAuthKey((string) $user->id)->me()->get();
+Chatwork::forOAuthKey((string) $user->id)->asResult()->me()->get();
+```
+
+固定 OAuth connection（`config/chatwork.php` で `auth: 'oauth'` を宣言する方式）との違い:
+
+| | 固定 OAuth connection | `forOAuthKey()` |
+|---|---|---|
+| `config/chatwork.php` への connection 定義 | 必要 | 不要 |
+| `TokenRepository` の検索キー | config 固定（`connection_name`） | ランタイム指定（`$key`） |
+| `Cache::lock` による refresh 直列化 | あり | あり（同じ `OAuthTokenProvider` 経由） |
+| baseUri / timeout | 当該 connection から | `$base` 引数（省略時は `config('chatwork.default')` の connection）から継承 |
+
+`$base` を明示すると、その connection の `base_uri` / `timeout` を継承しつつ `TokenRepository` のキーには `$key` を使います（`$base` は `auth` 値を問わず baseUri / timeout のメタデータ源としてのみ参照されます）。`$base` 指定が config に存在しない場合は `ChatworkAuthenticationException` を投げます。
+
+> **`$key` の選び方:** `$key` は `TokenRepository::find()` / `save()` および `Cache::lock` のキー（`chatwork:oauth:refresh:<sha256($key)>`）として使われます。メールアドレス等の PII を直接渡さず、DB の User PK 等の安定 ID を使ってください。`Connection::$name` は `"oauth:{$key}"` 形式となり、例外メッセージ・ログに現れます。
+
+> **manager を長期保持しない:** `forOAuthKey()` は呼び出し時点で `BearerTokenCredentials` を確定して `Connection` に焼き込みます（`connection()` と同じ resolve-at-bind セマンティクス）。access_token の expire 後に再利用できないため、Queue worker / Octane でもリクエスト直前に都度呼び出してください。
+
 ## テスト
 
 ```bash

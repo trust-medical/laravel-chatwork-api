@@ -13,6 +13,7 @@ use TrustMedical\LaravelChatworkApi\Auth\OAuth\OAuthTokenProvider;
 use TrustMedical\LaravelChatworkApi\Auth\OAuth\TokenRepository;
 use TrustMedical\LaravelChatworkApi\Enums\ResponseMode;
 use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkAuthenticationException;
+use TrustMedical\LaravelChatworkApi\Exceptions\ChatworkConfigurationException;
 use TrustMedical\LaravelChatworkApi\Http\ChatworkPendingRequestFactory;
 use TrustMedical\LaravelChatworkApi\Http\ResponseMapper;
 use TrustMedical\LaravelChatworkApi\Resources\ContactsResource;
@@ -85,6 +86,50 @@ final class ChatworkManager
     {
         $new = clone $this;
         $new->credentialsOverride = new BearerTokenCredentials($token);
+
+        return $new;
+    }
+
+    /**
+     * ランタイム指定キー (例: User ID) で TokenRepository を引いて OAuth コネクションをその場で組み立てる。
+     *
+     * 既存の config 固定 OAuth connection (`auth: 'oauth'`) と同じく {@see OAuthTokenProvider} を経由するため、
+     * refresh は `Cache::lock('chatwork:oauth:refresh:<sha256(key)>', 30)` で直列化される。
+     * $key は TokenRepository の find()/save() キーになるため、PII を含めない安定 ID
+     * (DB の User PK 等) を使うこと。
+     *
+     * 返される Connection の name は `"oauth:{$key}"` 形式。
+     * baseUri / timeout は $base で指定した connection エントリ (省略時は config('chatwork.default'))
+     * から継承する。$base 指定が config に存在しない場合は {@see ChatworkAuthenticationException} を throw する。
+     *
+     * 解決は呼び出し時点で確定する resolve-at-bind セマンティクスのため、戻ってきた manager を
+     * 長期保持しないこと (access_token expire 後は使えなくなる)。
+     *
+     * @throws ChatworkConfigurationException $key が空文字の場合。
+     * @throws ChatworkAuthenticationException $base 指定があるが connections.<base> が未設定の場合、
+     *                                         TokenRepository に該当 key のトークンが無い場合、refresh 失敗時。
+     */
+    public function forOAuthKey(string $key, ?string $base = null): self
+    {
+        if ($key === '') {
+            throw new ChatworkConfigurationException(
+                'Chatwork::forOAuthKey() requires a non-empty key.',
+            );
+        }
+
+        $baseName = $base ?? $this->defaultConnectionName();
+        $entry = $this->getConnectionEntry($baseName);
+
+        $credentials = $this->buildOAuthTokenProvider($key)->credentials();
+
+        $new = clone $this;
+        $new->connection = Connection::make(
+            name: 'oauth:' . $key,
+            credentials: $credentials,
+            baseUri: $this->resolveBaseUri($entry),
+            timeout: $this->resolveTimeout($entry),
+        );
+        $new->credentialsOverride = null;
 
         return $new;
     }
@@ -342,22 +387,26 @@ final class ChatworkManager
      */
     private function buildOAuthCredentials(string $name, array $entry): Credentials
     {
-        $config = $this->container->make('config');
-
         $tokenSetKey = $entry['connection_name'] ?? $name;
         if (! is_string($tokenSetKey) || $tokenSetKey === '') {
             $tokenSetKey = $name;
         }
 
-        $leeway = $config->get('chatwork.oauth.refresh_leeway_seconds');
+        return $this->buildOAuthTokenProvider($tokenSetKey)->credentials();
+    }
 
-        $provider = new OAuthTokenProvider(
+    /**
+     * @throws ChatworkAuthenticationException refresh が必要だが TokenRepository が空、または lock 競合で解決できない場合。
+     */
+    private function buildOAuthTokenProvider(string $tokenSetKey): OAuthTokenProvider
+    {
+        $leeway = $this->container->make('config')->get('chatwork.oauth.refresh_leeway_seconds');
+
+        return new OAuthTokenProvider(
             connectionName: $tokenSetKey,
             repository: $this->container->make(TokenRepository::class),
             oauth: $this->container->make(OAuthClient::class),
             leewaySeconds: is_numeric($leeway) ? (int) $leeway : 60,
         );
-
-        return $provider->credentials();
     }
 }
