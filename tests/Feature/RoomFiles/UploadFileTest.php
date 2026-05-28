@@ -138,7 +138,18 @@ it('asArray モードで生の配列を返す', function () {
 
     $result = Chatwork::asArray()->rooms()->files()->upload(123, new UploadRoomFileRequest(path: $path));
 
-    expect($result)->toBe(['file_id' => 12345]);
+    expect($result)->toBe([
+        'file_id' => 12345,
+        'message_id' => '1482558473966190592',
+        'filesize' => 32829,
+        'filename' => 'CompanyLogo.png',
+        'upload_time' => 1629943082,
+        'account' => [
+            'account_id' => 6196123,
+            'name' => 'User Name',
+            'avatar_image_url' => 'https://appdata.chatwork.com/avatar/ico_default_green.png',
+        ],
+    ]);
 });
 
 it('asResult モードで 400 時にスローせず失敗した Result を返す', function () {
