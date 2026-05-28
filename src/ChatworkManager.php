@@ -342,22 +342,26 @@ final class ChatworkManager
      */
     private function buildOAuthCredentials(string $name, array $entry): Credentials
     {
-        $config = $this->container->make('config');
-
         $tokenSetKey = $entry['connection_name'] ?? $name;
         if (! is_string($tokenSetKey) || $tokenSetKey === '') {
             $tokenSetKey = $name;
         }
 
-        $leeway = $config->get('chatwork.oauth.refresh_leeway_seconds');
+        return $this->buildOAuthTokenProvider($tokenSetKey)->credentials();
+    }
 
-        $provider = new OAuthTokenProvider(
+    /**
+     * @throws ChatworkAuthenticationException refresh が必要だが TokenRepository が空、または lock 競合で解決できない場合。
+     */
+    private function buildOAuthTokenProvider(string $tokenSetKey): OAuthTokenProvider
+    {
+        $leeway = $this->container->make('config')->get('chatwork.oauth.refresh_leeway_seconds');
+
+        return new OAuthTokenProvider(
             connectionName: $tokenSetKey,
             repository: $this->container->make(TokenRepository::class),
             oauth: $this->container->make(OAuthClient::class),
             leewaySeconds: is_numeric($leeway) ? (int) $leeway : 60,
         );
-
-        return $provider->credentials();
     }
 }
