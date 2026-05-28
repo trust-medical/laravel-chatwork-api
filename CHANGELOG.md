@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Chatwork::forOAuthKey(string $key, ?string $base = null)`**: ランタイム指定キー
+  （例: User ID）で `TokenRepository` を引いて OAuth コネクションをその場で組み立てる新 API。
+  これまで OAuth サポートは `config('chatwork.connections.<name>.connection_name')` で
+  固定された TokenRepository キーしか引けず、ユーザー単位 OAuth（per-tenant）を扱う
+  consumer は TokenRepository と `OAuthClient::refresh()` を直接組み合わせる自前ロジック
+  に頼り、結果として `OAuthTokenProvider::coalescedRefresh()` の `Cache::lock` 直列化を
+  バイパスしてレース条件を抱えていた。新 API は既存の `OAuthTokenProvider` を経由する
+  ため、並列ワーカーから呼んでも `Cache::lock('chatwork:oauth:refresh:<sha256($key)>', 30)`
+  で refresh が直列化される。返される `Connection::$name` は `"oauth:{$key}"` 形式、
+  `baseUri` / `timeout` は `$base`（省略時は `config('chatwork.default')`）の connection
+  エントリから継承する。`ChatworkManager` の immutable clone パターンと既存の
+  `OAuthTokenProvider` / `TokenRepository` / `Connection` シグネチャは無改変。
+
 ## [1.1.0] - 2026-05-28
 
 ### Added
