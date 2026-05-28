@@ -1,27 +1,43 @@
 ---
 name: release-package
-description: trust-medical/laravel-chatwork-api を Composer パッケージとしてリリースする一連の手続き（状態スキャン → CHANGELOG 確定 → release ブランチ + PR → CI 確認 → main merge → vX.Y.Z タグ push → release workflow 発火確認 → GitHub Release 検証 + ノート自動修復 → Packagist 同期確認 → composer 解決確認）を、ステップごとにユーザー承認を取りながら遂行するスキル。手動呼び出し専用（`/release-package <version>`）。ユーザーが「リリースして」「vX.Y.Z を出して」「タグ打って公開」「パッケージを公開」と言った時、または `[Unreleased]` セクションを確定リリースに変えたい時に呼ぶ。本パッケージ専用（Keep a Changelog + tag-triggered release.yml + Packagist webhook 同期を前提）。冪等再実行可（途中で止まっても状態スキャンが残作業を判定する）。
+description: trust-medical/laravel-chatwork-api を Composer パッケージとしてリリースする手順書。Claude が **1 ステップずつ** bash ブロックを Bash ツール実行し、各段階でユーザー承認を取って進める interactive な playbook（自動連続実行はしない）。流れは 状態スキャン → CHANGELOG 確定 → release ブランチ + PR → CI 確認 → main merge → vX.Y.Z タグ push → release workflow 発火確認 → GitHub Release 検証 + ノート自動修復 → Packagist 同期確認 → composer 解決確認。手動呼び出し専用（`/release-package <version>`）。ユーザーが「リリースして」「vX.Y.Z を出して」「タグ打って公開」「パッケージを公開」と言った時、または `[Unreleased]` セクションを確定リリースに変えたい時に呼ぶ。本パッケージ専用（Keep a Changelog + tag-triggered release.yml + Packagist webhook 同期を前提）。冪等再実行可（途中で止まっても状態スキャンが残作業を判定する）。
 argument-hint: <version>（例: 1.0.1、`v` プレフィックスは付けない）
 arguments: version
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
 ---
 
 # Release: v$version
 
 trust-medical/laravel-chatwork-api を **v$version** としてリリースする手続きを進める。
 
+## 実行モデル（最重要・必ず守る）
+
+**本ファイルは Claude が読む playbook。bash ブロックは skill ローダーが自動実行しない**（過去版は ` ```!` 形式で auto-execute されていたが、user approval を挟めない・CHANGELOG 編集ステップが欠落するなど致命的な不整合を起こすため廃止）。
+
+Claude は以下のルールで進める:
+
+1. **bash ブロックは Bash ツール経由で 1 ブロックずつ実行する**。複数のフェンスを連続実行したり、複数 step を 1 回の Bash 呼び出しに混ぜたりしない。
+2. **各ブロック実行後、出力をユーザーに見せて続行可否を確認する**。出力が想定外（タグ位置不整合、CI fail、Packagist 未同期 など）であれば即停止し、ユーザーに状況を伝える。
+3. **不可逆操作の前は必ず `AskUserQuestion` で明示承認を取る**。対象:
+   - `git push origin "v$version"`（タグ push、Packagist に publish される最終操作）
+   - `gh pr merge ... --merge --delete-branch`（main への書き込み + branch 削除）
+   - `git push origin :refs/tags/v$version` / `git tag -d`（タグ削除 / 位置修復、force-push 相当の例外操作）
+   - `gh release delete ... --cleanup-tag`（Release + tag 一括削除）
+4. **CHANGELOG 編集は bash ブロックではなく Claude の Edit ツールで行う**。Skill ローダーがこのステップを飛ばすと CHANGELOG 未確定のままタグが打たれ release workflow が失敗する（v1.0.2 / v1.1.0 で実際に発生したリカバリ困難な失敗パターン）。「CHANGELOG 編集」セクションの手順を文字通り Edit ツールで実行する。
+5. **bash ブロック内で `$version` 以外の `<...>` プレースホルダを書かない**。PR 番号などの動的値は **ブランチ名 / gh CLI から都度再取得** する。bash 変数は subshell をまたがず再導出する（プロセスが分かれるとシェル変数は引き継がれないため）。
+6. 途中で止まった場合は **`/release-package $version` を再実行**すればよい。最初の「状態スキャン」が部分完了状態を検知し、残作業から resume する。
+
 ## 全体方針
 
-- 各 step の末尾で**ユーザーに続行確認を取り**、`!` ブロックの出力が想定外であれば即停止する。
 - `git push --force` / `git reset --hard` / `--no-verify` / `--amend` は使わない（`.claude/rules/commit-style.md`）。例外はタグ位置修復のみ（後述、ユーザー承認必須）。
-- `!` ブロック内では `$version` 以外の `<...>` プレースホルダを書かない。PR 番号などの動的値は **ブランチ名 / gh CLI から都度再取得** する。bash 変数は subshell をまたがず再導出する。
-- 途中で止まった場合は **`/release-package $version` を再実行**すればよい。最初の「状態スキャン」が部分完了状態を検知し、残作業から resume する。
+- リリース PR とコード修正 PR は混ぜない。CI fail があれば修正コミットを別 PR で先行マージしてから本 skill を再開する。
+- リリースは「タグ push を境に不可逆になる」と心得る。タグ push 前の中断は再開しやすいが、push 後は必ず完了まで進める（中途半端な Release / Packagist 同期失敗は下流のキャッシュ問題に直結する）。
 
 ## 引数検証
 
 `$version` は semver（例: `1.0.1`, `1.1.0`, `2.0.0-rc1`）。`v` プレフィックスを付けない。空・不正な形式なら中断する。
 
-```!
+```bash
 echo "Target version: v$version"
 if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
   echo "INVALID: '$version' is not a semver"
@@ -33,7 +49,7 @@ fi
 
 このスキルは途中失敗・再実行を前提とする。**最初に部分完了状態を検知して resume ポイントを決める**。
 
-```!
+```bash
 BRANCH="chore/release-v$version"
 echo "=== state scan for v$version ==="
 
@@ -84,7 +100,7 @@ curl -s "https://repo.packagist.org/p2/trust-medical/laravel-chatwork-api.json" 
 
 通常開始時の前提条件。
 
-```!
+```bash
 echo -n "current branch: "; git rev-parse --abbrev-ref HEAD
 echo "uncommitted changes:"; git status --porcelain
 echo -n "remote main protection: "
@@ -101,7 +117,7 @@ gh api repos/trust-medical/laravel-chatwork-api/branches/main/protection 2>&1 | 
 
 CI と重複するが、PR 提出前に local で early-fail させる。
 
-```!
+```bash
 ./vendor/bin/pint --test
 ./vendor/bin/phpstan analyse --memory-limit=512M
 ./vendor/bin/pest
@@ -123,14 +139,14 @@ CHANGELOG.md は **Keep a Changelog** 形式。`.github/workflows/release.yml` �
 
 ### 編集手順
 
-1. `date +%Y-%m-%d` で本日の日付を取得（下の `!` ブロックで一度実行）。
+1. `date +%Y-%m-%d` で本日の日付を取得（下の bash ブロックを Bash ツールで実行する）。
 2. Edit ツールで `CHANGELOG.md` を編集:
    - `## [Unreleased]` 直後の空行の **後ろ** に `## [$version] - <date>` 見出しを挿入
    - これまで `[Unreleased]` 配下にあった本文（Added/Changed/Fixed/Security/Documentation セクション）を `[$version]` セクション配下に移す
    - 末尾リンク参照を上記の通り 2 行更新
 3. `git diff CHANGELOG.md` を表示してユーザーに目視確認させる
 
-```!
+```bash
 date +%Y-%m-%d
 ```
 
@@ -138,7 +154,7 @@ date +%Y-%m-%d
 
 ユーザーに承認を求める前に、release.yml と同じ awk で `## [$version]` セクションが正しく抽出できるか必ず検証する:
 
-```!
+```bash
 awk -v ver="$version" '
   $0 ~ "^## \\[" ver "\\]( |$)" { capture=1; print; next }
   /^## \[/ && capture { exit }
@@ -151,7 +167,7 @@ awk -v ver="$version" '
 
 ## Release ブランチ作成と PR
 
-```!
+```bash
 BRANCH="chore/release-v$version"
 if git rev-parse --verify --quiet "refs/heads/$BRANCH" >/dev/null; then
   echo "branch $BRANCH already exists locally; checking out"
@@ -178,7 +194,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 push と PR 作成（**PR 番号はこの後ブランチ名から再導出するため、ここで控えなくてよい**）:
 
-```!
+```bash
 BRANCH="chore/release-v$version"
 git push -u origin "$BRANCH"
 gh pr create --title "chore(release): prepare $version" --body "$(cat <<EOF
@@ -214,7 +230,7 @@ PR が既に存在する場合（再実行時）は `gh pr create` が「pull re
 
 PR 番号はブランチ名から都度引く（subshell をまたいでも安全）。
 
-```!
+```bash
 BRANCH="chore/release-v$version"
 PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
 if [ -z "$PR_NUMBER" ]; then
@@ -225,7 +241,7 @@ echo "PR_NUMBER=$PR_NUMBER"
 gh pr checks "$PR_NUMBER" --watch
 ```
 
-```!
+```bash
 BRANCH="chore/release-v$version"
 PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
 gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup \
@@ -245,9 +261,9 @@ gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup \
 
 `failing` 配列に Laravel 13 以外が含まれていれば中断してユーザーに報告。
 
-ユーザー承認を取って merge:
+> **STOP — destructive gate**: 以下の `gh pr merge` は main を書き換える不可逆操作。実行前に `AskUserQuestion` で「PR #$PR_NUMBER を `--merge --delete-branch` でマージしてよいか」を明示確認する。CI ステータス（pass 数 / fail 数 / Laravel 13 fail のみ許容）も同じ AskUserQuestion の質問文中に貼り、ユーザーが判断できる状態で問う。
 
-```!
+```bash
 BRANCH="chore/release-v$version"
 PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
 gh pr merge "$PR_NUMBER" --merge --delete-branch
@@ -257,7 +273,7 @@ gh pr merge "$PR_NUMBER" --merge --delete-branch
 
 ## main 同期
 
-```!
+```bash
 git checkout main
 git pull origin main
 git log --oneline -5
@@ -269,7 +285,7 @@ git log --oneline -5
 
 タグ位置のミス（fix commit に打つ等）を防ぐため、push 直前に **ローカル / リモート両方** を再検証する。
 
-```!
+```bash
 echo -n "target merge SHA: "
 MERGE_SHA=$(git rev-parse HEAD)
 echo "$MERGE_SHA"
@@ -293,9 +309,13 @@ git cat-file -p HEAD | grep -c '^parent ' | grep -q '^2$' && echo "yes" || echo 
 
 ## タグ作成と push（不可逆操作）
 
-ユーザーに最終承認を取ってから実行する。`$MERGE_SHA` は **同じ subshell 内で再取得** する。
+> **STOP — destructive gate**: タグ push は **Packagist へ publish される最終操作**。push 後はリトラクト不可（タグ削除は force-push 相当の例外操作で、Packagist キャッシュにも残る）。実行前に `AskUserQuestion` で次を確認する:
+> - HEAD merge commit SHA は意図したものか（`MERGE_SHA` を質問文に貼る）
+> - CHANGELOG に `## [$version] - <date>` セクションが入っているか（`grep -q "^## \[$version\]" CHANGELOG.md` 結果を貼る）
+> - main は origin/main と同期されているか
+> ユーザーが Yes と答えてから初めて実行する。`$MERGE_SHA` は **同じ Bash 呼び出し内** で再取得する（subshell をまたぐとシェル変数は引き継がれないため）。
 
-```!
+```bash
 MERGE_SHA=$(git rev-parse HEAD)
 echo "tagging v$version at $MERGE_SHA"
 git tag -a "v$version" -m "Release v$version" "$MERGE_SHA"
@@ -306,24 +326,37 @@ git push origin "v$version"
 
 ### タグ位置修復（remote tag が wrong SHA の場合）
 
-タグ位置が想定外の場合、**ユーザーに「タグ削除 → 正位置で再作成」の承認を取ってから**以下を実行する。GitHub Release が既に作成されていれば先に `gh release delete v$version` も必要（`--cleanup-tag` を付けるとタグも一括削除される）。
+> **STOP — destructive gate (force-push 例外)**: タグ削除は `commit-style.md` の force-push 禁則の **唯一の例外**。実行前に `AskUserQuestion` で必ず承認を取る。質問文に下記を含める:
+> - 現在の wrong SHA と移したい正しい SHA（`git ls-remote origin "refs/tags/v$version"` 結果 vs `git rev-parse HEAD`）
+> - Release が既に存在するか（`gh release view "v$version"` の結果）
+> - 既存 Release を残すか / `gh release delete --cleanup-tag` で同時に消すか
+> ユーザーが Yes と答えてから 1 ブロックずつ実行する（下記コマンドを一気に走らせない）:
 
-```!
-gh release view "v$version" --json isDraft 2>/dev/null && echo "Release exists; consider 'gh release delete v$version --cleanup-tag' before retagging" || echo "no Release; tag deletion is safe"
+```bash
+# Step 1: Release 存在チェック（informational）
+gh release view "v$version" --json isDraft 2>/dev/null \
+  && echo "Release exists; consider 'gh release delete v$version --cleanup-tag' before retagging" \
+  || echo "no Release; tag deletion is safe"
+```
+
+```bash
+# Step 2: local + remote tag 削除（不可逆）
 git tag -d "v$version"
 git push origin ":refs/tags/v$version"
+```
+
+```bash
+# Step 3: 正位置に retag + push（不可逆、Packagist 再 publish）
 MERGE_SHA=$(git rev-parse HEAD)
 git tag -a "v$version" -m "Release v$version" "$MERGE_SHA"
 git push origin "v$version"
 ```
 
-タグ削除は `git push --force` と同等の不可逆操作であり、`commit-style.md` の force push 禁則の唯一の例外。**必ずユーザーに最終承認を取る**。
-
 ## release workflow 発火確認
 
 タグ push の数秒後に workflow run が現れる。`--watch` で完了を待つ。
 
-```!
+```bash
 RUN_ID=""
 while [ -z "$RUN_ID" ]; do
   RUN_ID=$(gh run list --workflow=release.yml --limit 5 --json databaseId,headBranch \
@@ -341,7 +374,7 @@ gh run view "$RUN_ID" --json conclusion,headSha,headBranch --jq '{conclusion, he
 
 `release.yml` は `gh release create --notes "${{ ... }}"` で notes を bash の double-quote 内に展開しているため、**バッククォート（inline code）がコマンド置換として消費されて全消失する**既存バグがある（PR で修正予定）。Skill 側で次の auto-repair を行い、リリース発生時点で確実にノートが正しい状態にする。
 
-```!
+```bash
 echo "=== release metadata ==="
 gh release view "v$version" --json url,name,publishedAt,tagName,isPrerelease,isDraft
 
@@ -366,7 +399,7 @@ head -5 "/tmp/v$version-notes.md"
 
 ノートに **バッククォートが消失している、または最初の行が一致しない** 場合は auto-repair:
 
-```!
+```bash
 ACTUAL=$(gh api "repos/trust-medical/laravel-chatwork-api/releases/tags/v$version" --jq '.body')
 EXPECTED=$(cat "/tmp/v$version-notes.md")
 if [ "$ACTUAL" != "$EXPECTED" ]; then
@@ -383,7 +416,7 @@ fi
 
 Packagist 初回登録は本パッケージで完了済み（v1.0.0 時点）。以降は GitHub Webhook で自動同期されるはず。dist ref が `MERGE_SHA` と一致することも確認する。
 
-```!
+```bash
 MERGE_SHA=$(git rev-list -n 1 "v$version")
 curl -s "https://repo.packagist.org/p2/trust-medical/laravel-chatwork-api.json" | python3 -c "
 import sys, json
@@ -408,7 +441,7 @@ else:
 
 実際の利用者と同じ手順で解決可能か検証する。
 
-```!
+```bash
 TMPDIR=$(mktemp -d)
 cd "$TMPDIR"
 MAJOR=$(echo "$version" | cut -d. -f1)

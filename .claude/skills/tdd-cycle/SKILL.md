@@ -13,10 +13,14 @@ agent: general-purpose
 
 Chatwork API operationId `$operationId` について、Red→Green→Refactor を 1 サイクル進めます。
 
+## 実行モデル
+
+本ファイルは Claude が読む playbook。**bash ブロックは skill ローダーが自動実行しない**。Claude が各 step を Bash ツール経由で 1 つずつ実行し、各 step 完了後にユーザーへ続行可否を確認する。Step 8（コミット）は不可逆操作のため必ず明示承認を取る。
+
 ## 前提条件チェック
 
-```!
-test -f vendor/bin/pest && echo "vendor/bin/pest: OK" || echo "vendor/bin/pest: MISSING — run `composer install` first"
+```bash
+test -f vendor/bin/pest && echo "vendor/bin/pest: OK" || echo "vendor/bin/pest: MISSING — run composer install first"
 test -f vendor/bin/pint && echo "vendor/bin/pint: OK" || echo "vendor/bin/pint: MISSING"
 test -f vendor/bin/phpstan && echo "vendor/bin/phpstan: OK" || echo "vendor/bin/phpstan: MISSING"
 ```
