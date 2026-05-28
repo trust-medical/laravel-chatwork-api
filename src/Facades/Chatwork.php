@@ -19,6 +19,7 @@ use TrustMedical\LaravelChatworkApi\ChatworkManager;
  * @method static ChatworkManager forConnection(\TrustMedical\LaravelChatworkApi\Connection $connection)
  * @method static ChatworkManager withApiToken(string $token)
  * @method static ChatworkManager withBearerToken(string $token)
+ * @method static ChatworkManager forOAuthKey(string $key, ?string $base = null)
  * @method static ChatworkManager asArray()
  * @method static ChatworkManager asDto()
  * @method static ChatworkManager asCollection()
