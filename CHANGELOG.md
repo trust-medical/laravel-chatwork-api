@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`UploadedRoomFile` DTO の完全マッピング**: `POST /v2/rooms/{room_id}/files`
+  のレスポンスから `message_id` / `filename` / `filesize` / `upload_time` /
+  `account` (`SimpleAccount`) を読み取って公開プロパティに公開するようになった。
+  これまで `file_id` 以外の情報を取得するには `asArray()` で raw レスポンスを取得する
+  必要があったが、Dto モードでもファイル添付メッセージの Chatwork 直リンク
+  (`#!rid<room_id>-<message_id>`) を組み立てられるようになる。新フィールドは
+  すべてコンストラクタの末尾にデフォルト値付きで追加されているため、
+  `new UploadedRoomFile(fileId: ...)` を直接呼ぶ既存テストや fixture との
+  後方互換は保たれる。`account` は欠落耐性のため `?SimpleAccount` で公開する。
+
 ## [1.0.2] - 2026-05-25
 
 ### Fixed
