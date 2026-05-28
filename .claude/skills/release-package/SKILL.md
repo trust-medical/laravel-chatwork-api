@@ -12,7 +12,7 @@ trust-medical/laravel-chatwork-api を **v$version** としてリリースする
 
 ## 実行モデル（最重要・必ず守る）
 
-**本ファイルは Claude が読む playbook。bash ブロックは skill ローダーが自動実行しない**（過去版は ` ```!` 形式で auto-execute されていたが、user approval を挟めない・CHANGELOG 編集ステップが欠落するなど致命的な不整合を起こすため廃止）。
+**本ファイルは Claude が読む playbook。bash ブロックは skill ローダーが自動実行しない**（過去版は bash 即時実行フェンス（triple-backtick + `!`）形式で auto-execute されていたが、user approval を挟めない・CHANGELOG 編集ステップが欠落するなど致命的な不整合を起こすため廃止。なお本 SKILL.md 内ではこの過去フェンス記号をリテラル表記しない。skill ローダーが auto-execute trigger と誤検知して SKILL.md 末尾までを `eval` に渡し `unexpected EOF` で起動不能になる事案を引いたため）。
 
 Claude は以下のルールで進める:
 
