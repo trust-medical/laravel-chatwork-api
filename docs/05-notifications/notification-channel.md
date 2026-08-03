@@ -71,7 +71,7 @@ class TaskAssignedNotification extends ChatworkNotification
     public function toChatwork(object $notifiable): ChatworkMessage
     {
         return ChatworkMessage::make()
-            ->body("[info][title]タスク割当[/title]{$this->task->title}[/info]")
+            ->info('タスク割当', $this->task->title)
             ->selfUnread();
     }
 }

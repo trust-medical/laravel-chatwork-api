@@ -32,8 +32,7 @@ it('サブクラスの toChatwork() がビルダーチェーンした ChatworkMe
         public function toChatwork(object $notifiable): ChatworkMessage
         {
             return ChatworkMessage::make()
-                ->title('Subject')
-                ->body('Body')
+                ->info('Subject', 'Body')
                 ->selfUnread();
         }
     };
@@ -41,7 +40,7 @@ it('サブクラスの toChatwork() がビルダーチェーンした ChatworkMe
     $message = $notification->toChatwork(new stdClass());
 
     expect($message->toPayload())->toBe([
-        'body' => "[title]Subject[/title]\nBody",
+        'body' => '[info][title]Subject[/title]Body[/info]',
         'self_unread' => 1,
     ]);
 });

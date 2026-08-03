@@ -49,16 +49,22 @@ final class ChatworkMessage
         return $this;
     }
 
-    public function info(string $title, string $body): self
+    /**
+     * `[info][title]{title}[/title]{body}[/info]` の囲み枠を単一セグメントとして追加する。
+     * タイトル・本文とも角括弧を全角へ無害化する ({@see self::plain()} と同じ規則)。
+     * 生の Chatwork 記法を送りたい場合は {@see self::body()} で明示する。
+     *
+     * @param  string|list<string>  $body  行配列は "\n" で連結してから無害化する。
+     */
+    public function info(string $title, string|array $body): self
     {
-        $this->segments[] = sprintf('[info][title]%s[/title]%s[/info]', $title, $body);
+        $text = is_array($body) ? implode("\n", $body) : $body;
 
-        return $this;
-    }
-
-    public function title(string $text): self
-    {
-        $this->segments[] = sprintf('[title]%s[/title]', $text);
+        $this->segments[] = sprintf(
+            '[info][title]%s[/title]%s[/info]',
+            self::neutralize($title),
+            self::neutralize($text),
+        );
 
         return $this;
     }

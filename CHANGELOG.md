@@ -10,6 +10,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING: `ChatworkMessage::info()` がタイトル・本文を自動で無害化するようになった**。
+  角括弧を全角へ変換する規則は `plain()` / `escape()` と同一（`[` → `［`、`]` → `］`）。
+  これまでは渡された文字列をそのまま `sprintf()` で埋め込んでいたため、API レスポンスや
+  例外メッセージのように利用側が内容を統制できない値を渡すと、本文中の `[/info]` で
+  囲み枠が途中で閉じたり `[To:]` が注入されたりした。回避には利用側で同じ無害化処理を
+  複製する必要があり、consumer 側に同一のワークアラウンドが増殖していた。テキストは
+  エスケープを既定とし、生の Chatwork 記法は `body()` で明示的にオプトインする
+  （Blade の `{{ }}` と `{!! !!}` の関係）。`info()` 経由で意図的に記法を描画していた
+  場合は `body()` へ移行すること。
+
+### Added
+
+- **`ChatworkMessage::info()` が本文に行配列（`list<string>`）を受け付ける**。
+  `"\n"` で連結してから無害化するため、利用側で `implode()` する必要がなくなった。
+  空文字要素は空行として保持する。空タイトル / 空本文 / 空配列でも例外にせず
+  `[info][title][/title][/info]` の枠を生成する。
+
+### Removed
+
+- **BREAKING: Laravel 11 サポートを終了した**（`illuminate/*` の制約を `^12.0 || ^13.0` へ、
+  CI マトリクスから `^11.0` を削除）。Laravel 11 は 2026-03 にセキュリティサポートが終了
+  しており、未修正のセキュリティアドバイザリにより Composer のアドバイザリ遮断が
+  `illuminate/mail` / `laravel/framework` v11 系の解決自体をブロックするため、
+  新規インストールが事実上不可能になっている。Laravel 12 以上へアップグレードすること。
+- **BREAKING: `ChatworkMessage::title()` を削除した**。単独の `[title]...[/title]` は
+  Chatwork 側で装飾されず、`[info]` の内側でのみ見出しとして機能するため、素の角括弧が
+  本文に残るだけの footgun だった。`->title($t)->body($b)` は `->info($t, $b)` へ移行する
+  こと。装飾されない生タグをそのまま送りたい場合は `->body("[title]{$t}[/title]")`。
+
 ## [1.2.0] - 2026-05-28
 
 ### Added
