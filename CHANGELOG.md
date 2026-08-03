@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-03
+
 ### Changed
 
 - **BREAKING: `ChatworkMessage::info()` がタイトル・本文を自動で無害化するようになった**。
@@ -262,7 +264,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     （メッセージ本文ではない）である旨はクラス docblock で充足済みのため
     重複コメントを追加しない（説明コメント禁止の規約に従う）。
 
-[Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/trust-medical/laravel-chatwork-api/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v2.0.0
 [1.2.0]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v1.2.0
 [1.1.0]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v1.1.0
 [1.0.2]: https://github.com/trust-medical/laravel-chatwork-api/releases/tag/v1.0.2
