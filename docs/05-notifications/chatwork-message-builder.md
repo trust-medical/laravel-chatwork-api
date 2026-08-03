@@ -42,7 +42,6 @@ ChatworkMessage::make()
     ->to(123)
     ->body('本文')
     ->info('タイトル', '内容')
-    ->title('見出し')
     ->code('ログ')
     ->hr();
 ```
@@ -53,27 +52,48 @@ ChatworkMessage::make()
 [To:123]
 本文
 [info][title]タイトル[/title]内容[/info]
-[title]見出し[/title]
 [code]ログ[/code]
 hr相当の罫線
 ```
 
 罫線の具体表現は実装時にChatwork表示を考慮して決める。
 
+単独の `[title]...[/title]` はChatwork側で装飾されないため、ビルダーからは提供しない。
+見出しは `info($title, $body)` が `[info]` の内側の `[title]` として描画する。
+
 ## エスケープ
 
-デフォルトでは本文をそのまま送信する。
-これはChatwork記法をアプリケーション側で直接書けるようにするため。
+テキストを受け取るビルダーはエスケープを既定とし、生のChatwork記法は明示的にオプトインする
+（Blade の `{{ }}` と `{!! !!}` の関係）。
 
-```php
-ChatworkMessage::make()->body('[info]本文[/info]');
-```
+| 呼出 | 本文の扱い |
+| --- | --- |
+| `info($title, $body)` | タイトル・本文とも角括弧を全角へ無害化する |
+| `plain($text)` / `escape($text)` | 角括弧を全角へ無害化する |
+| `body($text)` | そのまま送信する（記法が有効） |
 
-`plain()` または `escape()` を明示した場合だけ、Chatwork記法を無効化する。
+`info()` は利用側が内容を統制できない値（API レスポンス、例外メッセージ）を
+そのまま渡せる。本文中の `[/info]` で囲み枠が途中で閉じたり、`[To:]` が
+注入されたりしない。
 
 ```php
 ChatworkMessage::make()
-    ->plain('[info]本文[/info]');
+    ->info('同期失敗', '[/info][To:999] 応答: [code]500[/code]');
+// → [info][title]同期失敗[/title]［/info］［To:999］ 応答: ［code］500［/code］[/info]
+```
+
+本文には行配列も渡せる。`"\n"` で連結してから無害化するため、
+利用側で `implode()` する必要はない（空文字要素は空行として残る）。
+
+```php
+ChatworkMessage::make()
+    ->info('デプロイ完了', ['環境: production', '', 'コミット: abc123']);
+```
+
+Chatwork記法を意図して描画したい場合だけ `body()` を使う。
+
+```php
+ChatworkMessage::make()->body('[info]本文[/info]');
 ```
 
 ## バリデーション

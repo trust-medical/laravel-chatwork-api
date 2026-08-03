@@ -68,13 +68,12 @@ ChatworkMessage::make()
 初期対応するChatwork記法:
 
 - `[To:{account_id}]`
-- `[info]...[/info]`
-- `[title]...[/title]`
+- `[info][title]...[/title]...[/info]`
 - `[code]...[/code]`
 - 罫線
 
-本文はデフォルトでそのまま送信する。
-`plain()` または `escape()` を明示した場合だけChatwork記法を無効化する。
+`info()` / `plain()` / `escape()` に渡したテキストは角括弧を全角へ無害化する。
+Chatwork記法をそのまま送るのは `body()` を明示した場合だけ。
 
 ## 戻り値
 
@@ -159,14 +158,17 @@ DTOまたはrequest object生成時に、API制約を超える明らかな値を
 
 `ChatworkMessage` builder は次に限定する（MVP）。
 
-- 対応: `[To:{account_id}]` / `[info]...[/info]` / `[title]...[/title]` / `[code]...[/code]` / 罫線
+- 対応: `[To:{account_id}]` / `[info][title]...[/title]...[/info]` / `[code]...[/code]` / 罫線
 - 非対応（初期実装外）: `[rp]` 返信、引用、絵文字、`[piconname:]` 等の装飾記法
+
+単独の `[title]...[/title]` はChatwork側で装飾されないため、ビルダーからは提供しない（`info()` の内側でのみ意味を持つ）。
 
 本文に直接Chatwork記法を書いた場合の挙動は次の通り。
 
 | 呼出 | 本文の扱い |
 | --- | --- |
 | `body($text)` | そのまま送信する（記法は有効） |
+| `info($title, $body)` | タイトル・本文を無害化してから `[info]` 枠で囲む |
 | `plain($text)` / `escape($text)` | Chatwork記法を無効化する（`[` / `]` 等を文字として扱う） |
 
 `plain()` と `escape()` の実体は同じ。`plain()` は意図の明示、`escape()` は危険文字列処理の文脈で使う。

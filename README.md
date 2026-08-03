@@ -344,7 +344,11 @@ class DeployFinished extends ChatworkNotification
 
 `ChatworkNotification` を使わず通常の `Notification` で `via()` に `[ChatworkChannel::class]` を返し、`toChatwork($notifiable): ChatworkMessage` を実装しても構いません（queueable・複数チャンネル併用などはこちら）。
 
-メッセージビルダーは `body()` / `title()` / `code()` / `hr()` / `plain()` / `escape()` / `to()`（TO 付与）/ `toRoom()` / `selfUnread()` を提供します。
+`info($title, $body)` はタイトル・本文の角括弧を全角へ無害化してから `[info][title]...[/title]...[/info]` を組み立てます。API レスポンスや例外メッセージのように内容を統制できない値をそのまま渡しても、本文中の `[/info]` で囲み枠が閉じたり `[To:]` が注入されたりしません。本文には行配列（`list<string>`）も渡せ、`"\n"` で連結してから無害化します。Chatwork 記法を意図して描画する場合だけ `body()` を使ってください。
+
+メッセージビルダーは `body()`（生の記法）/ `info()` / `code()` / `hr()` / `plain()` / `escape()` / `to()`（TO 付与）/ `toRoom()` / `selfUnread()` を提供します。
+
+> **v1 からの移行:** v2.0.0 で `info()` は無害化を行うようになりました（v1 は渡された文字列をそのまま埋め込み）。`info()` 経由で Chatwork 記法を意図的に描画していた場合は `body()` へ移してください。また `title()` は削除されました（単独の `[title]` は Chatwork 側で装飾されないため）。`->title($t)->body($b)` は `->info($t, $b)` へ移行します。
 
 送信先は `ChatworkMessage::toRoom()` のほか、notifiable 側の `routeNotificationForChatwork()` でも指定できます（両方指定は競合エラー）:
 
