@@ -87,10 +87,10 @@ it('body() は Chatwork 記法を生のまま送信する (無害化のオプト
     expect($message->toPayload()['body'])->toBe('[info]生記法[/info]');
 });
 
-it('[title]...[/title] をレンダリングする', function () {
-    $message = ChatworkMessage::make()->title('見出し');
-
-    expect($message->toPayload()['body'])->toBe('[title]見出し[/title]');
+// method_exists() は静的解析で常に true/false へ畳まれ phpstan の impossibleType に触れるため、
+// 実行時解決の Reflection で存在を検査する。
+it('title() ビルダーメソッドを提供しない (単独の [title] は装飾されない)', function () {
+    expect((new ReflectionClass(ChatworkMessage::class))->hasMethod('title'))->toBeFalse();
 });
 
 it('[code]...[/code] をレンダリングする', function () {
@@ -148,11 +148,10 @@ it('宣言順に複合ボディを構築する', function () {
         ->to(123)
         ->body('本文')
         ->info('タイトル', '内容')
-        ->title('見出し')
         ->code('ログ')
         ->hr();
 
     expect($message->toPayload()['body'])->toBe(
-        "[To:123]\n本文\n[info][title]タイトル[/title]内容[/info]\n[title]見出し[/title]\n[code]ログ[/code]\n[hr]"
+        "[To:123]\n本文\n[info][title]タイトル[/title]内容[/info]\n[code]ログ[/code]\n[hr]"
     );
 });
