@@ -69,13 +69,6 @@ final class ChatworkMessage
         return $this;
     }
 
-    public function title(string $text): self
-    {
-        $this->segments[] = sprintf('[title]%s[/title]', $text);
-
-        return $this;
-    }
-
     public function code(string $text): self
     {
         $this->segments[] = sprintf('[code]%s[/code]', $text);
