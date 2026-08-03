@@ -3,7 +3,7 @@
 [Chatwork API v2](https://developer.chatwork.com/reference) を Laravel から安全に利用するための Composer パッケージです。**Facade / DI / Laravel Notification** の3経路を公式サポートします。
 
 - PHP `^8.3`
-- Laravel `^11.0 || ^12.0 || ^13.0`
+- Laravel `^12.0 || ^13.0`
 - Chatwork API v2（Base URI: `https://api.chatwork.com/v2`）
 
 ## 特長

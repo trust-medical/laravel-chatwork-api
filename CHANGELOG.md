@@ -31,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **BREAKING: Laravel 11 サポートを終了した**（`illuminate/*` の制約を `^12.0 || ^13.0` へ、
+  CI マトリクスから `^11.0` を削除）。Laravel 11 は 2026-03 にセキュリティサポートが終了
+  しており、未修正のセキュリティアドバイザリにより Composer のアドバイザリ遮断が
+  `illuminate/mail` / `laravel/framework` v11 系の解決自体をブロックするため、
+  新規インストールが事実上不可能になっている。Laravel 12 以上へアップグレードすること。
 - **BREAKING: `ChatworkMessage::title()` を削除した**。単独の `[title]...[/title]` は
   Chatwork 側で装飾されず、`[info]` の内側でのみ見出しとして機能するため、素の角括弧が
   本文に残るだけの footgun だった。`->title($t)->body($b)` は `->info($t, $b)` へ移行する
